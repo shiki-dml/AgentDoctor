@@ -203,6 +203,12 @@ def _mode_contract(contract: Path | None = None) -> Any:
     return default_contract()
 
 
+def _parse_focus_tags(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
 def _cmd_quick(contract: Path | None = None, out: Path = Path("reports")) -> int:
     report = run_quick_diagnosis(contract=_mode_contract(contract), out_dir=out)
     console.print(format_console_report(report))
@@ -215,12 +221,14 @@ def _cmd_deep(
     review: str = ReviewPolicy.ON_FAIL.value,
     contract: Path | None = None,
     out: Path = Path("reports"),
+    focus: str | None = None,
 ) -> int:
     report = run_deep_diagnosis(
         rounds=rounds,
         review_policy=review,
         contract=_mode_contract(contract),
         out_dir=out,
+        focus_tags=_parse_focus_tags(focus),
     )
     console.print(format_console_report(report))
     console.print(f"Wrote diagnostic report to {out / 'latest.md'}")
@@ -675,8 +683,13 @@ if _HAS_TYPER:
             "-o",
             help="Report output directory.",
         ),
+        focus: str | None = typer.Option(
+            None,
+            "--focus",
+            help="Optional comma-separated failure-type focus tags.",
+        ),
     ) -> None:
-        raise typer.Exit(_cmd_deep(rounds, review, contract, out))
+        raise typer.Exit(_cmd_deep(rounds, review, contract, out, focus))
 
     @app.command()
     def auto(
@@ -964,6 +977,7 @@ def _main_argparse() -> int:
     )
     deep_parser.add_argument("--contract", type=Path)
     deep_parser.add_argument("--out", "-o", default=Path("reports"), type=Path)
+    deep_parser.add_argument("--focus")
 
     auto_parser = subparsers.add_parser("auto")
     auto_parser.add_argument("--target-confidence", type=float, default=0.85)
@@ -1062,7 +1076,7 @@ def _main_argparse() -> int:
     if args.command == "quick":
         return _cmd_quick(args.contract, args.out)
     if args.command == "deep":
-        return _cmd_deep(args.rounds, args.review, args.contract, args.out)
+        return _cmd_deep(args.rounds, args.review, args.contract, args.out, args.focus)
     if args.command == "auto":
         return _cmd_auto(
             args.target_confidence,
