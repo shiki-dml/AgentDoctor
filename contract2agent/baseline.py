@@ -1551,6 +1551,14 @@ def capture_repo_state(project_root: str | Path) -> dict[str, Any]:
         return {"git_available": False}
     if inside.returncode != 0 or inside.stdout.strip() != "true":
         return {"git_available": False}
+    top_level = run_git("rev-parse", "--show-toplevel")
+    if top_level.returncode != 0:
+        return {"git_available": False}
+    try:
+        if Path(top_level.stdout.strip()).resolve() != root:
+            return {"git_available": False}
+    except OSError:
+        return {"git_available": False}
     commit = run_git("rev-parse", "HEAD")
     branch = run_git("branch", "--show-current")
     porcelain = run_git("status", "--porcelain")

@@ -234,6 +234,12 @@ def main() -> None:
     app()
 
 
+def _parse_focus_tags(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
 def _handle_baseline_actions(
     *,
     report: Any,
@@ -306,12 +312,14 @@ def _cmd_deep(
     save_baseline_flag: bool = False,
     baseline_name: str | None = None,
     compare_baseline_ref: str | None = None,
+    focus: str | None = None,
 ) -> int:
     report = run_deep_diagnosis(
         rounds=rounds,
         review_policy=review,
         contract=_mode_contract(contract),
         out_dir=out,
+        focus_tags=_parse_focus_tags(focus),
     )
     console.print(format_console_report(report))
     console.print(f"Wrote diagnostic report to {out / 'latest.md'}")
@@ -834,6 +842,11 @@ if _HAS_TYPER:
             "--compare-baseline",
             help="Compare this run with a saved baseline. Use latest or a baseline name.",
         ),
+        focus: str | None = typer.Option(
+            None,
+            "--focus",
+            help="Optional comma-separated failure-type focus tags.",
+        ),
     ) -> None:
         raise typer.Exit(
             _cmd_deep(
@@ -845,6 +858,7 @@ if _HAS_TYPER:
                 save_baseline_flag,
                 baseline_name,
                 compare_baseline_ref,
+                focus,
             )
         )
 
@@ -1166,6 +1180,7 @@ def _main_argparse() -> int:
     deep_parser.add_argument("--save-baseline", action="store_true")
     deep_parser.add_argument("--baseline-name")
     deep_parser.add_argument("--compare-baseline", nargs="?", const="latest")
+    deep_parser.add_argument("--focus")
 
     auto_parser = subparsers.add_parser("auto")
     auto_parser.add_argument("--target-confidence", type=float, default=0.85)
@@ -1284,6 +1299,7 @@ def _main_argparse() -> int:
             args.save_baseline,
             args.baseline_name,
             args.compare_baseline,
+            args.focus,
         )
     if args.command == "auto":
         return _cmd_auto(

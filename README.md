@@ -123,6 +123,68 @@ diagnosis, and repair guidance.
 - `agent_behavior_failure`: the contract and checker are reasonable, but the
   agent behavior in the trace violates them.
 
+## Failure Taxonomy v0.1
+
+Failure taxonomy turns raw test, scorer, trace, and baseline failures into
+structured diagnostic findings. These findings drive reports, deep mode
+planning, auto repair strategy selection, patch previews, baseline comparison,
+time-cost warnings, rollback decisions, and human review gates.
+
+Failure types are stable machine-readable labels:
+
+- `CONFIG_ERROR`
+- `TASK_INCOMPLETE`
+- `TOOL_MISSING`
+- `TOOL_ORDER_ERROR`
+- `TOOL_ARGUMENT_ERROR`
+- `FORBIDDEN_TOOL_CALL`
+- `OUTPUT_FORMAT_ERROR`
+- `OUTPUT_SCHEMA_ERROR`
+- `ERROR_HANDLING_MISSING`
+- `HALLUCINATION_RISK`
+- `LOOP_RISK`
+- `LOW_STABILITY`
+- `REGRESSION`
+- `SAFETY_RISK`
+- `SCORER_UNCERTAIN`
+- `UNKNOWN`
+
+Severity is tracked separately as `info`, `warning`, `error`, or `critical`.
+This lets the same failure type have different operational impact in different
+contexts. For example, a missing Markdown heading can be an
+`OUTPUT_FORMAT_ERROR` warning, while a broken API JSON contract can be an
+`OUTPUT_SCHEMA_ERROR` error.
+
+Triage and diagnostic modes use different evidence levels:
+
+- Triage produces potential risks. A missing source-grounding instruction can
+  reference `HALLUCINATION_RISK`, but triage has not run a failing test.
+- Quick, deep, and auto produce actual findings. A failed citation scorer can
+  produce a `HALLUCINATION_RISK` finding with trace/scorer evidence.
+
+Failure types guide updates directly:
+
+- `TOOL_MISSING` routes to prompt or tool-description updates and validates
+  with `tool_use` and `tool_order` tests.
+- `OUTPUT_SCHEMA_ERROR` routes to strict schema instructions and validates with
+  `json_schema` or `output_schema` tests.
+- `SAFETY_RISK` and `FORBIDDEN_TOOL_CALL` require human review and are not
+  auto-applied.
+- `SCORER_UNCERTAIN` routes to eval/scorer review instead of agent patching.
+- `REGRESSION` compares baseline behavior and prefers rollback review.
+
+Markdown reports include a `Failure Taxonomy Summary` section grouped by failure
+type. JSON reports include machine-readable `findings`, `taxonomy_summary`,
+failure-type counts, review-required finding ids, auto-fix eligible finding ids,
+patch target candidates, next-round tags, baseline comparison fields, and
+time-cost summaries.
+
+Auto mode repairs failure type clusters, not individual failed tests. It stops
+or requires review for safety findings, forbidden tool calls, dominant scorer
+uncertainty, dominant unknown failures, and regressions introduced by patches.
+Patch previews include the triggering failure types, related finding ids,
+expected effect, validation tags, risk level, and approval requirements.
+
 ## Example Diagnosis
 
 Trace:
