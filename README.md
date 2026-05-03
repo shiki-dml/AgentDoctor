@@ -169,6 +169,7 @@ Recommended first commands:
 agentdoctor triage
 agentdoctor quick
 agentdoctor deep --rounds 3 --review on-fail
+agentdoctor patch-preview --from-run reports/latest.json
 agentdoctor auto --target-confidence 0.85 --max-rounds 6
 ```
 
@@ -295,6 +296,83 @@ Auto is not recommended by default. Pass `--allow-auto` if you want triage to
 consider auto mode. Triage still avoids recommending auto when safe patch
 boundaries, eval cases, approval policies, or other readiness checks are
 missing.
+
+## Patch Preview
+
+`agentdoctor patch-preview` generates reviewable patch proposals from
+diagnostic findings. It explains which failure types triggered the patch, shows
+a unified diff when a safe target exists, estimates risk, records approval
+requirements, and recommends validation tests.
+
+Patch preview is the review gate between diagnosis and modification:
+
+```text
+Finding / GroupedFinding
+-> FailureType
+-> FixStrategy
+-> PatchProposal
+-> Patch Preview Report
+```
+
+Run it after quick or deep diagnosis:
+
+```powershell
+agentdoctor patch-preview --from-run reports/latest.json
+agentdoctor patch-preview --from-run .agentdoctor/runs/latest.json --failure-type OUTPUT_SCHEMA_ERROR
+agentdoctor patch-preview --from-findings .agentdoctor/reports/latest.json --output .agentdoctor/patches/
+agentdoctor patch-preview --from-run reports/latest.json --format json
+```
+
+Patch preview writes:
+
+```text
+.agentdoctor/patches/latest.md
+.agentdoctor/patches/latest.json
+.agentdoctor/patches/patch_<timestamp>_<index>.md
+.agentdoctor/patches/patch_<timestamp>_<index>.json
+.agentdoctor/patches/patch_<timestamp>_<index>.diff
+```
+
+It does not silently apply patches, run full auto repair, patch secrets or
+denied paths, or patch agent behavior for `SCORER_UNCERTAIN` or `UNKNOWN`
+findings. Patch Preview v0.1 is preview-only even when a proposal is marked
+eligible for a future auto-apply flow.
+
+Example proposal excerpt:
+
+```text
+Target failure type: OUTPUT_SCHEMA_ERROR
+Reason: The agent produced invalid JSON in output_schema tests.
+Diff: adds "Return only valid JSON matching the required schema."
+Validation command: agentdoctor deep --rounds 2 --review on-fail
+Risk: medium
+Requires approval: true
+```
+
+Risk levels:
+
+- `low`: output-format prompt clarification, read-only tool trigger, or local
+  error-handling instruction.
+- `medium`: output schema, source grounding, tool argument, or read-only
+  workflow sequence changes.
+- `high`: tool-permission config changes, side-effectful workflows, or
+  rollback of a non-trivial patch.
+- `critical`: safety, forbidden-tool, shell/code execution, external-write, or
+  permission-boundary changes.
+- `unknown`: insufficient evidence to classify the change.
+
+Approval rules:
+
+- `SAFETY_RISK` and `FORBIDDEN_TOOL_CALL` always require approval and are never
+  auto-applicable.
+- `SCORER_UNCERTAIN` and `UNKNOWN` generate review-only proposals instead of
+  agent prompt patches.
+- Low-risk prompt patches may be eligible for a future auto-apply flow, but
+  v0.1 still writes previews only.
+
+Every proposal includes validation tags and a runnable validation command. The
+current CLI does not yet expose `--focus` or `--compare-baseline`; use the
+proposal's validation tags to choose focused cases when running deep diagnosis.
 
 ## Diagnostic Modes
 
