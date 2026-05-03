@@ -43,7 +43,15 @@ from contract2agent.capabilities import (
 )
 from contract2agent.schema import load_contract, model_to_dict
 from contract2agent.triage import TriageOptions, run_triage
-from contract2agent.triage.report import format_json_report, format_terminal_summary
+from contract2agent.triage.report import (
+    format_json_report as format_triage_json_report,
+    format_terminal_summary as format_triage_terminal_summary,
+)
+from contract2agent.patch_preview import PatchPreviewOptions, run_patch_preview
+from contract2agent.patch_preview.report import (
+    format_json_report as format_patch_preview_json_report,
+    format_terminal_summary as format_patch_preview_terminal_summary,
+)
 
 try:
     import yaml
@@ -193,9 +201,43 @@ def _cmd_triage(
     )
     normalized = output_format.casefold()
     if normalized == "json":
-        console.print(format_json_report(plan).rstrip())
+        console.print(format_triage_json_report(plan).rstrip())
     elif normalized == "markdown":
-        console.print(format_terminal_summary(plan))
+        console.print(format_triage_terminal_summary(plan))
+    else:
+        raise ValueError("--format must be markdown or json")
+    return 0
+
+
+def _cmd_patch_preview(
+    from_run: Path | None = None,
+    from_findings: Path | None = None,
+    failure_type: str | None = None,
+    output: Path | None = None,
+    output_format: str = "markdown",
+    dry_run: bool = True,
+    allow_apply: bool = False,
+    apply_patch_id: str | None = None,
+    project_root: Path = Path("."),
+) -> int:
+    report = run_patch_preview(
+        PatchPreviewOptions(
+            project_root=project_root,
+            from_run=from_run,
+            from_findings=from_findings,
+            failure_type=failure_type,
+            output=output,
+            output_format=output_format,
+            dry_run=dry_run,
+            allow_apply=allow_apply,
+            apply_patch_id=apply_patch_id,
+        )
+    )
+    normalized = output_format.casefold()
+    if normalized == "json":
+        console.print(format_patch_preview_json_report(report).rstrip())
+    elif normalized == "markdown":
+        console.print(format_patch_preview_terminal_summary(report))
     else:
         raise ValueError("--format must be markdown or json")
     return 0
@@ -986,6 +1028,69 @@ if _HAS_TYPER:
             _cmd_triage(agent, goal, project_root, triage_format, output, allow_auto)
         )
 
+    @app.command(name="patch-preview")
+    def patch_preview_command(
+        from_run: Path | None = typer.Option(
+            None,
+            "--from-run",
+            help="Path to a diagnostic run/report JSON file.",
+        ),
+        from_findings: Path | None = typer.Option(
+            None,
+            "--from-findings",
+            help="Path to a findings/report JSON file.",
+        ),
+        failure_type: str | None = typer.Option(
+            None,
+            "--failure-type",
+            help="Optional failure type filter, such as OUTPUT_SCHEMA_ERROR.",
+        ),
+        output: Path | None = typer.Option(
+            None,
+            "--output",
+            "-o",
+            help="Output directory. Defaults to .agentdoctor/patches/.",
+        ),
+        patch_format: str = typer.Option(
+            "markdown",
+            "--format",
+            help="Terminal output format: markdown or json. Reports always write both formats.",
+        ),
+        dry_run: bool = typer.Option(
+            True,
+            "--dry-run/--no-dry-run",
+            help="Preview-only mode. Patch Preview v0.1 never applies by default.",
+        ),
+        allow_apply: bool = typer.Option(
+            False,
+            "--allow-apply",
+            help="Accepted for forward compatibility; v0.1 remains preview-only.",
+        ),
+        apply_patch_id: str | None = typer.Option(
+            None,
+            "--apply",
+            help="Patch id to apply. v0.1 refuses apply and writes a preview-only report.",
+        ),
+        project_root: Path = typer.Option(
+            Path("."),
+            "--project-root",
+            help="Project root used for safe target selection.",
+        ),
+    ) -> None:
+        raise typer.Exit(
+            _cmd_patch_preview(
+                from_run,
+                from_findings,
+                failure_type,
+                output,
+                patch_format,
+                dry_run,
+                allow_apply,
+                apply_patch_id,
+                project_root,
+            )
+        )
+
     @app.command()
     def counterexamples(
         contract: Path = typer.Argument(..., help="Path to agent_contract.yaml."),
@@ -1213,6 +1318,21 @@ def _main_argparse() -> int:
     triage_parser.add_argument("--output", type=Path)
     triage_parser.add_argument("--allow-auto", action="store_true")
 
+    patch_preview_parser = subparsers.add_parser("patch-preview")
+    patch_preview_parser.add_argument("--from-run", type=Path)
+    patch_preview_parser.add_argument("--from-findings", type=Path)
+    patch_preview_parser.add_argument("--failure-type")
+    patch_preview_parser.add_argument("--output", "-o", type=Path)
+    patch_preview_parser.add_argument(
+        "--format",
+        choices=("markdown", "json"),
+        default="markdown",
+    )
+    patch_preview_parser.add_argument("--dry-run", action="store_true", default=True)
+    patch_preview_parser.add_argument("--allow-apply", action="store_true")
+    patch_preview_parser.add_argument("--apply", dest="apply_patch_id")
+    patch_preview_parser.add_argument("--project-root", default=Path("."), type=Path)
+
     counterexamples_parser = subparsers.add_parser("counterexamples")
     counterexamples_parser.add_argument("contract", type=Path)
     counterexamples_parser.add_argument("--out", "-o", required=True, type=Path)
@@ -1325,6 +1445,18 @@ def _main_argparse() -> int:
             args.format,
             args.output,
             args.allow_auto,
+        )
+    if args.command == "patch-preview":
+        return _cmd_patch_preview(
+            args.from_run,
+            args.from_findings,
+            args.failure_type,
+            args.output,
+            args.format,
+            args.dry_run,
+            args.allow_apply,
+            args.apply_patch_id,
+            args.project_root,
         )
     if args.command == "counterexamples":
         _cmd_counterexamples(args.contract, args.out)

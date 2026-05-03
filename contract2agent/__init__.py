@@ -57,6 +57,12 @@ from contract2agent.diagnosis import (
     suggest_minimal_patch,
     write_regression_traces,
 )
+from contract2agent.patch_preview import (
+    PatchPreviewOptions,
+    PatchPreviewReport,
+    PatchProposal,
+    run_patch_preview,
+)
 from contract2agent.schema import AgentContract, ForbiddenCapabilitySpec
 
 __all__ = [
@@ -83,6 +89,9 @@ __all__ = [
     "FixStrategyRouter",
     "GroupedFinding",
     "PotentialRisk",
+    "PatchPreviewOptions",
+    "PatchPreviewReport",
+    "PatchProposal",
     "ReviewItem",
     "ReviewPolicy",
     "Severity",
@@ -102,6 +111,7 @@ __all__ = [
     "generate_regression_trace_for_issue",
     "run_auto_diagnosis",
     "run_deep_diagnosis",
+    "run_patch_preview",
     "run_quick_diagnosis",
     "save_baseline",
     "select_next_round_tags",
