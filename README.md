@@ -167,6 +167,7 @@ Recommended first commands:
 
 ```powershell
 agentdoctor triage
+agentdoctor cost-estimate --from-triage .agentdoctor/triage/latest.json
 agentdoctor quick
 agentdoctor deep --rounds 3 --review on-fail
 agentdoctor auto --target-confidence 0.85 --max-rounds 6
@@ -250,6 +251,7 @@ agentdoctor triage --agent ./agent.yaml
 agentdoctor triage --goal "paper reading agent"
 agentdoctor triage --project-root .
 agentdoctor triage --allow-auto
+agentdoctor triage --include-cost
 ```
 
 Triage writes both human-readable and machine-readable reports:
@@ -295,6 +297,115 @@ Auto is not recommended by default. Pass `--allow-auto` if you want triage to
 consider auto mode. Triage still avoids recommending auto when safe patch
 boundaries, eval cases, approval policies, or other readiness checks are
 missing.
+
+## Time Cost Estimate
+
+`agentdoctor cost-estimate` performs a static pre-run estimate of diagnostic
+complexity, expected test volume, LLM/tool call ranges, runtime level, human
+review burden, slow paths, and budget guardrails. It reads triage output, eval
+metadata, tool metadata, baseline/history metadata when available, and explicit
+budget options.
+
+This is a rough static estimate, not measured runtime.
+
+Example commands:
+
+```powershell
+agentdoctor cost-estimate --from-triage .agentdoctor/triage/latest.json
+agentdoctor cost-estimate --mode deep --budget balanced
+agentdoctor cost-estimate --mode auto --max-auto-iterations 4
+agentdoctor cost-estimate --budget conservative --max-rounds 2 --max-tests 12
+```
+
+Cost estimate reports are written to:
+
+```text
+.agentdoctor/cost/latest.md
+.agentdoctor/cost/latest.json
+.agentdoctor/cost/cost_<timestamp>.md
+.agentdoctor/cost/cost_<timestamp>.json
+```
+
+`triage --include-cost` runs triage and then writes the static cost estimate
+from the generated triage JSON:
+
+```powershell
+agentdoctor triage --include-cost
+```
+
+What it does not do:
+
+- It does not run tests.
+- It does not call the agent.
+- It does not call tools.
+- It does not call LLM APIs.
+- It does not report measured runtime.
+- It does not estimate exact dollar cost unless measured pricing and usage data
+  exists in the repo.
+
+Example terminal summary:
+
+```text
+AgentDoctor Time Cost Estimate
+
+Mode: deep
+Complexity: medium
+Estimate confidence: medium
+Estimated rounds: 3
+Estimated tests: 12-24
+Runtime level: medium
+Review burden: medium
+
+Key cost drivers:
+- Multiple tools
+- Source-grounding validation
+- No baseline found
+
+Recommended guardrails:
+- max_rounds: 3
+- max_tests: 24
+- max_tool_calls_per_test: 5
+- stop_on_safety_risk: True
+
+Recommended command:
+agentdoctor deep --rounds 3 --review on-fail
+
+Note:
+This is a rough static estimate, not measured runtime.
+```
+
+Budget profiles:
+
+- `conservative`: fast, bounded, low-risk diagnosis. It prefers quick or a
+  small deep run, avoids auto by default, limits repeated runs, and stops on
+  safety, regression, and loop risks.
+- `balanced`: default reliable diagnosis. It follows the triage recommendation,
+  uses moderate rounds/tests, keeps patch preview before repair, and includes
+  regression-oriented guardrails.
+- `thorough`: broader pre-release diagnosis. It allows more rounds, tests,
+  regression, and stability checks. Auto is still only recommended when explicit
+  readiness and safety conditions pass.
+
+Failure-type cost risks are reflected in guardrails:
+
+- `LOOP_RISK` can increase runtime through repeated tool calls or retries.
+- `LOW_STABILITY` can require repeated validation runs.
+- `TOOL_ARGUMENT_ERROR` can cause tool errors, retries, and fallback checks.
+- `ERROR_HANDLING_MISSING` can waste calls after invalid inputs or tool
+  failures.
+- `HALLUCINATION_RISK` can add document reads, retrieval checks, citation
+  checks, and sometimes LLM judge calls.
+- `SAFETY_RISK` and `FORBIDDEN_TOOL_CALL` increase review burden and should
+  stop auto mode.
+- `REGRESSION` requires baseline comparison and can add validation loops.
+- `SCORER_UNCERTAIN` and `UNKNOWN` lower confidence and usually require review
+  or better instrumentation before repair.
+
+The estimate is intentionally broad. It should help decide whether to start
+with quick, deep, or auto; whether auto should be avoided; and which static
+guardrails to set. It should not be treated as an actual runtime, actual token
+count, or exact cost report. This is a rough static estimate, not measured
+runtime.
 
 ## Diagnostic Modes
 

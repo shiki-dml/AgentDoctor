@@ -34,6 +34,7 @@ from contract2agent.capabilities import (
     write_capability_eval_cases,
     write_capability_report,
 )
+from contract2agent.cost_estimate import CostEstimateOptions, run_cost_estimate
 from contract2agent.schema import load_contract, model_to_dict
 from contract2agent.triage import TriageOptions, run_triage
 from contract2agent.triage.report import format_json_report, format_terminal_summary
@@ -174,6 +175,7 @@ def _cmd_triage(
     output_format: str = "markdown",
     output: Path | None = None,
     allow_auto: bool = False,
+    include_cost: bool = False,
 ) -> int:
     plan = run_triage(
         TriageOptions(
@@ -191,6 +193,60 @@ def _cmd_triage(
         console.print(format_terminal_summary(plan))
     else:
         raise ValueError("--format must be markdown or json")
+    if include_cost:
+        latest_triage_json = Path(
+            plan.report_paths.get("latest_json", ".agentdoctor/triage/latest.json")
+        )
+        estimate, summary = run_cost_estimate(
+            CostEstimateOptions(
+                from_triage=latest_triage_json,
+                output_format="markdown",
+            ),
+            cwd=Path(plan.project_root),
+        )
+        console.print("")
+        console.print(summary.rstrip())
+        console.print(
+            f"Wrote cost estimate to {estimate.report_paths.get('latest_markdown', '.agentdoctor/cost/latest.md')}"
+        )
+    return 0
+
+
+def _cmd_cost_estimate(
+    from_triage: Path | None = None,
+    mode: str | None = None,
+    budget: str = "balanced",
+    max_rounds: int | None = None,
+    max_tests: int | None = None,
+    max_runtime_minutes: int | None = None,
+    max_llm_calls: int | None = None,
+    max_tool_calls: int | None = None,
+    max_tool_calls_per_test: int | None = None,
+    max_repeated_runs: int | None = None,
+    max_auto_iterations: int | None = None,
+    max_patch_attempts: int | None = None,
+    output: Path | None = None,
+    output_format: str = "markdown",
+) -> int:
+    _, rendered = run_cost_estimate(
+        CostEstimateOptions(
+            from_triage=from_triage,
+            mode=mode,
+            budget_profile=budget,
+            max_rounds=max_rounds,
+            max_tests=max_tests,
+            max_runtime_minutes=max_runtime_minutes,
+            max_llm_calls=max_llm_calls,
+            max_tool_calls=max_tool_calls,
+            max_tool_calls_per_test=max_tool_calls_per_test,
+            max_repeated_runs=max_repeated_runs,
+            max_auto_iterations=max_auto_iterations,
+            max_patch_attempts=max_patch_attempts,
+            output=output,
+            output_format=output_format,
+        )
+    )
+    console.print(rendered.rstrip())
     return 0
 
 
@@ -773,9 +829,81 @@ if _HAS_TYPER:
             "--allow-auto",
             help="Allow triage to recommend auto mode when readiness checks pass.",
         ),
+        include_cost: bool = typer.Option(
+            False,
+            "--include-cost",
+            help="Also write a static pre-run time/cost estimate from the triage report.",
+        ),
     ) -> None:
         raise typer.Exit(
-            _cmd_triage(agent, goal, project_root, triage_format, output, allow_auto)
+            _cmd_triage(
+                agent,
+                goal,
+                project_root,
+                triage_format,
+                output,
+                allow_auto,
+                include_cost,
+            )
+        )
+
+    @app.command(name="cost-estimate")
+    def cost_estimate(
+        from_triage: Path | None = typer.Option(
+            None,
+            "--from-triage",
+            help="Path to a triage JSON report. Defaults to .agentdoctor/triage/latest.json.",
+        ),
+        mode: str | None = typer.Option(
+            None,
+            "--mode",
+            help="Mode to estimate: quick, deep, or auto. Defaults to the triage recommendation.",
+        ),
+        budget: str = typer.Option(
+            "balanced",
+            "--budget",
+            help="Budget profile: conservative, balanced, or thorough.",
+        ),
+        max_rounds: int | None = typer.Option(None, "--max-rounds"),
+        max_tests: int | None = typer.Option(None, "--max-tests"),
+        max_runtime_minutes: int | None = typer.Option(None, "--max-runtime-minutes"),
+        max_llm_calls: int | None = typer.Option(None, "--max-llm-calls"),
+        max_tool_calls: int | None = typer.Option(None, "--max-tool-calls"),
+        max_tool_calls_per_test: int | None = typer.Option(
+            None,
+            "--max-tool-calls-per-test",
+        ),
+        max_repeated_runs: int | None = typer.Option(None, "--max-repeated-runs"),
+        max_auto_iterations: int | None = typer.Option(None, "--max-auto-iterations"),
+        max_patch_attempts: int | None = typer.Option(None, "--max-patch-attempts"),
+        output: Path | None = typer.Option(
+            None,
+            "--output",
+            help="Report output directory. Defaults to .agentdoctor/cost/ under the project root.",
+        ),
+        cost_format: str = typer.Option(
+            "markdown",
+            "--format",
+            help="Terminal output format: markdown summary or full json. Reports always write both.",
+        ),
+    ) -> None:
+        raise typer.Exit(
+            _cmd_cost_estimate(
+                from_triage,
+                mode,
+                budget,
+                max_rounds,
+                max_tests,
+                max_runtime_minutes,
+                max_llm_calls,
+                max_tool_calls,
+                max_tool_calls_per_test,
+                max_repeated_runs,
+                max_auto_iterations,
+                max_patch_attempts,
+                output,
+                cost_format,
+            )
         )
 
     @app.command()
@@ -991,6 +1119,31 @@ def _main_argparse() -> int:
     )
     triage_parser.add_argument("--output", type=Path)
     triage_parser.add_argument("--allow-auto", action="store_true")
+    triage_parser.add_argument("--include-cost", action="store_true")
+
+    cost_parser = subparsers.add_parser("cost-estimate")
+    cost_parser.add_argument("--from-triage", type=Path)
+    cost_parser.add_argument("--mode", choices=("quick", "deep", "auto"))
+    cost_parser.add_argument(
+        "--budget",
+        choices=("conservative", "balanced", "thorough"),
+        default="balanced",
+    )
+    cost_parser.add_argument("--max-rounds", type=int)
+    cost_parser.add_argument("--max-tests", type=int)
+    cost_parser.add_argument("--max-runtime-minutes", type=int)
+    cost_parser.add_argument("--max-llm-calls", type=int)
+    cost_parser.add_argument("--max-tool-calls", type=int)
+    cost_parser.add_argument("--max-tool-calls-per-test", type=int)
+    cost_parser.add_argument("--max-repeated-runs", type=int)
+    cost_parser.add_argument("--max-auto-iterations", type=int)
+    cost_parser.add_argument("--max-patch-attempts", type=int)
+    cost_parser.add_argument("--output", type=Path)
+    cost_parser.add_argument(
+        "--format",
+        choices=("markdown", "json"),
+        default="markdown",
+    )
 
     counterexamples_parser = subparsers.add_parser("counterexamples")
     counterexamples_parser.add_argument("contract", type=Path)
@@ -1083,6 +1236,24 @@ def _main_argparse() -> int:
             args.format,
             args.output,
             args.allow_auto,
+            args.include_cost,
+        )
+    if args.command == "cost-estimate":
+        return _cmd_cost_estimate(
+            args.from_triage,
+            args.mode,
+            args.budget,
+            args.max_rounds,
+            args.max_tests,
+            args.max_runtime_minutes,
+            args.max_llm_calls,
+            args.max_tool_calls,
+            args.max_tool_calls_per_test,
+            args.max_repeated_runs,
+            args.max_auto_iterations,
+            args.max_patch_attempts,
+            args.output,
+            args.format,
         )
     if args.command == "counterexamples":
         _cmd_counterexamples(args.contract, args.out)
