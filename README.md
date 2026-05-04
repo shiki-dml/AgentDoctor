@@ -4,25 +4,23 @@ Turn contract disputes into structured diagnostic reports and agent-ready workfl
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab)](https://www.python.org/)
 [![pytest](https://img.shields.io/badge/tests-pytest-0f8f86)](#testing)
-[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-2454d6)](docs/index.html)
+[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-2454d6)](https://shiki-dml.github.io/Contract2Agent/)
 [![CLI: c2a](https://img.shields.io/badge/CLI-c2a-15202b)](#cli-usage)
 [![Status: Experimental](https://img.shields.io/badge/status-experimental-b45309)](#roadmap)
 
 **Contract2Agent** is a developer-oriented contract dispute diagnosis and structured workflow tool. It helps transform contract text, dispute facts, party positions, evidence, and configuration into reviewable outputs: dispute summaries, key issues, clause signals, evidence gaps, risk signals, suggested next steps, and Markdown/JSON-style reports.
 
-**Start here:** [Open Web Demo](docs/index.html) | [Quickstart](#cli-quickstart) | [CLI Usage](#cli-usage) | [Examples](#concrete-example-service-payment-dispute) | [Testing](#testing) | [GitHub Pages Setup](#github-pages-setup)
+**Start here:** [Open Web Demo](https://shiki-dml.github.io/Contract2Agent/) | [Quickstart](#cli-quickstart) | [CLI Usage](#cli-usage) | [Examples](#concrete-example-service-payment-dispute) | [Testing](#testing) | [GitHub Pages Setup](#github-pages-setup)
 
 ## Try the GitHub Pages Demo
 
-The fastest way to experience Contract2Agent is the GitHub Pages demo served from `docs/index.html`.
+The fastest way to experience Contract2Agent is the public GitHub Pages demo:
 
-After enabling GitHub Pages from the `docs/` folder, the site will be available at:
+**[https://shiki-dml.github.io/Contract2Agent/](https://shiki-dml.github.io/Contract2Agent/)**
 
-```text
-https://<owner>.github.io/<repo>/
-```
+The public demo is deployed from `docs/index.html` through GitHub Pages.
 
-For local verification without deployment, open:
+For local preview without deployment, open this file directly from your cloned repository:
 
 ```text
 docs/index.html
@@ -189,11 +187,12 @@ The public site lives in `docs/` and is designed to deploy without npm, a backen
 
 1. Open the repository settings on GitHub.
 2. Go to **Pages**.
-3. Select the target branch.
-4. Select `/docs` as the Pages source folder.
-5. Save and wait for GitHub Pages to publish.
-6. Update the Open Web Demo link in this README after Pages is enabled.
-7. Set the repository **Website** field to the GitHub Pages URL so the demo is visible from the repository sidebar.
+3. Set **Source** to **Deploy from a branch**.
+4. Set **Branch** to `main`.
+5. Set **Folder** to `/docs`.
+6. Save and wait for GitHub Pages to publish.
+7. Open **[https://shiki-dml.github.io/Contract2Agent/](https://shiki-dml.github.io/Contract2Agent/)**.
+8. Set the repository **Website** field to the GitHub Pages URL so the demo is visible from the repository sidebar.
 
 GitHub Pages readiness checklist:
 
@@ -202,7 +201,7 @@ GitHub Pages readiness checklist:
 - `docs/assets/styles.css`, `docs/assets/app.js`, and `docs/assets/contract2agent-preview.svg` exist when referenced.
 - No backend, build step, API key, LLM API, or dev server is required.
 - GitHub Pages source should be set to the target branch and `/docs`.
-- Repository Website should point to `https://<owner>.github.io/<repo>/`.
+- Repository Website should point to `https://shiki-dml.github.io/Contract2Agent/`.
 
 ## Testing
 
