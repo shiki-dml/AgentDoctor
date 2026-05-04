@@ -62,6 +62,23 @@ The JSON report contains a `TriagePlan` with these major fields:
 | `recommended_next_command` | Concrete next command. |
 | `report_paths` | Markdown and JSON report paths. |
 
+Common field names from the terminal summary map to nested JSON fields:
+
+| Summary field | JSON location |
+|---|---|
+| `agent_name` | `agent_summary.name` |
+| `agent_type` | `agent_classification.agent_type` |
+| `detected_tools` | `detected_capabilities.tools[].name` |
+| `detected_inputs` | `detected_capabilities.inputs` |
+| `detected_outputs` | `detected_capabilities.outputs` |
+| `risk_level` | `risk_assessment.risk_level` |
+| `key_behaviors_to_test` | `key_behaviors_to_test` |
+| `missing_information` | `missing_information` |
+| `recommended_mode` | `recommendation.recommended_mode` |
+| `recommended_rounds` | `recommendation.recommended_rounds` |
+| `suggested_review_policy` | `recommendation.suggested_review_policy` |
+| `recommended_next_command` | `recommended_next_command` |
+
 ## Agent Types
 
 Triage can classify common agent types:

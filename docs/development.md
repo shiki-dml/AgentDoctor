@@ -27,10 +27,18 @@ If using the project virtual environment on Windows:
 .venv_uv\Scripts\python.exe -m pytest
 ```
 
+## Compile Source
+
+```bash
+python -m compileall -q contract2agent tests scripts
+```
+
+This catches syntax errors across the package, tests, and local scripts without creating report artifacts that should be committed.
+
 ## Preview Docs
 
 ```bash
-mkdocs serve
+python -m mkdocs serve
 ```
 
 Then open the local URL printed by MkDocs, usually `http://127.0.0.1:8000/`.
@@ -38,13 +46,13 @@ Then open the local URL printed by MkDocs, usually `http://127.0.0.1:8000/`.
 ## Build Docs
 
 ```bash
-mkdocs build
+python -m mkdocs build
 ```
 
 For a strict CI-style build:
 
 ```bash
-mkdocs build --strict
+python -m mkdocs build --strict
 ```
 
 ## Check Internal Links
@@ -86,14 +94,20 @@ python -m pip install -e ".[docs]"
 and builds with:
 
 ```bash
-mkdocs build --strict
+python -m mkdocs build --strict
 ```
 
 ## Notes for Contributors
 
+- Read [AGENTS.md](../AGENTS.md) before broad edits; it records repository-specific setup, cleanup, and safety rules.
 - Keep CLI documentation aligned with `contract2agent/cli.py`.
 - Do not document unimplemented flags as if they work.
 - Keep sample reports clearly marked as examples.
 - Keep patch-preview and auto-mode docs conservative about safety and confidence.
 - Run `python scripts/check_docs_links.py` after editing docs links.
+- Run `python -m compileall -q contract2agent tests scripts` before committing doc-adjacent maintenance changes.
 - Run `python -m pytest` after changes that touch source behavior.
+
+## Cleanup Rules
+
+Do not commit generated output, caches, virtual environments, runtime `.agentdoctor/` data, local `.tmp/` audit output, or generated MkDocs `site/` output. Keep intentional fixtures under `examples/` or `tests/fixtures/`, and sanitize local absolute paths before adding audit or troubleshooting notes to the repository.

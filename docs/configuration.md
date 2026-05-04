@@ -8,10 +8,10 @@ AgentDoctor reads a bounded set of agent, prompt, tool, eval, baseline, and Agen
 |---|---|
 | `agent.yaml`, `agent.yml`, `agent.json` | Main agent metadata, model, tools, workflow, output contract. |
 | `agents/*.yaml`, `agents/*.yml`, `agents/*.json` | Alternative named agent configs. Use `--agent` to select one. |
-| `prompts/*.md`, `prompts/*.txt` | Prompt files inspected by triage and allowed as safe patch targets. |
+| `prompts/*.md`, `prompts/*.txt` | Prompt files inspected by triage and snapshots. The strict patch target allowlist currently permits `prompts/*.md`. |
 | `prompt.md`, `system_prompt.md`, `instructions.md` | Root-level prompt files. |
 | `tool_descriptions.yaml`, `tool_descriptions.yml` | Tool metadata and descriptions. |
-| `tools.yaml`, `tools.yml`, `agent_tools.yaml` | Additional tool config names recognized by triage/patch preview. |
+| `tools.yaml`, `tools.yml`, `agent_tools.yaml` | Additional tool config names recognized by triage and snapshots. |
 | `workflow_config.yaml`, `workflow_config.yml` | Workflow, review, approval, limits, and tool-order policy. |
 | `eval_config.yaml`, `eval_config.yml` | Evaluation metadata and scoring hints. |
 | `evals/*.yaml`, `evals/*.yml`, `evals/*.json` | Eval cases discovered by triage and baseline snapshots. |
@@ -150,14 +150,19 @@ Snapshots may include:
 - stable SHA-256 file hashes
 - copied safe config files up to 1 MB
 
+Snapshot discovery is broader than the patch allowlist. For example, snapshots can hash root prompt files and eval files so baseline comparison can explain state changes. Patch preview and auto repair use stricter prompt/config target rules; see [Patch Preview](patch-preview.md).
+
 ## Secret Exclusions
 
-Snapshots, triage, patch preview, and cost estimate must exclude secret-like files and directories:
+Snapshots, triage, patch preview, and cost estimate must exclude secret-like files, generated artifacts, and runtime state:
 
 - `.env`, `.env.*`
 - `*.key`, `*.pem`, `*.crt`
 - `secrets.*`, `credentials.*`, `token.*`, `auth.*`
 - private tokens and API keys
+- generated reports under `reports/`
+- runtime `.agentdoctor/triage/`, `.agentdoctor/baselines/`, `.agentdoctor/patches/`, `.agentdoctor/cost/`, `.agentdoctor/runs/`, and `.agentdoctor/tmp/`
+- lock files unless they are intentionally reviewed outside AgentDoctor snapshot/patch flows
 - `node_modules/`, `.venv/`, `venv/`, `.git/`, `dist/`, `build/`, `__pycache__/`
 
 Secret contents are not read, copied, printed, or written to reports. This is why some reports may mention that files were excluded without showing their contents.

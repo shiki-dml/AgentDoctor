@@ -14,9 +14,9 @@ Variants:
 
 ```bash
 agentdoctor patch-preview --from-run reports/latest.json --failure-type OUTPUT_SCHEMA_ERROR
-agentdoctor patch-preview --from-findings .agentdoctor/reports/latest.json --output .agentdoctor/patches/
+agentdoctor patch-preview --from-run reports/latest.json --output .agentdoctor/patches
 agentdoctor patch-preview --from-run reports/latest.json --format json
-agentdoctor patch-preview --apply patch_20260503_001
+agentdoctor patch-preview --apply patch_20260503_220000_001
 ```
 
 `--apply` and `--allow-apply` are accepted for forward compatibility, but v0.1 refuses to apply changes and records that no files were modified.
@@ -55,20 +55,15 @@ Patch preview proposal fields include:
 
 ## Safe Allowlist
 
-Patch preview recognizes safe targets such as:
+Patch preview uses a strict default target allowlist:
 
-- `prompts/*.md`, `prompts/*.txt`
-- `prompt.md`, `system_prompt.md`, `instructions.md`
-- `agent.yaml`, `agent.yml`, `agent.json`
-- `.agentdoctor/agent.yaml`
+- `prompts/*.md`
+- `agent.yaml`, `agent.yml`
 - `tool_descriptions.yaml`, `tool_descriptions.yml`
-- `tools.yaml`, `tools.yml`, `agent_tools.yaml`
 - `workflow_config.yaml`, `workflow_config.yml`
 - `eval_config.yaml`, `eval_config.yml`
-- `evals/*.yaml`, `evals/*.yml`, `evals/*.json`
-- `.agentdoctor/evals/*.yaml`, `.agentdoctor/evals/*.yml`, `.agentdoctor/evals/*.json`
 
-Auto mode uses a stricter safe patcher. It refuses source-code and secret-like targets by default.
+Root `prompt.md`, `system_prompt.md`, `instructions.md`, `agent.json`, `tools.yaml`, and eval files under `evals/` may be useful for triage or snapshots, but they are not patch-preview targets in v0.1. When a finding points at a disallowed target, the proposal becomes review-only and no diff is generated.
 
 ## Disallowed Files
 
@@ -81,6 +76,7 @@ Patch preview and auto mode must not patch:
 - filesystem permission logic
 - external API integration logic
 - generated reports
+- `.agentdoctor/**` runtime artifacts
 - baseline files
 - lock files
 - `.git/`, virtual environments, build output, cache directories

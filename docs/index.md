@@ -44,13 +44,14 @@ flowchart LR
 
 ## Recommended Workflow
 
-1. Start with [Triage](triage.md) to inspect configuration, prompts, tools, eval coverage, baseline status, and patch readiness.
-2. Use [Quick Check](quick.md) for a fast smoke diagnosis after a prompt or config change.
-3. Use [Deep Diagnosis](deep.md) for multi-round inspection, review policies, regression checks, and pre-release validation.
-4. Save a [Baseline](baselines.md) after a reliable deep run.
-5. Use [Patch Preview](patch-preview.md) to inspect proposed prompt/config changes before applying them.
-6. Use [Auto Mode](auto.md) only when patch boundaries, review policy, and stopping conditions are clear.
-7. Review [Reports](reports.md) and [Time Cost](time-cost.md) before trusting changes.
+1. Run [Triage](triage.md) to understand the agent, available files, risk level, and recommended test strategy.
+2. Run [Quick Check](quick.md) for a fast smoke diagnosis over key behaviors.
+3. Run [Deep Diagnosis](deep.md) for multi-round detailed diagnosis, traces, and review-policy handling.
+4. Review [Failure Taxonomy](failure-taxonomy.md), findings, and human review items before deciding what to change.
+5. Save or compare [Baselines](baselines.md) when checking regressions.
+6. Use [Patch Preview](patch-preview.md) before modifying prompt or config files.
+7. Use [Auto Mode](auto.md) only when safe patch boundaries, review policy, and stopping conditions are clear.
+8. Check [Time Cost](time-cost.md) reports and estimates to avoid inefficient long runs.
 
 ## Documentation Map
 
@@ -70,3 +71,4 @@ flowchart LR
 | [Reports](reports.md) | You need report paths and report structure. |
 | [Examples](examples.md) | You want sample agents and sample reports. |
 | [Development](development.md) | You need test, docs, and GitHub Pages setup. |
+| [2026-05-04 Bug Audit](audits/2026-05-04-bug-audit.md) | You need the repository hardening audit notes. |

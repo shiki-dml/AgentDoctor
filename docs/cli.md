@@ -105,6 +105,8 @@ reports/latest.json
 reports/rounds/round_001.json
 ```
 
+When `--save-baseline` is used, baseline and snapshot artifacts are also written under `.agentdoctor/baselines/`.
+
 ## Deep
 
 Purpose: run multi-round diagnosis with review policies, traces, tool calls, scores, findings, taxonomy summaries, and optional baseline actions.
@@ -140,6 +142,17 @@ agentdoctor deep --rounds 3 --save-baseline
 agentdoctor deep --rounds 3 --compare-baseline
 agentdoctor deep --rounds 2 --focus tool_order,output_schema
 ```
+
+Output files:
+
+```text
+reports/latest.md
+reports/latest.json
+reports/rounds/round_001.json
+reports/rounds/round_002.json
+```
+
+`--rounds` must be at least `1` and no more than the implemented `MAX_DEEP_ROUNDS` limit of `20`.
 
 Deep mode does not currently expose `--max-time-minutes`; runtime budgeting is available in `agentdoctor auto`, and static pre-run estimates are available through `agentdoctor cost-estimate`.
 
@@ -180,6 +193,17 @@ agentdoctor auto --target-confidence 0.90 --max-rounds 8 --max-time-minutes 30
 agentdoctor auto --target-confidence 0.85 --max-patches 4 --review on-fail
 ```
 
+Output files:
+
+```text
+reports/latest.md
+reports/latest.json
+reports/rounds/round_001.json
+reports/patches/patch_001.diff
+```
+
+`reports/patches/` is populated only when auto mode applies an allowlisted prompt/config patch and has a diff to record. The main runtime budget flags are `--max-rounds`, `--max-time-minutes`, `--max-patches`, and `--min-improvement`.
+
 Current auto mode does not implement `--preview-patches` or `--require-patch-approval` flags. For preview-only patch proposals, run `agentdoctor patch-preview --from-run reports/latest.json`.
 
 ## Patch Preview
@@ -197,7 +221,7 @@ Examples:
 ```bash
 agentdoctor patch-preview --from-run reports/latest.json
 agentdoctor patch-preview --from-run reports/latest.json --failure-type OUTPUT_SCHEMA_ERROR
-agentdoctor patch-preview --from-findings .agentdoctor/reports/latest.json --output .agentdoctor/patches/
+agentdoctor patch-preview --from-run reports/latest.json --output .agentdoctor/patches
 agentdoctor patch-preview --from-run reports/latest.json --format json
 ```
 

@@ -112,10 +112,10 @@ Static cost estimate also recommends guardrails such as:
 Auto mode can warn when continued repair is no longer efficient:
 
 ```text
-The last round improved confidence by only 0.01 while consuming 38% of total runtime.
+The last two rounds improved confidence by less than 0.03. Further auto-repair may be inefficient.
 ```
 
-The current code can also warn when the last two rounds improve confidence by less than `--min-improvement`, when runtime budget is nearly exhausted, or when repeated patches touch the same file without clear score improvement.
+The current code can also warn when runtime budget is nearly exhausted, when `LOOP_RISK` is associated with slow or repeated work, or when repeated patches touch the same file without clear score improvement.
 
 ## Example Summary
 
@@ -133,7 +133,7 @@ Slowest tests:
 3. markdown_schema_validation: 43.1s
 
 Efficiency warning:
-The last round improved confidence by only 0.01 while consuming 38% of total runtime.
+The last two rounds improved confidence by less than 0.03. Further auto-repair may be inefficient.
 ```
 
 ## Deep Mode Usage

@@ -48,11 +48,12 @@ This number is a diagnostic heuristic. It is useful for comparing runs, triggeri
 Auto uses `SafePatcher` and refuses unsafe targets. Default safe targets include:
 
 - `prompts/*.md`
-- prompt-like `.md`, `.txt`, `.yaml`, or `.yml` files
 - `agent.yaml`, `agent.yml`
 - `tool_descriptions.yaml`, `tool_descriptions.yml`
 - `workflow_config.yaml`, `workflow_config.yml`
 - `eval_config.yaml`, `eval_config.yml`
+
+If no existing safe target is available, the current safe patcher may create a missing root `eval_config.yaml`; the final target is still revalidated against the same allowlist before writing.
 
 Auto refuses:
 
@@ -60,6 +61,7 @@ Auto refuses:
 - `.env` and secret-like files
 - lock files such as `poetry.lock`, `uv.lock`, `package-lock.json`
 - report and trace directories
+- `.agentdoctor/` runtime artifacts, including baselines and patch-preview reports
 - `.git`, `__pycache__`, and unsafe paths
 - names containing auth, secret, token, credential, permission, or api
 

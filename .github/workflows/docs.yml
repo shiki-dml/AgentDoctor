@@ -33,7 +33,7 @@ jobs:
           python -m pip install -e ".[docs]"
 
       - name: Build documentation
-        run: mkdocs build --strict
+        run: python -m mkdocs build --strict
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
