@@ -135,6 +135,70 @@ LATE_DELIVERY_FORCE_MAJEURE_NEGATIVE_FIXTURE = {
 }
 
 
+POSITIVE_FORCE_MAJEURE_DELIVERY_FIXTURE = {
+    "contractType": "Service Agreement",
+    "disputeType": "Late Delivery",
+    "outputFormat": "Detailed",
+    "diagnosisDepth": "Detailed",
+    "riskMode": "Evidence-first",
+    "desiredOutcome": "Assess force majeure notice, mitigation, cover costs, and damages.",
+    "contractText": (
+        "Provider must complete the customer migration milestone by June 30, and time "
+        "is of the essence. Force majeure includes government orders and emergency "
+        "closures that prevent timely performance. Provider must send force majeure "
+        "notice to the SOW notice contacts within five business days after becoming "
+        "aware of the affected migration impact. Notices are deemed received on the "
+        "next-business-day after sending. Provider must use commercially reasonable "
+        "mitigation, including remote migration tools, alternate staffing, and alternate "
+        "site access where available. Customer may recover reasonable, necessary, direct, "
+        "and documented temporary migration support or cover costs. Liquidated damages "
+        "for unexcused delay accrue at 1.5% per full week and are capped at 12% of the "
+        "monthly service fee. Lost-profit and consequential damages, including lost "
+        "revenue, are excluded. Total liability is capped at fees paid during the six "
+        "months before the event."
+    ),
+    "disputeDescription": (
+        "A government emergency order was issued on June 20 closing the data center used "
+        "for the migration. Provider says it first became aware of the migration impact "
+        "on June 21 through an internal awareness email. Provider sent a force majeure "
+        "notice on June 28. The contractual migration deadline was June 30. Customer "
+        "retained a temporary consultant on July 18 to keep migration work moving. "
+        "Provider reached partial completion on July 20 and final completion on August 5."
+    ),
+    "claimantPosition": (
+        "Customer says the June 28 force majeure notice was late, mitigation was thin, "
+        "and the July 18 temporary consultant was a reasonable cover cost. Customer seeks "
+        "liquidated damages and lost revenue."
+    ),
+    "respondentPosition": (
+        "Provider says the June 20 government emergency order qualifies as force majeure, "
+        "it became aware on June 21, sent timely notice on June 28, used remote migration "
+        "tools and alternate staffing, and completed as soon as emergency closures allowed. "
+        "Provider invokes the 1.5% weekly liquidated damages formula, 12% cap, lost-profit "
+        "and consequential damages exclusion, and six-month fee liability cap."
+    ),
+    "evidence": (
+        "Available:\n"
+        "- June 20 government emergency order\n"
+        "- June 21 provider internal awareness email\n"
+        "- June 28 force majeure notice\n"
+        "- SOW notice contacts\n"
+        "- June 30 migration milestone in the SOW\n"
+        "- Remote migration tool logs\n"
+        "- Alternate staffing schedule\n"
+        "- Alternate site access request\n"
+        "- July 18 temporary consultant invoice\n"
+        "- July 20 partial completion log\n"
+        "- August 5 final completion certificate\n"
+        "- Liquidated damages calculation worksheet\n\n"
+        "Missing or unclear:\n"
+        "- Proof that the June 28 notice reached all SOW notice contacts\n"
+        "- Documentation supporting the temporary consultant rate"
+    ),
+    "metadata": '{"project":"migration"}',
+}
+
+
 def test_github_pages_entrypoint_references_existing_static_assets() -> None:
     demo_html = ROOT / "docs" / "playground" / "index.html"
     html = demo_html.read_text(encoding="utf-8")
@@ -381,7 +445,7 @@ def test_playground_late_delivery_key_issues_are_fact_specific() -> None:
         "5-business-day review period",
         "API mapping defects",
         "liquidated damages calculation",
-        "10% cap",
+        "10%",
         "lost revenue exclusion",
         "six-month fee liability cap",
     ):
@@ -415,6 +479,152 @@ def test_playground_late_delivery_exports_keep_force_majeure_clause_only() -> No
     assert "force majeure clause mentioned but not fact-triggered" in markdown
     assert "timeline_facts" in exported
     assert "risk" in exported
+
+
+def test_playground_positive_force_majeure_avoids_saas_template_leakage() -> None:
+    diagnosis = _run_playground_diagnosis(
+        POSITIVE_FORCE_MAJEURE_DELIVERY_FIXTURE
+    )["diagnosis"]
+    active_tags = {tag.lower() for tag in diagnosis["active_issue_tags"]}
+    exported_text = json.dumps(diagnosis).lower()
+
+    for expected in (
+        "force majeure",
+        "delivery",
+        "notice",
+        "mitigation",
+        "cover costs",
+        "liquidated damages",
+        "damages",
+        "liability limitation",
+    ):
+        assert expected in active_tags
+
+    for forbidden in (
+        "sla",
+        "service credit",
+        "suspension",
+        "invoice",
+        "payment timing",
+    ):
+        assert forbidden not in active_tags
+
+    for forbidden_text in (
+        "sla/uptime",
+        "service credit",
+        "support tickets",
+        "customer-side integration",
+        "uptime report",
+        "downtime",
+        "suspension",
+    ):
+        assert forbidden_text not in exported_text
+
+    assert "SLA/Service Credit" not in diagnosis["dispute_type"]
+    assert "Delivery/Acceptance" not in diagnosis["dispute_type"]
+
+
+def test_playground_positive_force_majeure_clauses_issues_and_timeline() -> None:
+    diagnosis = _run_playground_diagnosis(
+        POSITIVE_FORCE_MAJEURE_DELIVERY_FIXTURE
+    )["diagnosis"]
+    key_issue_text = "\n".join(diagnosis["key_issues"])
+    clause_text = "\n".join(diagnosis["clause_signals"])
+    timeline_text = "\n".join(diagnosis["timeline_facts"])
+
+    for expected_dispute_type in (
+        "Late Delivery",
+        "Force Majeure",
+        "Notice",
+        "Damages/Liability",
+        "Cover Costs/Mitigation",
+    ):
+        assert expected_dispute_type in diagnosis["dispute_type"]
+
+    for expected_clause in (
+        "June 30 migration milestone",
+        "time is of the essence",
+        "5-business-day force majeure notice requirement",
+        "government orders / emergency closures",
+        "commercially reasonable mitigation",
+        "temporary migration support / cover costs",
+        "liquidated damages formula at 1.5% per full week capped at 12%",
+        "lost-profit damages exclusion",
+        "lost revenue exclusion",
+        "six-month",
+        "contractual notice contacts",
+        "deemed receipt rule",
+    ):
+        assert expected_clause in clause_text
+
+    for forbidden_clause in (
+        "suspension rights",
+        "payment timing",
+        "SLA/service credit",
+    ):
+        assert forbidden_clause not in clause_text
+
+    for expected_issue in (
+        "Whether the June 20 government emergency order qualifies as a force majeure event.",
+        "Whether the provider became aware of the migration impact on June 20 or June 21.",
+        "Whether the June 28 force majeure notice was timely under the 5-business-day notice requirement.",
+        "Whether the June 28 notice was sent to the contractual notice contacts.",
+        "Whether the provider used commercially reasonable mitigation, including remote migration tools and alternate staffing.",
+        "Whether the July 18 temporary consultant cost was reasonable, necessary, direct, and documented cover cost.",
+        "Whether the July 20 partial completion and August 5 final completion leave any period of unexcused delay.",
+        "Whether liquidated damages are calculated at 1.5% per full week of unexcused delay and capped at 12% of the monthly service fee.",
+        "Whether claimed lost revenue is barred by the lost revenue exclusion.",
+        "Whether the six-month fee liability cap limits recovery.",
+    ):
+        assert expected_issue in key_issue_text
+
+    for expected_timeline in (
+        "June 20: government emergency order issued.",
+        "June 21: provider internal awareness email or migration-impact awareness.",
+        "June 28: force majeure notice.",
+        "June 30: contractual migration deadline.",
+        "July 18: temporary consultant retained.",
+        "July 20: partial completion.",
+        "August 5: final completion.",
+    ):
+        assert expected_timeline in timeline_text
+
+
+def test_playground_positive_force_majeure_next_steps_and_exports_are_scoped() -> None:
+    output = _run_playground_diagnosis(POSITIVE_FORCE_MAJEURE_DELIVERY_FIXTURE)
+    exported = json.loads(output["json"])
+    markdown = output["markdown"]
+    next_steps = "\n".join(exported["suggested_next_steps"])
+
+    for expected_step in (
+        "Build a June 20 / June 21 / June 28 / June 30 / July 18 / July 20 / August 5 timeline.",
+        "Verify the SOW notice contacts.",
+        "Verify proof that the force majeure notice was sent to contractual contacts.",
+        "Determine the actual awareness date for the affected migration.",
+        "Assess whether notice was within the contractual business-day notice period.",
+        "Review mitigation evidence for remote tools, alternate staffing, and alternate site access.",
+        "Evaluate whether the temporary consultant was reasonable and necessary cover.",
+        "Calculate liquidated damages by full weeks of unexcused delay using 1.5% weekly and 12% cap.",
+        "Analyze lost revenue under the lost-profit/consequential damages exclusion.",
+        "Apply the six-month fee liability cap.",
+    ):
+        assert expected_step in next_steps
+
+    for forbidden_step in (
+        "invoice",
+        "cure / suspension",
+        "service credit",
+        "support tickets",
+        "uptime",
+        "customer-side integration",
+    ):
+        assert forbidden_step not in next_steps.lower()
+
+    assert exported["active_issue_tags"] == output["diagnosis"]["active_issue_tags"]
+    assert exported["clause_signals"] == output["diagnosis"]["clause_signals"]
+    assert exported["timeline_facts"] == output["diagnosis"]["timeline_facts"]
+    assert "SLA/Service Credit" not in markdown
+    assert "Whether the alleged service-impact period downtime qualifies" not in markdown
 
 
 def test_mkdocs_nav_preserves_github_pages_playground_route() -> None:

@@ -1,5 +1,70 @@
 # Contract2Agent Bug Audit
 
+## 2026-05-04 Force Majeure Template Contamination Follow-Up
+
+### 1. Remaining bug
+
+- A positive force-majeure Service Agreement late-delivery case correctly activated force majeure and produced non-low risk, but unrelated SaaS/SLA/payment/suspension templates still leaked into the diagnosis.
+- The analyzer could add:
+  - `SLA` active issue tags.
+  - `SLA/Service Credit` dispute type.
+  - SLA/uptime key issues and service-credit next steps.
+  - payment timing and suspension clause signals from generic service or fee language.
+  - incorrect liquidated-damages cap text because percentage extraction split decimal percentages and selected the wrong percent.
+  - lumped notice dates instead of classifying force-majeure dates by event role.
+
+### 2. Root cause
+
+- Template family selection was still too broad:
+  - generic `service` words could activate SaaS/SLA logic.
+  - generic `fees` language inside liability caps could activate payment timing clause signals.
+  - notice and delivery templates were not filtered for force-majeure-specific notice/delay cases.
+  - liquidated damages extraction reused a generic first-percent helper and did not preserve both the weekly rate and cap.
+  - timeline extraction had no force-majeure event roles.
+
+### 3. Files changed
+
+- `docs/assets/app.js`
+  - Tightened active SLA/service-credit selection so it requires explicit SLA/uptime/downtime/service-credit triggers and matching contract clause signals.
+  - Tightened payment timing clause detection so fee-cap language does not imply payment timing.
+  - Added force-majeure timeline extraction for government order, awareness, force-majeure notice, migration deadline, consultant cover cost, partial completion, and final completion dates.
+  - Added liquidated-damages term extraction for rate, unit, and cap.
+  - Added force-majeure-specific key issues and next steps.
+  - Guarded delivery/notice/cure templates so force-majeure notice cases do not receive invoice/cure/suspension/SLA boilerplate.
+- `tests/test_docs_site.py`
+  - Added a positive force-majeure Service Agreement fixture.
+  - Added regression tests for active tags, forbidden SaaS/SLA leakage, clause signals, case-specific key issues, timeline role classification, scoped next steps, and Markdown/JSON exports.
+- `bug_audit.md`
+  - Added this follow-up note.
+
+### 4. Tests added
+
+- `test_playground_positive_force_majeure_avoids_saas_template_leakage`
+- `test_playground_positive_force_majeure_clauses_issues_and_timeline`
+- `test_playground_positive_force_majeure_next_steps_and_exports_are_scoped`
+
+### 5. Commands run
+
+| Command | Result | Summary |
+| --- | --- | --- |
+| `node --check docs\assets\app.js` | Passed | Static playground JavaScript syntax is valid. |
+| `python -m pytest tests\test_docs_site.py -q` | Passed | 24 passed in 0.74s on the final focused run. |
+| `python -m pytest` | Passed | 237 passed in 18.98s. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Python syntax compilation succeeded. |
+| `python scripts\check_docs_links.py` | Passed | Checked 26 Markdown files; all relative links resolve. |
+| `python -m mkdocs build --strict` | Passed | Documentation built successfully in 0.53s. |
+
+### 6. Build/test result
+
+- The static playground still builds through MkDocs.
+- No backend, runtime network call, route, sample-loading, export-button, or styling change was added.
+- The positive force-majeure fixture now:
+  - includes force majeure as an active issue.
+  - excludes SLA, service credit, suspension, invoice, uptime, downtime, support-ticket, and customer-side integration concepts when unsupported by the fixture.
+  - extracts the liquidated damages rate as `1.5% per full week` and cap as `12%`.
+  - classifies June 20, June 21, June 28, June 30, July 18, July 20, and August 5 by event role.
+  - exports corrected structured Markdown and JSON.
+
 ## 2026-05-04 Playground Delivery Follow-Up Fix
 
 ### 1. Previous partial fix result
