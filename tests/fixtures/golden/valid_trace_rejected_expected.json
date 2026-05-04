@@ -1,0 +1,9 @@
+{
+  "id": "ATD001",
+  "category": "checker_too_strict",
+  "strictness": "too_strict",
+  "affected_agent_part": "tool_ordering",
+  "cause_contains": ["pdf_reader succeeded", "markdown_writer"],
+  "suggested_patch_type": "allow_successful_read_then_write",
+  "suggested_regression_tools": ["pdf_reader", "markdown_writer"]
+}

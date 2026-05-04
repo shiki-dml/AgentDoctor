@@ -49,6 +49,27 @@ def test_make_issue_enforces_required_protocol_fields() -> None:
     assert 0.0 <= issue.confidence <= 1.0
 
 
+def test_make_issue_defaults_are_serializable_protocol_values() -> None:
+    issue = make_issue(
+        severity=Severity.WARNING,
+        category=DiagnosisCategory.CHECKER_TOO_STRICT,
+        strictness=Strictness.TOO_STRICT,
+        affected_agent_part=AffectedAgentPart.TRACE_CHECKER,
+        summary="Checker rejected a valid trace.",
+        suggested_patch={"type": "relax_checker", "target": "contract2agent/checker.py"},
+        suggested_regression_trace=[{"type": "tool_call", "tool": "pdf_reader"}],
+    )
+    payload = issue.to_dict()
+
+    assert issue.evidence == {}
+    assert isinstance(issue.confidence_reason, list)
+    assert isinstance(issue.responsibility, dict)
+    assert payload["category"] == "checker_too_strict"
+    assert payload["strictness"] == "too_strict"
+    assert payload["affected_agent_part"] == "trace_checker"
+    json.dumps(payload)
+
+
 def test_make_issue_rejects_empty_summary_and_bad_confidence() -> None:
     with pytest.raises(ValueError):
         make_issue(

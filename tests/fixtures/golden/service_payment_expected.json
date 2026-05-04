@@ -1,0 +1,13 @@
+{
+  "sample_path": "docs/examples/service-payment-dispute.json",
+  "name": "Service payment dispute",
+  "contract_type": "Service Agreement",
+  "dispute_type": "Payment Delay",
+  "configuration": {
+    "output_format": "Markdown-style",
+    "diagnosis_depth": "Standard",
+    "risk_mode": "Balanced"
+  },
+  "must_include_evidence": ["Invoices", "Email notice", "Signed service agreement"],
+  "text_contains": ["undisputed invoices", "written notice", "cure period"]
+}

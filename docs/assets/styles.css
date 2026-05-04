@@ -345,6 +345,15 @@ code {
   align-items: start;
 }
 
+.output-stack {
+  position: sticky;
+  top: 5.25rem;
+  display: grid;
+  gap: 1rem;
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+}
+
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -444,11 +453,8 @@ textarea:focus {
   font-weight: 800;
 }
 
-.result-panel {
-  position: sticky;
-  top: 5.25rem;
-  max-height: calc(100vh - 6rem);
-  overflow: auto;
+.result-panel,
+.evaluation-panel {
   padding: 1rem;
 }
 
@@ -497,6 +503,81 @@ textarea:focus {
   display: grid;
   gap: 1rem;
   margin-top: 1rem;
+}
+
+.evaluation-note {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+}
+
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #b7d8d4;
+  border-radius: 999px;
+  background: #e7f7f5;
+  color: #0f625d;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  padding: 0.52rem 0.7rem;
+}
+
+.evaluation-output {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.score-card {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fbfdff;
+  padding: 0.85rem;
+}
+
+.score-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.score-card strong {
+  color: var(--ink);
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.score-card small {
+  color: var(--muted);
+}
+
+.evaluation-block {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fbfdff;
+  padding: 1rem;
+}
+
+.evaluation-block h4 {
+  margin: 0 0 0.7rem;
+}
+
+.quality-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--muted);
 }
 
 .empty-state,
@@ -649,9 +730,10 @@ textarea:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .result-panel {
+  .output-stack {
     position: static;
     max-height: none;
+    overflow: visible;
   }
 }
 
@@ -680,7 +762,8 @@ textarea:focus {
   .feature-grid,
   .control-grid,
   .two-column,
-  .matrix {
+  .matrix,
+  .score-grid {
     grid-template-columns: 1fr;
   }
 

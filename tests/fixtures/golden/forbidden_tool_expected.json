@@ -1,0 +1,9 @@
+{
+  "id": "ATD001",
+  "category": "checker_too_loose",
+  "strictness": "too_loose",
+  "affected_agent_part": "forbidden_tool_control",
+  "cause_contains": ["web_search", "forbidden"],
+  "suggested_patch_type": "strengthen_checker",
+  "suggested_regression_tools": ["web_search"]
+}

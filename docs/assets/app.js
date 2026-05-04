@@ -134,9 +134,11 @@
   let latestDiagnosis = null;
   let latestMarkdown = "";
   let latestJson = "";
+  let latestTestCase = "";
 
   const form = document.getElementById("diagnosis-form");
   const resultOutput = document.getElementById("result-output");
+  const evaluationOutput = document.getElementById("evaluation-output");
   const riskBadge = document.getElementById("risk-badge");
   const copyStatus = document.getElementById("copy-status");
 
@@ -156,6 +158,10 @@
     return Object.fromEntries(
       Object.entries(fields).map(([key, id]) => [key, getValue(id)])
     );
+  }
+
+  function collectInput() {
+    return readForm();
   }
 
   function loadSample(sampleId) {
@@ -498,6 +504,152 @@
     };
   }
 
+  function analyzeDispute(input) {
+    return diagnose(input);
+  }
+
+  function computeEvaluationMetrics(input, diagnosis) {
+    const requiredFields = [
+      "contractText",
+      "disputeDescription",
+      "claimantPosition",
+      "respondentPosition",
+      "evidence",
+      "desiredOutcome"
+    ];
+    const completed = requiredFields.filter((field) => input[field] && input[field].length >= 12);
+    const inputCompleteness = Math.round((completed.length / requiredFields.length) * 100);
+    const evidenceGapCount = diagnosis.evidence_gaps.filter(
+      (gap) => !normalize(gap).startsWith("no obvious")
+    ).length;
+    const clauseSignalCount = diagnosis.relevant_clause_signals.filter(
+      (signal) => !normalize(signal).startsWith("no strong")
+    ).length;
+    const detectedIssueCount = diagnosis.key_issues.filter(
+      (issue) => !normalize(issue).includes("unclear")
+    ).length;
+    const evidenceSignals = countGroup(input.evidence, "evidence") + dateSignalCount(input.evidence);
+    const evidenceCoverage =
+      evidenceGapCount === 0
+        ? "Strong"
+        : evidenceSignals >= 4 && evidenceGapCount <= 2
+          ? "Good"
+          : evidenceSignals >= 2
+            ? "Partial"
+            : "Thin";
+    const structuredOutputReady =
+      inputCompleteness >= 50 && detectedIssueCount > 0 && clauseSignalCount > 0
+        ? "Ready"
+        : "Needs more input";
+    const markdownReady = latestMarkdown ? "Ready" : "Pending";
+    const jsonReady = latestJson ? "Ready" : "Pending";
+    const suggestedGoldenCase = caseNameFor(input, diagnosis);
+
+    return {
+      inputCompleteness,
+      evidenceCoverage,
+      detectedIssueCount,
+      clauseSignalCount,
+      evidenceGapCount,
+      riskSignal: diagnosis.risk_signal,
+      structuredOutputReady,
+      markdownReady,
+      jsonReady,
+      suggestedGoldenCase,
+      ruleChecksPassed: [
+        inputCompleteness >= 50 ? "input_fixture_shape" : "input_fixture_needs_more_fields",
+        clauseSignalCount > 0 ? "clause_signal_detected" : "clause_signal_missing",
+        detectedIssueCount > 0 ? "expected_issue_detected" : "expected_issue_unclear",
+        latestMarkdown ? "markdown_export_ready" : "markdown_export_pending",
+        latestJson ? "json_export_ready" : "json_export_pending"
+      ]
+    };
+  }
+
+  function buildTestCasePreview(input, diagnosis, metrics) {
+    return {
+      case_name: metrics.suggestedGoldenCase,
+      contract_type: input.contractType || "Other",
+      dispute_type: diagnosis.case_type,
+      risk_mode: input.riskMode || "Balanced",
+      input_fixture: {
+        has_contract_text: Boolean(input.contractText),
+        has_dispute_description: Boolean(input.disputeDescription),
+        has_party_positions: Boolean(input.claimantPosition && input.respondentPosition),
+        has_evidence: Boolean(input.evidence)
+      },
+      expected_outputs: {
+        must_include_issues: diagnosis.issue_tags.filter((tag) => tag !== "unclear").slice(0, 4),
+        must_include_evidence_gaps: diagnosis.evidence_gaps.slice(0, 4),
+        minimum_clause_signals: metrics.clauseSignalCount,
+        risk_signal: diagnosis.risk_signal
+      },
+      evaluation_checks: {
+        input_completeness: `${metrics.inputCompleteness}%`,
+        evidence_coverage: metrics.evidenceCoverage,
+        structured_output: metrics.structuredOutputReady,
+        markdown_export: metrics.markdownReady,
+        json_export: metrics.jsonReady,
+        golden_style_checks: metrics.ruleChecksPassed
+      }
+    };
+  }
+
+  function renderEvaluationPanel(metrics, testCase) {
+    if (!evaluationOutput) {
+      return;
+    }
+
+    latestTestCase = JSON.stringify(testCase, null, 2);
+    evaluationOutput.innerHTML = [
+      '<div class="score-grid">',
+      scoreCard("Input Completeness", `${metrics.inputCompleteness}%`, "Fixture field coverage"),
+      scoreCard("Evidence Coverage", metrics.evidenceCoverage, `${metrics.evidenceGapCount} gap(s)`),
+      scoreCard("Detected Issues", metrics.detectedIssueCount, "Stable issue count"),
+      scoreCard("Clause Signals", metrics.clauseSignalCount, "Relevant clause families"),
+      scoreCard("Risk Signal", metrics.riskSignal, "Deterministic risk label"),
+      scoreCard("Export Readiness", `${metrics.markdownReady} / ${metrics.jsonReady}`, "Markdown / JSON export"),
+      "</div>",
+      '<section class="evaluation-block">',
+      "<h4>Generated Test Case Preview</h4>",
+      `<pre class="preview-code"><code>${escapeHtml(latestTestCase)}</code></pre>`,
+      "</section>",
+      '<section class="evaluation-block">',
+      "<h4>What this maps to in pytest</h4>",
+      '<ul class="quality-list">',
+      "<li>Golden tests compare stable categories, strictness, affected parts, and cause substrings.</li>",
+      "<li>Report tests protect Markdown and structured JSON-style output shape.</li>",
+      "<li>CLI smoke tests protect local commands such as diagnose, check-all, and why.</li>",
+      "<li>GitHub Pages static tests protect this demo, relative assets, copy actions, and no-backend behavior.</li>",
+      "</ul>",
+      "</section>"
+    ].join("");
+  }
+
+  function scoreCard(label, value, detail) {
+    return [
+      '<article class="score-card">',
+      `<span>${escapeHtml(label)}</span>`,
+      `<strong>${escapeHtml(value)}</strong>`,
+      `<small>${escapeHtml(detail)}</small>`,
+      "</article>"
+    ].join("");
+  }
+
+  function caseNameFor(input, diagnosis) {
+    const source = [
+      input.contractType,
+      input.disputeType,
+      diagnosis.issue_tags[0],
+      "golden"
+    ].join(" ");
+    return source
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 80) || "custom_dispute_case";
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replaceAll("&", "&amp;")
@@ -515,7 +667,7 @@
     return `<div class="tag-row">${items.map((item) => `<span class="tag">${escapeHtml(item)}</span>`).join("")}</div>`;
   }
 
-  function render(diagnosis) {
+  function render(diagnosis, input) {
     latestDiagnosis = diagnosis;
     latestMarkdown = markdownReport(diagnosis);
     latestJson = JSON.stringify(
@@ -526,6 +678,8 @@
       null,
       2
     );
+    const metrics = computeEvaluationMetrics(input || collectInput(), diagnosis);
+    const testCase = buildTestCasePreview(input || collectInput(), diagnosis, metrics);
 
     riskBadge.className = `risk-badge risk-${diagnosis.risk_signal}`;
     riskBadge.textContent = diagnosis.risk_signal;
@@ -547,20 +701,36 @@
       `<section class="result-block"><h4>Markdown-style report preview</h4><pre class="preview-code"><code>${escapeHtml(latestMarkdown)}</code></pre></section>`,
       `<section class="result-block"><h4>JSON-style output preview</h4><pre class="preview-code"><code>${escapeHtml(latestJson)}</code></pre></section>`
     ].join("");
+    renderEvaluationPanel(metrics, testCase);
   }
 
   function clearResult() {
     latestDiagnosis = null;
     latestMarkdown = "";
     latestJson = "";
+    latestTestCase = "";
     riskBadge.className = "risk-badge risk-unclear";
     riskBadge.textContent = "Unclear";
     resultOutput.innerHTML =
       '<div class="empty-state"><strong>Load a sample or enter a dispute, then run Analyze.</strong><p>The result panel will show a summary, issue tags, clause signals, evidence gaps, risk, next steps, Markdown, and JSON.</p></div>';
+    if (evaluationOutput) {
+      evaluationOutput.innerHTML =
+        '<div class="empty-state"><strong>Evaluation metrics will appear here.</strong><p>Run Analyze to see Input Completeness, Evidence Coverage, Detected Issues, Clause Signals, Risk Signal, Markdown/JSON export readiness, and a Generated Test Case Preview.</p></div>';
+    }
   }
 
   async function copyText(kind) {
-    const value = kind === "json" ? latestJson : latestMarkdown;
+    const values = {
+      json: latestJson,
+      markdown: latestMarkdown,
+      "test-case": latestTestCase
+    };
+    const labels = {
+      json: "JSON",
+      markdown: "Markdown",
+      "test-case": "test case JSON"
+    };
+    const value = values[kind] || "";
     if (!value) {
       copyStatus.textContent = "Run a diagnosis before copying.";
       return;
@@ -580,32 +750,36 @@
         document.execCommand("copy");
         helper.remove();
       }
-      copyStatus.textContent = `Copied ${kind.toUpperCase()} output.`;
+      copyStatus.textContent = `Copied ${labels[kind] || kind} output.`;
     } catch (error) {
-      copyStatus.textContent = `Copy failed. Select the ${kind.toUpperCase()} preview manually.`;
+      copyStatus.textContent = `Copy failed. Select the ${labels[kind] || kind} preview manually.`;
     }
   }
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     copyStatus.textContent = "";
-    render(diagnose(readForm()));
+    const input = collectInput();
+    render(analyzeDispute(input), input);
   });
 
   document.getElementById("load-sample").addEventListener("click", () => {
     loadSample(document.getElementById("sample-select").value);
-    render(diagnose(readForm()));
+    const input = collectInput();
+    render(analyzeDispute(input), input);
   });
 
   document.querySelectorAll(".sample-chip").forEach((button) => {
     button.addEventListener("click", () => {
       loadSample(button.dataset.sample);
-      render(diagnose(readForm()));
+      const input = collectInput();
+      render(analyzeDispute(input), input);
     });
   });
 
   document.getElementById("copy-markdown").addEventListener("click", () => copyText("markdown"));
   document.getElementById("copy-json").addEventListener("click", () => copyText("json"));
+  document.getElementById("copy-test-case").addEventListener("click", () => copyText("test-case"));
   document.getElementById("reset-form").addEventListener("click", () => {
     form.reset();
     document.querySelectorAll(".sample-chip").forEach((button) => button.classList.remove("is-active"));
@@ -614,5 +788,5 @@
   });
 
   loadSample("service-payment");
-  render(diagnose(readForm()));
+  render(analyzeDispute(collectInput()), collectInput());
 })();

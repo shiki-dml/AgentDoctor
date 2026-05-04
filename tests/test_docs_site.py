@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -26,6 +28,28 @@ def test_github_pages_entrypoint_references_existing_static_assets() -> None:
     assert "docs/" in html
 
 
+def test_github_pages_entrypoint_uses_deployable_relative_assets() -> None:
+    docs_root = ROOT / "docs"
+    index = docs_root / "index.html"
+    html = index.read_text(encoding="utf-8")
+    css = (docs_root / "assets" / "styles.css").read_text(encoding="utf-8")
+
+    assert index.exists()
+    assert "localhost" not in html
+    assert "127.0.0.1" not in html
+    assert "C:\\" not in html
+    assert "/mnt/" not in html
+    assert "/Users/" not in html
+
+    for asset in _html_asset_refs(html):
+        assert not asset.startswith(("/", "C:\\"))
+        assert (docs_root / asset).exists(), asset
+
+    for asset in _css_asset_refs(css):
+        assert not asset.startswith(("/", "C:\\"))
+        assert (docs_root / "assets" / asset).exists(), asset
+
+
 def test_github_pages_form_contains_required_dispute_inputs() -> None:
     html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
 
@@ -46,8 +70,25 @@ def test_github_pages_form_contains_required_dispute_inputs() -> None:
     for element_id in required_ids:
         assert f'id="{element_id}"' in html
 
-    for button_id in ("load-sample", "copy-markdown", "copy-json", "reset-form"):
+    for button_id in (
+        "load-sample",
+        "copy-markdown",
+        "copy-json",
+        "copy-test-case",
+        "reset-form",
+    ):
         assert f'id="{button_id}"' in html
+
+    assert "Analyze / Diagnose" in html
+    assert 'id="result-output"' in html
+    assert 'id="evaluation-lab"' in html
+    assert "Evaluation Lab" in html
+    assert "Generated Test Case Preview" in html
+    assert "Input Completeness" in html
+    assert "Evidence Coverage" in html
+    assert "Risk Signal" in html
+    assert "Markdown/JSON export" in html
+    assert "does not run pytest in the browser" in html
 
 
 def test_github_pages_app_is_static_and_wires_expected_actions() -> None:
@@ -64,8 +105,38 @@ def test_github_pages_app_is_static_and_wires_expected_actions() -> None:
     assert 'groups.includes("refund")' not in app_js
     assert 'getElementById("copy-markdown").addEventListener' in app_js
     assert 'getElementById("copy-json").addEventListener' in app_js
+    assert 'getElementById("copy-test-case").addEventListener' in app_js
     assert 'getElementById("reset-form").addEventListener' in app_js
     assert 'querySelectorAll(".sample-chip")' in app_js
+    assert "function computeEvaluationMetrics" in app_js
+    assert "function buildTestCasePreview" in app_js
+    assert "function renderEvaluationPanel" in app_js
+    assert "latestTestCase" in app_js
+    assert "Generated Test Case Preview" in app_js
+
+
+def test_github_pages_javascript_syntax_or_static_fallback() -> None:
+    app_js_path = ROOT / "docs" / "assets" / "app.js"
+    node = shutil.which("node")
+
+    if node:
+        completed = subprocess.run(
+            [node, "--check", str(app_js_path)],
+            text=True,
+            capture_output=True,
+        )
+        assert completed.returncode == 0, completed.stderr
+        return
+
+    app_js = app_js_path.read_text(encoding="utf-8")
+    for required in (
+        "function collectInput",
+        "function analyzeDispute",
+        "function computeEvaluationMetrics",
+        "function buildTestCasePreview",
+        "function renderEvaluationPanel",
+    ):
+        assert required in app_js
 
 
 def test_static_sample_cases_are_valid_and_complete() -> None:
@@ -142,8 +213,26 @@ def test_readme_project_identity_is_contract2agent() -> None:
     assert "Python import package: `contract2agent`" in readme
     assert "CLI: `c2a`" in readme
     assert "automated lawyer" not in readme.lower()
+    assert "AgentDoctor" not in readme
     assert "# AgentDoctor" not in readme
     assert "AgentDoctor is" not in readme
+    assert "not legal advice" in readme.lower()
+
+
+def test_readme_explains_evaluation_first_design() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    for required in (
+        "Evaluation-first design",
+        "Evaluation Lab",
+        "Golden tests",
+        "CLI smoke tests",
+        "GitHub Pages static tests",
+        "python -m pytest",
+        "docs/index.html",
+        "Copy Test Case JSON",
+    ):
+        assert required in readme
 
 
 def test_packaging_declares_c2a_entrypoint_and_pytest_dev_dependency() -> None:
@@ -169,3 +258,35 @@ def test_docs_are_preserved_and_not_ignored() -> None:
     assert "build/" in gitignore
     assert "dist/" in gitignore
     assert "*.egg-info/" in gitignore
+
+
+def _html_asset_refs(html: str) -> list[str]:
+    refs: list[str] = []
+    patterns = (
+        r"<link\b[^>]*\bhref=\"([^\"]+)\"",
+        r"<script\b[^>]*\bsrc=\"([^\"]+)\"",
+        r"<img\b[^>]*\bsrc=\"([^\"]+)\"",
+        r"fetch\(\s*[\"']([^\"']+)[\"']",
+    )
+    for pattern in patterns:
+        refs.extend(
+            ref
+            for ref in re.findall(pattern, html)
+            if _is_local_asset_ref(ref)
+        )
+    return refs
+
+
+def _css_asset_refs(css: str) -> list[str]:
+    return [
+        ref.strip("\"'")
+        for ref in re.findall(r"url\(([^)]+)\)", css)
+        if _is_local_asset_ref(ref.strip("\"'"))
+    ]
+
+
+def _is_local_asset_ref(ref: str) -> bool:
+    return not (
+        ref.startswith(("#", "http://", "https://", "data:", "mailto:", "tel:"))
+        or ref == "./"
+    )

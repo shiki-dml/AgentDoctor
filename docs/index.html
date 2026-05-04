@@ -21,6 +21,7 @@
         </a>
         <div class="nav-links" aria-label="Page sections">
           <a href="#playground">Demo</a>
+          <a href="#evaluation-lab">Evaluation Lab</a>
           <a href="#workflow">Workflow</a>
           <a href="#cli">CLI</a>
           <a href="#disclaimer">Disclaimer</a>
@@ -44,9 +45,9 @@
           </p>
           <div class="hero-actions" aria-label="Primary actions">
             <a class="button primary" href="#playground">Try the Demo</a>
-            <a class="button" href="https://github.com/shiki-dml/AgentDoctor#readme">View README</a>
+            <a class="button" href="#evaluation-lab">See Evaluation Lab</a>
             <a class="button" href="#cli">CLI Quickstart</a>
-            <a class="button ghost" href="https://github.com/shiki-dml/AgentDoctor">GitHub Repository</a>
+            <a class="button ghost" href="#disclaimer">Read Disclaimer</a>
           </div>
         </div>
         <div class="hero-visual" aria-label="Contract2Agent workflow preview">
@@ -246,28 +247,58 @@
               <button type="submit" class="button primary">Analyze / Diagnose</button>
               <button type="button" class="button" id="copy-markdown">Copy Markdown</button>
               <button type="button" class="button" id="copy-json">Copy JSON</button>
+              <button type="button" class="button" id="copy-test-case">Copy Test Case JSON</button>
               <button type="button" class="button subtle" id="reset-form">Reset / Clear</button>
             </div>
             <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
           </form>
 
-          <aside class="result-panel panel" aria-labelledby="result-title">
-            <div class="result-heading">
-              <div>
-                <p class="eyebrow">Diagnosis result</p>
-                <h3 id="result-title">Structured preview</h3>
+          <aside class="output-stack" aria-label="Diagnosis and evaluation output">
+            <section class="result-panel panel" aria-labelledby="result-title">
+              <div class="result-heading">
+                <div>
+                  <p class="eyebrow">Diagnosis result</p>
+                  <h3 id="result-title">Structured preview</h3>
+                </div>
+                <span class="risk-badge risk-unclear" id="risk-badge">Unclear</span>
               </div>
-              <span class="risk-badge risk-unclear" id="risk-badge">Unclear</span>
-            </div>
-            <div id="result-output" class="result-output">
-              <div class="empty-state">
-                <strong>Load a sample or enter a dispute, then run Analyze.</strong>
-                <p>
-                  The result panel will show a summary, issue tags, clause
-                  signals, evidence gaps, risk, next steps, Markdown, and JSON.
-                </p>
+              <div id="result-output" class="result-output">
+                <div class="empty-state">
+                  <strong>Load a sample or enter a dispute, then run Analyze.</strong>
+                  <p>
+                    The result panel will show a summary, issue tags, clause
+                    signals, evidence gaps, risk, next steps, Markdown, and JSON.
+                  </p>
+                </div>
               </div>
-            </div>
+            </section>
+
+            <section class="evaluation-panel panel" id="evaluation-lab" aria-labelledby="evaluation-title">
+              <div class="result-heading">
+                <div>
+                  <p class="eyebrow">Evaluation Lab</p>
+                  <h3 id="evaluation-title">Diagnosis quality check</h3>
+                </div>
+                <span class="quality-badge">Static preview</span>
+              </div>
+              <p class="evaluation-note">
+                The browser Evaluation Lab mirrors Contract2Agent's testing
+                philosophy: structured inputs, expected outputs, golden cases,
+                CLI smoke tests, static site checks, and reproducible reports.
+                It does not run pytest in the browser.
+              </p>
+              <div id="evaluation-output" class="evaluation-output">
+                <div class="empty-state">
+                  <strong>Evaluation metrics will appear here.</strong>
+                  <p>
+                    Run Analyze to see Input Completeness, Evidence Coverage,
+                    Detected Issues, Clause Signals, Risk Signal, export
+                    readiness, Markdown/JSON export readiness, and a
+                    Generated Test Case Preview.
+                  </p>
+                </div>
+              </div>
+            </section>
           </aside>
         </div>
       </section>

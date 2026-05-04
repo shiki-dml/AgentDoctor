@@ -4,25 +4,33 @@ Turn contract disputes into structured diagnostic reports and agent-ready workfl
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab)](https://www.python.org/)
 [![pytest](https://img.shields.io/badge/tests-pytest-0f8f86)](#testing)
-[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-2454d6)](https://shiki-dml.github.io/AgentDoctor/)
+[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-2454d6)](docs/index.html)
 [![CLI: c2a](https://img.shields.io/badge/CLI-c2a-15202b)](#cli-usage)
 [![Status: Experimental](https://img.shields.io/badge/status-experimental-b45309)](#roadmap)
 
 **Contract2Agent** is a developer-oriented contract dispute diagnosis and structured workflow tool. It helps transform contract text, dispute facts, party positions, evidence, and configuration into reviewable outputs: dispute summaries, key issues, clause signals, evidence gaps, risk signals, suggested next steps, and Markdown/JSON-style reports.
 
-**Start here:** [Open GitHub Pages Demo](https://shiki-dml.github.io/AgentDoctor/) | [Quickstart](#cli-quickstart) | [CLI Usage](#cli-usage) | [Examples](#concrete-example-service-payment-dispute) | [Testing](#testing) | [GitHub Pages Setup](#github-pages-setup)
-
-> The demo URL was inferred from the current git remote. If the repository is renamed or moved, update this README after enabling GitHub Pages.
+**Start here:** [Open Web Demo](docs/index.html) | [Quickstart](#cli-quickstart) | [CLI Usage](#cli-usage) | [Examples](#concrete-example-service-payment-dispute) | [Testing](#testing) | [GitHub Pages Setup](#github-pages-setup)
 
 ## Try the GitHub Pages Demo
 
-The fastest way to experience Contract2Agent is the public GitHub Pages demo:
+The fastest way to experience Contract2Agent is the GitHub Pages demo served from `docs/index.html`.
 
-**[https://shiki-dml.github.io/AgentDoctor/](https://shiki-dml.github.io/AgentDoctor/)**
+After enabling GitHub Pages from the `docs/` folder, the site will be available at:
+
+```text
+https://<owner>.github.io/<repo>/
+```
+
+For local verification without deployment, open:
+
+```text
+docs/index.html
+```
 
 The static demo is served directly from `docs/`. It lets users enter contract text, dispute facts, claimant and respondent positions, evidence, desired outcome, and configuration such as contract type, dispute type, output format, diagnosis depth, and risk mode.
 
-After analysis, the page shows structured diagnosis results: a dispute summary, detected contract/dispute type, key issues, relevant clauses or clause signals, a claimant/respondent matrix, evidence gaps, risk signal, suggested next steps, a Markdown-style report preview, and JSON-style output. A local `docs/index.html` fallback exists for maintainers, but the public GitHub Pages site is the primary entry point.
+After analysis, the page shows structured diagnosis results: a dispute summary, detected contract/dispute type, key issues, relevant clauses or clause signals, a claimant/respondent matrix, evidence gaps, risk signal, suggested next steps, a Markdown-style report preview, JSON-style output, and an Evaluation Lab with a generated test-case preview.
 
 ## Preview
 
@@ -54,7 +62,19 @@ The demo calls out missing records such as signed agreements, invoice dates, pay
 
 ### Export Structured Output
 
-Results can be copied as Markdown or JSON-style output, making the demo useful for report drafts, fixtures, product demos, and agent workflow experiments.
+Results can be copied as Markdown, JSON-style output, or a test-case-like JSON preview, making the demo useful for report drafts, fixtures, product demos, and agent workflow experiments. The page includes Copy Markdown, Copy JSON, and Copy Test Case JSON actions.
+
+## Evaluation-first design
+
+Contract2Agent is built around reproducible diagnosis rather than one-off narrative output.
+
+- `python -m pytest` protects Python behavior, schemas, checker logic, reports, CLI commands, docs links, and the GitHub Pages static site.
+- Golden tests protect stable diagnosis fields such as category, strictness, affected agent part, cause substrings, suggested patch type, and regression trace shape.
+- CLI smoke tests protect real commands such as `c2a demo`, `c2a check-all --diagnose`, `c2a diagnose`, and `c2a why`.
+- Report rendering tests protect Markdown reports and JSON-serializable structured output.
+- GitHub Pages static tests protect `docs/index.html`, relative assets, no-backend behavior, copy actions, privacy/disclaimer text, and the Evaluation Lab.
+
+The web Evaluation Lab shows how structured inputs become quality signals: Input Completeness, Evidence Coverage, Detected Issues, Clause Signals, Risk Signal, export readiness, and a Generated Test Case Preview. It mirrors the repository testing mindset, but it does not run pytest in the browser.
 
 ## Concrete Example: Service Payment Dispute
 
@@ -172,8 +192,17 @@ The public site lives in `docs/` and is designed to deploy without npm, a backen
 3. Select the target branch.
 4. Select `/docs` as the Pages source folder.
 5. Save and wait for GitHub Pages to publish.
-6. Update the demo URL in this README if the inferred repository URL is not correct.
+6. Update the Open Web Demo link in this README after Pages is enabled.
 7. Set the repository **Website** field to the GitHub Pages URL so the demo is visible from the repository sidebar.
+
+GitHub Pages readiness checklist:
+
+- `docs/index.html` exists and is the entry page.
+- CSS, JavaScript, image, and example references use relative paths.
+- `docs/assets/styles.css`, `docs/assets/app.js`, and `docs/assets/contract2agent-preview.svg` exist when referenced.
+- No backend, build step, API key, LLM API, or dev server is required.
+- GitHub Pages source should be set to the target branch and `/docs`.
+- Repository Website should point to `https://<owner>.github.io/<repo>/`.
 
 ## Testing
 
@@ -183,6 +212,10 @@ Install development dependencies and run the test suite:
 python -m pip install -e ".[dev]"
 python -m pytest
 ```
+
+The test suite includes schema tests, deterministic diagnosis logic tests, golden fixture checks, rule coverage checks, Markdown report rendering tests, CLI smoke tests, packaging/dev dependency checks, README/docs integrity checks, and GitHub Pages static tests.
+
+Golden fixtures live under `tests/fixtures/golden/`. They intentionally compare compact expected fields and substrings instead of brittle full-report snapshots.
 
 For documentation checks:
 
