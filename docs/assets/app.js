@@ -135,6 +135,257 @@
     "prevented performance"
   ];
 
+  const issueFamilyRegistry = {
+    payment: {
+      active_triggers: [
+        "unpaid invoice",
+        "unpaid invoices",
+        "overdue invoice",
+        "overdue invoices",
+        "non-payment",
+        "nonpayment",
+        "failed to pay",
+        "outstanding invoice",
+        "outstanding invoices",
+        "payment default",
+        "undisputed amount",
+        "undisputed invoices",
+        "fees were due"
+      ],
+      clause_triggers: ["must pay", "payment due", "pay undisputed", "invoice"],
+      negative_triggers: [
+        "no unpaid invoice",
+        "no unpaid invoices",
+        "no overdue invoice",
+        "no overdue invoices",
+        "no payment dispute",
+        "no party claims unpaid invoices"
+      ],
+      blocker_terms: ["unpaid invoice", "unpaid invoices", "overdue invoice", "overdue invoices", "non-payment", "nonpayment", "payment", "invoice", "invoices"]
+    },
+    invoice_dispute: {
+      active_triggers: [
+        "invoice dispute notice",
+        "written invoice dispute",
+        "disputed invoice",
+        "disputed invoices",
+        "disputed amount",
+        "dispute the invoice",
+        "disputes an invoice",
+        "invoice was disputed",
+        "invoices were disputed",
+        "charge dispute",
+        "invoice number",
+        "invoice date"
+      ],
+      clause_triggers: ["disputes an invoice", "disputed amount", "basis for dispute"],
+      negative_triggers: [
+        "no invoice dispute",
+        "not an invoice dispute",
+        "no disputed invoice",
+        "no disputed invoices"
+      ],
+      blocker_terms: ["invoice dispute", "disputed invoice", "disputed invoices", "charge dispute", "invoice", "invoices"]
+    },
+    refund: {
+      active_triggers: [
+        "refund demand",
+        "requests a refund",
+        "request a refund",
+        "requested refund",
+        "seeks a refund",
+        "refund after",
+        "prepaid fee refund",
+        "prepaid fees refund",
+        "pro-rata refund",
+        "pro rata refund",
+        "overpayment",
+        "cancellation refund",
+        "return of fees",
+        "non-refundable fee provision disputed",
+        "non-refundable fee language",
+        "refundable pro rata"
+      ],
+      clause_triggers: ["refund", "non-refundable", "pro-rata refund", "return of fees"],
+      negative_triggers: [
+        "no refund",
+        "no refunds",
+        "not seeking refund",
+        "no party claims refunds",
+        "no party seeks refunds"
+      ],
+      blocker_terms: ["refund", "refunds", "refundable", "non-refundable", "return of fees", "overpayment"]
+    },
+    force_majeure: {
+      active_triggers: forceMajeureFactTriggers,
+      clause_triggers: ["force majeure", "government order", "natural disaster", "strike", "war"],
+      negative_triggers: [
+        "no force majeure",
+        "no party invokes force majeure",
+        "no party claims force majeure",
+        "no party claims government order",
+        "no party claims natural disaster",
+        "force majeure appears only"
+      ],
+      blocker_terms: ["force majeure", "government order", "natural disaster", "strike", "war", "external uncontrollable event", "external event"]
+    },
+    confidentiality: {
+      active_triggers: [
+        "confidential information",
+        "confidentiality breach",
+        "breach of confidentiality",
+        "unauthorized disclosure",
+        "public disclosure",
+        "public link",
+        "public workspace",
+        "workspace exposure",
+        "publicly accessible",
+        "confidential marked",
+        "marked \"confidential\"",
+        "marked confidential",
+        "customer list",
+        "pricing model",
+        "launch plan",
+        "technical docs exposed",
+        "technical documentation exposed",
+        "anonymous page views",
+        "suspected compromise",
+        "nda breach"
+      ],
+      clause_triggers: ["confidential", "non-disclosure", "nondisclosure", "unauthorized disclosure"],
+      negative_triggers: [
+        "no confidentiality dispute",
+        "no confidentiality breach",
+        "no confidential information",
+        "not a confidentiality dispute"
+      ],
+      blocker_terms: ["confidentiality", "confidential information", "disclosure", "public link", "workspace exposure", "nda"]
+    },
+    indemnity: {
+      active_triggers: [
+        "third-party claim",
+        "third party claim",
+        "third-party demand",
+        "third party demand",
+        "demand letter",
+        "indemnity notice",
+        "indemnity demand",
+        "indemnification demand",
+        "defense demand",
+        "demand for defense",
+        "hold harmless demand",
+        "infringement allegation",
+        "infringement claim",
+        "infringement demand",
+        "copyright claim",
+        "copyright demand",
+        "patent claim",
+        "trademark claim",
+        "provider-owned materials",
+        "provider-owned tools",
+        "customer-provided materials",
+        "claim tender"
+      ],
+      clause_triggers: ["indemnity", "indemnify", "defend", "hold harmless"],
+      negative_triggers: [
+        "no indemnity",
+        "not seeking indemnity",
+        "no indemnification",
+        "no third-party",
+        "no third party",
+        "no ip",
+        "no intellectual property",
+        "no infringement",
+        "no defense demand",
+        "no hold harmless"
+      ],
+      blocker_terms: ["indemnity", "indemnification", "third-party", "third party", "ip", "intellectual property", "infringement", "copyright", "patent", "trademark", "defense", "hold harmless"]
+    },
+    delivery: {
+      active_triggers: [
+        "delivery deadline",
+        "delivery milestone",
+        "deliver by",
+        "must deliver",
+        "late delivery",
+        "missed deadline",
+        "missed the",
+        "missed milestone",
+        "partial delivery",
+        "partial data import",
+        "revised package",
+        "acceptance criteria",
+        "formal acceptance",
+        "rejection",
+        "rejected",
+        "delivery defects",
+        "mapping defects",
+        "blocked launch",
+        "migration deadline",
+        "migration milestone"
+      ],
+      clause_triggers: ["delivery", "milestone", "acceptance", "rejection"],
+      negative_triggers: [
+        "no delayed delivery",
+        "no late delivery",
+        "no party claims delayed delivery",
+        "no delivery dispute"
+      ],
+      blocker_terms: ["delayed delivery", "late delivery", "delivery", "deadline", "milestone", "acceptance", "rejection"]
+    },
+    sla: {
+      active_triggers: [
+        "sla",
+        "uptime",
+        "downtime",
+        "service availability",
+        "service credit",
+        "service credits",
+        "outage",
+        "uptime report",
+        "monitoring data",
+        "customer-side integration errors",
+        "customer side integration errors"
+      ],
+      clause_triggers: ["sla", "uptime", "service credit", "availability"],
+      negative_triggers: [
+        "no sla downtime",
+        "no service credits",
+        "no party claims sla downtime",
+        "no party claims service credits"
+      ],
+      blocker_terms: ["sla", "uptime", "downtime", "service credit", "service credits", "outage"]
+    },
+    suspension: {
+      active_triggers: [
+        "suspended access",
+        "suspend access",
+        "access suspension",
+        "suspension log",
+        "access disabled",
+        "platform access terminated",
+        "service access blocked",
+        "restoration of access",
+        "restore access"
+      ],
+      clause_triggers: ["suspend", "suspension", "affected services"],
+      negative_triggers: ["no suspension", "no party claims suspension", "no suspended access"],
+      blocker_terms: ["suspension", "suspended", "suspend", "access disabled", "service access blocked"]
+    },
+    liquidated_damages: {
+      active_triggers: ["liquidated damages", "penalty", "per-week damages", "per week", "ld cap", "unexcused delay damages"],
+      clause_triggers: ["liquidated damages", "penalty"],
+      negative_triggers: ["no liquidated damages", "no penalties", "no party claims liquidated damages"],
+      blocker_terms: ["liquidated damages", "penalty", "penalties", "ld cap"]
+    },
+    cover_costs: {
+      active_triggers: ["substitute goods", "temporary consultant", "alternate provider", "cover purchase", "replacement supplier", "documented cover costs", "cover cost", "cover costs"],
+      clause_triggers: ["cover costs", "temporary consultant", "alternate staffing"],
+      negative_triggers: ["no cover costs", "no temporary consultant", "no substitute goods"],
+      blocker_terms: ["cover costs", "cover cost", "temporary consultant", "substitute goods", "alternate provider", "replacement supplier"]
+    }
+  };
+
   const fields = {
     contractType: "contract-type",
     disputeType: "dispute-type",
@@ -200,6 +451,66 @@
   function hasAny(text, words) {
     const normalized = normalize(text);
     return words.some((word) => normalized.includes(word));
+  }
+
+  function registryEntry(family) {
+    return issueFamilyRegistry[family] || {
+      active_triggers: [],
+      clause_triggers: [],
+      negative_triggers: [],
+      blocker_terms: []
+    };
+  }
+
+  function familyBlockerTerms(family) {
+    const entry = registryEntry(family);
+    return uniqueValues(
+      (entry.blocker_terms || [])
+        .concat(entry.active_triggers || [])
+        .concat(entry.clause_triggers || [])
+    );
+  }
+
+  function segmentBlocksFamily(segment, family) {
+    const lower = normalize(segment);
+    const entry = registryEntry(family);
+    const familyTerms = familyBlockerTerms(family);
+    const genericDenial = hasAny(lower, [
+      "no party claims",
+      "no party seeks",
+      "no party invokes",
+      "neither party claims",
+      "neither party seeks",
+      "neither party invokes",
+      "there is no",
+      "there are no",
+      "not seeking",
+      "does not seek",
+      "does not invoke",
+      "not invoked",
+      "not a"
+    ]);
+    return (
+      hasAny(lower, entry.negative_triggers || []) ||
+      (genericDenial && hasAny(lower, familyTerms))
+    );
+  }
+
+  function hasIssueFactTrigger(data, family, extraTriggers) {
+    const triggers = (extraTriggers || []).concat(registryEntry(family).active_triggers || []);
+    return splitSegments(factText(data)).some((segment) => {
+      if (segmentBlocksFamily(segment, family)) {
+        return false;
+      }
+      return hasAny(segment, triggers);
+    });
+  }
+
+  function familyBlocked(data, family, positiveTrigger) {
+    if (positiveTrigger) {
+      return false;
+    }
+    return splitSegments(factText(data)).some((segment) => segmentBlocksFamily(segment, family));
   }
 
   function countGroup(text, group) {
@@ -522,6 +833,12 @@
       .replace(/\b(\d+)-day\b/i, "$1 days");
   }
 
+  function durationRequirementLabel(duration) {
+    return durationSentence(duration)
+      .replace(/\b(\d+)\s+business\s+days\b/i, "$1-business-day")
+      .replace(/\b(\d+)\s+days\b/i, "$1-day");
+  }
+
   function extractDeliveryTimeline(data) {
     const facts = factText(data);
     const source = allText(data);
@@ -587,6 +904,48 @@
     };
   }
 
+  function extractConfidentialityIndemnityTimeline(data) {
+    const facts = factText(data);
+    const source = allText(data);
+    return {
+      disclosureDate:
+        findDateInSegment(facts, ["uploaded", "public project-management workspace", "public workspace", "workspace exposure", "public link", "disclosure"], "first") ||
+        findDateInSegment(source, ["workspace upload log", "upload log"], "first"),
+      customerDiscoveryDate:
+        findDateInSegment(facts, ["customer discovered", "discovered the public link", "discovered", "captured"], "first"),
+      removalDate:
+        findDateInSegment(facts, ["removed the file", "removed", "removal confirmation", "containment", "remediation"], "first"),
+      thirdPartyClaimDate:
+        findDateInSegment(facts, ["demand letter", "third-party ip demand", "third party ip demand", "third-party claim", "third party claim", "copyright", "infringement"], "first"),
+      indemnityNoticeDate:
+        findDateInSegment(facts, ["indemnity notice", "indemnification notice", "claim tender"], "first"),
+      unauthorizedDisclosureNoticePeriod:
+        findDurationNear(data.contractText, ["unauthorized disclosure", "suspected compromise", "after discovering", "notify the customer"]),
+      indemnityNoticePeriod:
+        findDurationNear(data.contractText, ["indemnifiable claim", "receiving the claim", "indemnity notice", "written notice"])
+    };
+  }
+
+  function extractConfidentialMaterials(data) {
+    const source = factText(data);
+    const materials = [];
+    [
+      "product launch plan",
+      "pricing model",
+      "customer list",
+      "customer lists",
+      "technical documentation",
+      "technical docs",
+      "business plans",
+      "launch schedules"
+    ].forEach((material) => {
+      if (hasAny(source, [material])) {
+        addUnique(materials, material);
+      }
+    });
+    return materials;
+  }
+
   function partyName(data, preferred, fallback) {
     const combined = normalize(allText(data));
     if (combined.includes(preferred)) {
@@ -612,7 +971,22 @@
     if (hasExternalEventDenial(facts)) {
       return false;
     }
-    return hasAny(facts, forceMajeureFactTriggers) || /\bforce majeure\b/i.test(facts);
+    const longTriggers = forceMajeureFactTriggers
+      .filter((trigger) => !["war", "strike"].includes(trigger))
+      .concat([
+        "force majeure",
+        "external uncontrollable event",
+        "external event",
+        "emergency closure",
+        "export restriction",
+        "port closure"
+      ]);
+    return splitSegments(facts).some((segment) => {
+      if (segmentBlocksFamily(segment, "force_majeure")) {
+        return false;
+      }
+      return hasAny(segment, longTriggers) || /\b(?:war|strike)\b/i.test(segment);
+    });
   }
 
   function hasConfidentialityClause(contractText) {
@@ -627,110 +1001,90 @@
   }
 
   function hasInvoiceDisputeFactTrigger(data) {
-    const invoiceTriggers = [
-      "invoice dispute notice",
-      "written invoice dispute",
-      "disputed invoice",
-      "disputed invoices",
-      "disputed amount",
-      "dispute the invoice",
-      "disputes an invoice",
-      "invoice was disputed",
-      "invoices were disputed",
-      "unpaid invoice",
-      "unpaid invoices",
-      "overdue invoice",
-      "overdue invoices",
-      "outstanding invoice",
-      "outstanding invoices",
+    return hasIssueFactTrigger(data, "invoice_dispute", [
+      "overage fees disputed",
       "invoice nonpayment",
       "invoice non-payment",
       "non-payment of invoice",
-      "nonpayment of invoice",
-      "charge dispute",
-      "overage fees disputed"
-    ];
-    const invoiceDenials = [
-      "no invoice dispute",
-      "not an invoice dispute",
-      "no unpaid invoice",
-      "no unpaid invoices",
-      "no overdue invoice",
-      "no overdue invoices",
-      "already paid",
-      "prepaid"
-    ];
-    return splitSegments(factText(data)).some((segment) => {
-      if (hasAny(segment, invoiceDenials) && hasAny(segment, ["invoice", "invoices", "prepaid", "paid"])) {
-        return false;
-      }
-      return hasAny(segment, invoiceTriggers);
-    });
+      "nonpayment of invoice"
+    ]);
+  }
+
+  function hasPaymentFactTrigger(data) {
+    return hasIssueFactTrigger(data, "payment");
+  }
+
+  function hasRefundFactTrigger(data) {
+    return hasIssueFactTrigger(data, "refund");
+  }
+
+  function hasDeliveryFactTrigger(data) {
+    return hasIssueFactTrigger(data, "delivery");
+  }
+
+  function hasSlaFactTrigger(data) {
+    return hasIssueFactTrigger(data, "sla");
+  }
+
+  function hasSuspensionFactTrigger(data) {
+    return hasIssueFactTrigger(data, "suspension");
   }
 
   function hasIndemnityFactTrigger(data) {
-    const triggers = [
-      "indemnity demand",
-      "indemnification demand",
-      "indemnify",
-      "defense demand",
-      "demand for defense",
-      "hold harmless",
-      "third-party claim",
-      "third party claim",
-      "third-party demand",
-      "third party demand",
+    return hasIssueFactTrigger(data, "indemnity", [
       "ip infringement",
       "intellectual property infringement",
-      "infringement claim",
-      "infringement demand"
-    ];
-    const denialSignals = [
-      "no indemnity",
-      "not seeking indemnity",
-      "no indemnification",
-      "no third-party",
-      "no third party",
-      "no ip",
-      "no intellectual property",
-      "no infringement",
-      "no defense demand",
-      "no hold harmless"
-    ];
-    return splitSegments(factText(data)).some((segment) => {
-      if (hasAny(segment, denialSignals) && hasAny(segment, ["indemnity", "indemnification", "third-party", "third party", "ip", "intellectual property", "infringement", "defense", "hold harmless"])) {
-        return false;
-      }
-      return hasAny(segment, triggers);
-    });
+      "third-party ip demand",
+      "third party ip demand"
+    ]);
   }
 
   function hasConfidentialityFactTrigger(data) {
-    const triggers = [
-      "confidential information",
-      "confidentiality breach",
-      "breach of confidentiality",
-      "unauthorized disclosure",
+    return hasIssueFactTrigger(data, "confidentiality", [
       "disclosed confidential",
       "misuse of confidential",
-      "nda breach",
       "data leak",
       "data leakage",
-      "leaked confidential"
-    ];
-    const denialSignals = [
-      "no confidentiality dispute",
-      "no confidentiality breach",
-      "no confidential information",
-      "no disclosure",
-      "not a confidentiality dispute"
-    ];
-    return splitSegments(factText(data)).some((segment) => {
-      if (hasAny(segment, denialSignals)) {
-        return false;
-      }
-      return hasAny(segment, triggers);
-    });
+      "leaked confidential",
+      "access logs",
+      "anonymous views"
+    ]);
+  }
+
+  function hasUnauthorizedDisclosureFactTrigger(data) {
+    return hasIssueFactTrigger(data, "confidentiality", [
+      "unauthorized disclosure",
+      "public disclosure",
+      "public link",
+      "public workspace",
+      "public project-management workspace",
+      "workspace exposure",
+      "publicly accessible",
+      "without authentication",
+      "anonymous page views",
+      "suspected compromise"
+    ]);
+  }
+
+  function hasThirdPartyIpFactTrigger(data) {
+    return hasIssueFactTrigger(data, "indemnity", [
+      "third-party ip demand",
+      "third party ip demand",
+      "third-party ip claim",
+      "third party ip claim",
+      "intellectual property",
+      "copyright",
+      "patent",
+      "trademark"
+    ]);
+  }
+
+  function hasLiabilityCapCarveoutClause(contractText) {
+    const text = normalize(contractText);
+    return (
+      hasAny(text, ["cap does not limit", "liability cap does not limit", "does not limit claims", "does not limit breach of confidentiality", "does not limit indemnity"]) ||
+      (hasAny(text, ["does not limit", "not limit"]) && hasAny(text, ["confidentiality", "indemnity", "willful misconduct", "ip claims"]))
+    );
   }
 
   function hasExternalEventDenial(text) {
@@ -769,51 +1123,107 @@
     const lowerFacts = normalize(facts);
     const dispute = normalize(data.disputeType);
     const contract = normalize(data.contractType);
+    const paymentFact = hasPaymentFactTrigger(data);
+    const invoiceDisputeFact = hasInvoiceDisputeFactTrigger(data);
+    const refundFact = hasRefundFactTrigger(data);
+    const deliveryFact = hasDeliveryFactTrigger(data);
+    const slaFact = hasSlaFactTrigger(data);
+    const suspensionFact = hasSuspensionFactTrigger(data);
+    const indemnityFact = hasIndemnityFactTrigger(data);
+    const confidentialityFact = hasConfidentialityFactTrigger(data);
+    const unauthorizedDisclosureFact = hasUnauthorizedDisclosureFactTrigger(data);
+    const thirdPartyIpFact = hasThirdPartyIpFactTrigger(data);
+    const forceMajeureFact = hasForceMajeureFactTrigger(data);
+    const liquidatedDamagesFact = hasIssueFactTrigger(data, "liquidated_damages");
+    const coverCostsFact = hasIssueFactTrigger(data, "cover_costs");
+    const damagesFact = splitSegments(facts).some((segment) => {
+      if (segmentBlocksFamily(segment, "payment") || segmentBlocksFamily(segment, "refund")) {
+        return hasAny(segment, ["damages", "remediation costs", "investigation costs", "defense costs", "business-impact damages"]);
+      }
+      return hasAny(segment, [
+        "damages",
+        "liquidated damages",
+        "lost revenue",
+        "lost productivity",
+        "internal delay costs",
+        "lost profits",
+        "operational losses",
+        "replacement costs",
+        "remediation costs",
+        "investigation costs",
+        "defense costs",
+        "business-impact damages",
+        "recoverable damages",
+        "loss calculation",
+        "claimed revenue",
+        "refund calculation"
+      ]);
+    });
+    const liabilityLimitationFact = hasAny(facts, [
+      "liability cap",
+      "limitation of liability",
+      "twelve-month fee cap",
+      "six-month fee cap",
+      "three-month fee cap",
+      "fee cap",
+      "damages exclusion",
+      "consequential damages",
+      "lost revenue exclusion",
+      "lost productivity",
+      "internal delay costs",
+      "lost-profit",
+      "lost profit",
+      "damages beyond",
+      "fees paid",
+      "cap"
+    ]);
 
     return {
       payment:
-        dispute.includes("payment") ||
-        hasAny(facts, ["unpaid", "overdue", "non-payment", "nonpayment", "failed to pay", "outstanding invoice", "outstanding invoices", "fees were due"]),
-      invoiceDispute: hasInvoiceDisputeFactTrigger(data),
+        paymentFact ||
+        (dispute.includes("payment") && !familyBlocked(data, "payment", paymentFact)),
+      invoiceDispute: invoiceDisputeFact,
       notice:
-        hasAny(facts, ["written notice", "non-payment notice", "nonpayment notice", "notice of breach", "breach notice", "notice of non-payment", "delivery delay notice", "delay notice", "force majeure notice", "reminder email", "notice was vague", "notice was sent", "notice contacts"]),
+        hasAny(facts, ["written notice", "non-payment notice", "nonpayment notice", "notice of breach", "breach notice", "notice of non-payment", "delivery delay notice", "delay notice", "force majeure notice", "indemnity notice", "unauthorized-disclosure notice", "unauthorized disclosure notice", "reminder email", "notice was vague", "notice was sent", "notice contacts", "failed to notify", "notify the customer"]),
       cure:
         hasAny(facts, ["cure period", "failed to cure", "failure to cure", "waited", "days before suspension", "days before termination"]),
-      suspension:
-        hasAny(facts, ["suspend", "suspension", "suspended", "access log", "restore access", "restoration of access"]),
+      suspension: suspensionFact,
       termination:
         dispute.includes("termination") || hasAny(facts, ["terminate", "termination", "terminated", "cancelled", "canceled"]),
       delivery:
-        dispute.includes("delivery") || hasAny(facts, ["delivery", "shipment", "milestone", "acceptance", "delayed", "late"]),
+        deliveryFact ||
+        (dispute.includes("delivery") && !familyBlocked(data, "delivery", deliveryFact)),
       refund:
-        dispute.includes("refund") || hasAny(facts, ["refund", "refundable", "prepaid"]),
+        refundFact ||
+        (dispute.includes("refund") && !familyBlocked(data, "refund", refundFact)),
       prepaidFees:
-        hasAny(facts, ["prepaid fee", "prepaid fees", "prepaid implementation fee", "implementation fee", "payment receipt"]),
+        refundFact && hasAny(facts, ["prepaid fee", "prepaid fees", "prepaid implementation fee", "implementation fee", "payment receipt"]),
       acceptanceRejection:
-        hasAny(facts, ["acceptance", "formal acceptance", "milestone acceptance", "accepted", "rejected", "rejection", "5-business-day rejection", "reasonable specificity"]),
+        deliveryFact && hasAny(facts, ["acceptance", "formal acceptance", "milestone acceptance", "accepted", "rejected", "rejection", "5-business-day rejection", "reasonable specificity"]),
       milestonePerformance:
-        hasAny(facts, ["milestone", "data import", "administrator training", "admin training", "onboarding services", "partial delivery", "partial data import"]),
+        deliveryFact && hasAny(facts, ["milestone", "data import", "administrator training", "admin training", "onboarding services", "partial delivery", "partial data import"]),
       service:
-        contract.includes("saas") || hasAny(facts, ["platform access", "service access", "uptime", "downtime", "sla", "service credit", "support ticket"]),
-      sla:
-        hasAny(facts, ["downtime", "uptime", "sla", "service availability", "service performance", "support tickets", "uptime report"]),
+        contract.includes("saas") || hasAny(facts, ["platform access", "service access", "uptime", "downtime", "sla", "service credit", "support ticket", "user seats", "hosted software"]),
+      sla: slaFact,
       serviceCredit:
-        hasAny(facts, ["service credit", "service credits", "sla credits", "credit remedy", "credit amount"]),
+        slaFact && hasIssueFactTrigger(data, "sla", ["service credit", "service credits", "sla credits", "credit remedy", "credit amount"]),
       customerSideCause:
-        hasAny(facts, ["customer-side", "customer side", "integration error", "api authentication", "customer systems", "customer's own integration"]),
+        slaFact && hasAny(facts, ["customer-side", "customer side", "integration error", "api authentication", "customer systems", "customer's own integration"]),
       mitigation:
-        hasAny(facts, ["mitigation", "mitigate", "commercially reasonable mitigation", "remote migration", "remote tools", "alternate staffing", "alternate site access"]),
-      coverCosts:
-        hasAny(facts, ["cover cost", "cover costs", "temporary consultant", "consultant cost", "consultant retained", "replacement vendor"]),
-      damages:
-        hasAny(facts, ["damages", "liquidated damages", "lost revenue", "lost productivity", "internal delay costs", "lost profits", "operational losses", "replacement costs", "beyond service credits", "loss calculation", "claimed revenue", "refund calculation"]),
-      liabilityLimitation:
-        hasAny(facts, ["liability cap", "limitation of liability", "consequential damages", "lost revenue exclusion", "lost productivity", "internal delay costs", "lost-profit", "lost profit", "damages beyond", "fees paid", "cap"]),
-      indemnity: hasIndemnityFactTrigger(data),
-      confidentiality: hasConfidentialityFactTrigger(data),
+        forceMajeureFact && hasAny(facts, ["mitigation", "mitigate", "commercially reasonable mitigation", "remote migration", "remote tools", "alternate staffing", "alternate site access"]),
+      coverCosts: coverCostsFact,
+      damages: damagesFact || liquidatedDamagesFact,
+      liabilityLimitation: liabilityLimitationFact || (damagesFact && hasAny(data.contractText, ["liability cap", "total liability", "capped at", "damages exclusion", "consequential", "lost-profit", "lost profit"])),
+      indemnity: indemnityFact,
+      thirdPartyIp: thirdPartyIpFact,
+      confidentiality: confidentialityFact,
+      unauthorizedDisclosure: unauthorizedDisclosureFact,
+      liabilityCapCarveout:
+        hasLiabilityCapCarveoutClause(data.contractText) &&
+        (confidentialityFact || unauthorizedDisclosureFact || indemnityFact || thirdPartyIpFact),
       penalty:
-        hasAny(facts, ["penalty", "liquidated damages", "late fee penalty"]),
-      forceMajeure: hasForceMajeureFactTrigger(data),
+        liquidatedDamagesFact || (hasAny(data.contractText, ["liquidated damages", "penalty"]) && (deliveryFact || forceMajeureFact || damagesFact)),
+      forceMajeure: forceMajeureFact,
       contested:
         hasAny(lowerFacts, ["argues", "claims", "says", "disputed", "never", "caused by", "premature", "too aggressively"]) &&
         Boolean(data.claimantPosition || data.respondentPosition)
@@ -884,6 +1294,15 @@
         addUnique(signals, `${durationAdjective(capPeriod)} fee liability cap`);
       }
     }
+    if (hasLiabilityCapCarveoutClause(data.contractText)) {
+      addUnique(signals, "liability cap carve-outs");
+      if (hasAny(contractText, ["confidentiality", "breach of confidentiality"])) {
+        addUnique(signals, "confidentiality carve-out");
+      }
+      if (hasAny(contractText, ["indemnity", "indemnity obligations", "indemnification"])) {
+        addUnique(signals, "indemnity carve-out");
+      }
+    }
     if (hasAny(contractText, ["indemnity", "indemnify"])) {
       addUnique(
         signals,
@@ -891,6 +1310,16 @@
           ? "indemnity clause"
           : "indemnity clause mentioned but not fact-triggered"
       );
+      if (hasAny(contractText, ["third-party claims", "third party claims", "third-party claim", "intellectual property", "infringe", "infringement", "copyright", "patent", "trademark"])) {
+        addUnique(signals, "third-party IP claim indemnity");
+      }
+      const indemnityNotice = findDurationNear(data.contractText, ["indemnifiable claim", "receiving the claim", "indemnity notice", "written notice"]);
+      if (indemnityNotice) {
+        addUnique(signals, `${durationRequirementLabel(indemnityNotice)} indemnity notice requirement`);
+      }
+      if (hasAny(contractText, ["control the defense", "control defense", "settle", "settlement", "written consent", "admits customer fault", "non-monetary obligations"])) {
+        addUnique(signals, "defense control / settlement consent");
+      }
     }
     if (hasAny(contractText, ["force majeure"])) {
       addUnique(
@@ -955,6 +1384,13 @@
     }
     if (hasConfidentialityClause(contractText)) {
       addUnique(signals, "confidentiality obligations");
+      if (hasAny(contractText, ["unauthorized disclosure", "suspected compromise", "notify the customer", "after discovering"])) {
+        addUnique(signals, "unauthorized-disclosure notice requirement");
+        const disclosureNotice = findDurationNear(data.contractText, ["unauthorized disclosure", "suspected compromise", "after discovering", "notify the customer"]);
+        if (disclosureNotice) {
+          addUnique(signals, `${durationRequirementLabel(disclosureNotice)} unauthorized-disclosure notice requirement`);
+        }
+      }
     }
     if (hasAny(contractText, ["refund", "non-refundable", "refundable"])) {
       addUnique(signals, "refund conditions");
@@ -967,13 +1403,13 @@
     const groups = detectGroups(data);
     const tags = [];
 
-    if ((triggers.payment || triggers.invoiceDispute) && (hasSignal(clauseSignals, "payment") || groups.includes("payment"))) {
+    if (!familyBlocked(data, "payment", triggers.payment) && triggers.payment && (hasSignal(clauseSignals, "payment") || groups.includes("payment"))) {
       addUnique(tags, "payment");
     }
-    if (triggers.invoiceDispute && (hasSignal(clauseSignals, "disputed invoice") || hasSignal(clauseSignals, "payment") || groups.includes("payment"))) {
+    if (!familyBlocked(data, "invoice_dispute", triggers.invoiceDispute) && triggers.invoiceDispute && (hasSignal(clauseSignals, "disputed invoice") || hasSignal(clauseSignals, "payment") || groups.includes("payment"))) {
       addUnique(tags, "invoice dispute");
     }
-    if (triggers.refund && (hasSignal(clauseSignals, "refund") || hasSignal(clauseSignals, "prepaid") || groups.includes("payment"))) {
+    if (!familyBlocked(data, "refund", triggers.refund) && triggers.refund && (hasSignal(clauseSignals, "refund") || hasSignal(clauseSignals, "prepaid") || groups.includes("payment"))) {
       addUnique(tags, "refund");
     }
     if (triggers.prepaidFees && (hasSignal(clauseSignals, "prepaid") || hasSignal(clauseSignals, "non-refundable") || hasSignal(clauseSignals, "refund"))) {
@@ -985,28 +1421,28 @@
     if ((triggers.cure || triggers.suspension || triggers.termination || (triggers.delivery && triggers.notice)) && hasSignal(clauseSignals, "cure")) {
       addUnique(tags, "cure period");
     }
-    if (triggers.suspension && hasSignal(clauseSignals, "suspension")) {
+    if (!familyBlocked(data, "suspension", triggers.suspension) && triggers.suspension && hasSignal(clauseSignals, "suspension")) {
       addUnique(tags, "suspension");
     }
     if (triggers.termination && (hasSignal(clauseSignals, "termination") || groups.includes("termination"))) {
       addUnique(tags, "termination");
     }
-    if (triggers.delivery && (hasSignal(clauseSignals, "delivery") || groups.includes("delivery"))) {
+    if (!familyBlocked(data, "delivery", triggers.delivery) && triggers.delivery && (hasSignal(clauseSignals, "delivery") || groups.includes("delivery"))) {
       addUnique(tags, "delivery");
     }
     if (triggers.acceptanceRejection && (hasSignal(clauseSignals, "acceptance") || hasSignal(clauseSignals, "rejection") || hasSignal(clauseSignals, "specificity"))) {
       addUnique(tags, "acceptance / rejection");
     }
-    if (triggers.sla && (hasSignal(clauseSignals, "SLA") || hasSignal(clauseSignals, "uptime"))) {
+    if (!familyBlocked(data, "sla", triggers.sla) && triggers.sla && (hasSignal(clauseSignals, "SLA") || hasSignal(clauseSignals, "uptime"))) {
       addUnique(tags, "SLA");
     }
-    if (triggers.serviceCredit && hasSignal(clauseSignals, "service credit")) {
+    if (!familyBlocked(data, "sla", triggers.serviceCredit) && triggers.serviceCredit && hasSignal(clauseSignals, "service credit")) {
       addUnique(tags, "service credit");
     }
     if (triggers.mitigation && hasSignal(clauseSignals, "mitigation")) {
       addUnique(tags, "mitigation");
     }
-    if (triggers.coverCosts && hasSignal(clauseSignals, "cover costs")) {
+    if (!familyBlocked(data, "cover_costs", triggers.coverCosts) && triggers.coverCosts && hasSignal(clauseSignals, "cover costs")) {
       addUnique(tags, "cover costs");
     }
     if (triggers.damages || triggers.refund || triggers.penalty) {
@@ -1015,17 +1451,26 @@
     if ((triggers.damages || triggers.liabilityLimitation) && (hasSignal(clauseSignals, "liability cap") || hasSignal(clauseSignals, "damages exclusion"))) {
       addUnique(tags, "liability limitation");
     }
-    if (triggers.indemnity && hasSignal(clauseSignals, "indemnity")) {
+    if (!familyBlocked(data, "indemnity", triggers.indemnity) && triggers.indemnity && hasSignal(clauseSignals, "indemnity")) {
       addUnique(tags, "indemnity");
     }
-    if (triggers.penalty && hasAny(factText(data), ["penalty", "liquidated damages"])) {
+    if (!familyBlocked(data, "indemnity", triggers.thirdPartyIp) && triggers.thirdPartyIp && hasSignal(clauseSignals, "third-party IP")) {
+      addUnique(tags, "third-party IP claim");
+    }
+    if (!familyBlocked(data, "liquidated_damages", triggers.penalty) && triggers.penalty && (hasAny(factText(data), ["penalty", "liquidated damages"]) || hasSignal(clauseSignals, "liquidated damages"))) {
       addUnique(tags, "liquidated damages");
     }
-    if (triggers.forceMajeure && hasSignal(clauseSignals, "force majeure")) {
+    if (!familyBlocked(data, "force_majeure", triggers.forceMajeure) && triggers.forceMajeure && hasSignal(clauseSignals, "force majeure")) {
       addUnique(tags, "force majeure");
     }
-    if (triggers.confidentiality && hasSignal(clauseSignals, "confidentiality")) {
+    if (!familyBlocked(data, "confidentiality", triggers.confidentiality) && triggers.confidentiality && hasSignal(clauseSignals, "confidentiality")) {
       addUnique(tags, "confidentiality");
+    }
+    if (!familyBlocked(data, "confidentiality", triggers.unauthorizedDisclosure) && triggers.unauthorizedDisclosure && hasSignal(clauseSignals, "confidentiality")) {
+      addUnique(tags, "unauthorized disclosure");
+    }
+    if (triggers.liabilityCapCarveout && hasSignal(clauseSignals, "carve-out")) {
+      addUnique(tags, "liability cap carve-out");
     }
 
     return tags.length ? tags : ["unclear"];
@@ -1078,10 +1523,16 @@
     const evidence = normalize(data.evidence);
     const gaps = extractExplicitEvidenceGaps(data.evidence);
     const refundTimeline = extractRefundTerminationTimeline(data);
+    const confidentialityTimeline = extractConfidentialityIndemnityTimeline(data);
     const refundAcceptanceIssue =
       hasTag(activeIssueTags, "refund") ||
       hasTag(activeIssueTags, "prepaid fees") ||
       hasTag(activeIssueTags, "acceptance / rejection");
+    const confidentialityIpIssue =
+      hasTag(activeIssueTags, "confidentiality") ||
+      hasTag(activeIssueTags, "unauthorized disclosure") ||
+      hasTag(activeIssueTags, "indemnity") ||
+      hasTag(activeIssueTags, "third-party IP claim");
 
     if (!hasAny(combined, ["signed", "executed", "agreement", "purchase order", "order form"])) {
       addUnique(gaps, "signed agreement or executed contract copy");
@@ -1095,7 +1546,7 @@
     if (hasTag(activeIssueTags, "invoice dispute") && !hasAny(evidence, ["written invoice dispute", "dispute notice", "customer's written invoice dispute", "customer written invoice dispute"])) {
       addUnique(gaps, "customer written invoice dispute notice");
     }
-    if ((hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period") || hasTag(activeIssueTags, "suspension") || hasTag(activeIssueTags, "termination")) && !hasGap(gaps, ["notice address"]) && hasSignal(clauseSignals, "notice address") && !hasAny(evidence, ["notice address listed", "order form notice", "contractual notice address verified"])) {
+    if ((hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period") || hasTag(activeIssueTags, "suspension") || hasTag(activeIssueTags, "termination")) && !hasGap(gaps, ["notice address", "notice contacts"]) && hasSignal(clauseSignals, "notice address") && !hasAny(evidence, ["notice address listed", "order form notice", "contractual notice address verified", "sow notice contacts", "statement of work listing", "project notice contacts", "notice contact list"])) {
       addUnique(gaps, "contractual notice address");
     }
     if ((hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period") || hasTag(activeIssueTags, "suspension") || hasTag(activeIssueTags, "termination")) && !hasGap(gaps, ["proof", "delivery"]) && !hasAny(evidence, ["proof of delivery", "delivery receipt", "sent to the contractual notice address", "email delivery log"])) {
@@ -1109,6 +1560,33 @@
     }
     if (hasTag(activeIssueTags, "SLA") && !hasAny(evidence, ["independent monitoring", "timestamped sla", "timestamped monitoring", "third-party monitoring"])) {
       addUnique(gaps, "independent or timestamped SLA monitoring data");
+    }
+    if (confidentialityIpIssue) {
+      if (!hasGap(gaps, ["first discovered", "actual discovery", "discovered the public workspace exposure"])) {
+        addUnique(gaps, "Exact date when the provider first discovered the public workspace exposure");
+      }
+      if (hasAny(combined, ["anonymous page views", "anonymous views"]) && !hasGap(gaps, ["anonymous page views", "third-party access", "internal testing"])) {
+        addUnique(gaps, "Whether anonymous page views reflect actual third-party access or internal testing");
+      }
+      if (hasAny(combined, ["subcontractor", "subcontractors"]) && !hasGap(gaps, ["subcontractors", "confidentiality obligations"])) {
+        addUnique(gaps, "Whether subcontractors were bound by confidentiality obligations at least as protective as the Agreement");
+      }
+      if (hasTag(activeIssueTags, "indemnity") && confidentialityTimeline.indemnityNoticeDate && !hasGap(gaps, ["indemnity notice", "contractual notice contacts"])) {
+        addUnique(gaps, `Proof that the ${confidentialityTimeline.indemnityNoticeDate} indemnity notice was sent to the contractual notice contacts`);
+      }
+      if (hasTag(activeIssueTags, "third-party IP claim") && !hasGap(gaps, ["technical comparison", "copyrighted work", "third-party copyrighted work"])) {
+        addUnique(gaps, "Technical comparison between the provider analytics template and the third-party copyrighted work");
+      }
+      if (hasTag(activeIssueTags, "third-party IP claim") && !hasGap(gaps, ["provider-owned", "customer-provided", "derived from customer-provided materials"])) {
+        addUnique(gaps, "Evidence showing whether the analytics template was provider-owned or derived from customer-provided materials");
+      }
+      if (hasTag(activeIssueTags, "indemnity") && !hasGap(gaps, ["defense cost estimate"])) {
+        addUnique(gaps, "Defense cost estimate for the third-party IP claim");
+      }
+      if ((hasTag(activeIssueTags, "damages") || hasTag(activeIssueTags, "liability limitation")) && !hasGap(gaps, ["remediation", "investigation", "business-impact", "damages calculation"])) {
+        addUnique(gaps, "Calculation of remediation, investigation, and claimed business-impact damages");
+      }
+      return gaps.length ? uniqueValues(gaps) : ["No obvious evidence gap detected from the current text"];
     }
     if (refundAcceptanceIssue) {
       if (hasSignal(clauseSignals, "notice contacts") && !hasAny(evidence, ["sow notice contacts", "statement of work notice", "notice contact list"])) {
@@ -1156,6 +1634,7 @@
     const deliveryTimeline = extractDeliveryTimeline(data);
     const fmTimeline = extractForceMajeureTimeline(data);
     const refundTimeline = extractRefundTerminationTimeline(data);
+    const confidentialityTimeline = extractConfidentialityIndemnityTimeline(data);
     const paymentDeadline = findDurationNear(contractText, ["pay", "payment", "invoice", "fees"]);
     const disputeDeadline = findDurationNear(contractText, ["disputes an invoice", "disputed amount", "basis for dispute"]);
     const cureDuration = findDurationNear(contractText, ["cure"]);
@@ -1164,6 +1643,11 @@
       hasTag(activeIssueTags, "refund") ||
       hasTag(activeIssueTags, "prepaid fees") ||
       hasTag(activeIssueTags, "acceptance / rejection");
+    const confidentialityIpIssue =
+      hasTag(activeIssueTags, "confidentiality") ||
+      hasTag(activeIssueTags, "unauthorized disclosure") ||
+      hasTag(activeIssueTags, "indemnity") ||
+      hasTag(activeIssueTags, "third-party IP claim");
 
     if ((hasTag(activeIssueTags, "payment") || hasTag(activeIssueTags, "invoice dispute")) && invoiceDates.length) {
       addUnique(timeline, `Invoice dates identified: ${formatList(invoiceDates)}.`);
@@ -1174,7 +1658,29 @@
     if (hasTag(activeIssueTags, "invoice dispute") && disputeDeadline) {
       addUnique(timeline, `Invoice dispute deadline signal: written dispute notice due within ${disputeDeadline} of invoice receipt or discovery.`);
     }
-    if (refundAcceptanceIssue) {
+    if (confidentialityIpIssue) {
+      if (confidentialityTimeline.disclosureDate) {
+        addUnique(timeline, `${confidentialityTimeline.disclosureDate}: provider uploaded confidential materials to a public workspace.`);
+      }
+      if (confidentialityTimeline.customerDiscoveryDate) {
+        addUnique(timeline, `${confidentialityTimeline.customerDiscoveryDate}: customer discovered the public link or workspace exposure.`);
+      }
+      if (confidentialityTimeline.removalDate) {
+        addUnique(timeline, `${confidentialityTimeline.removalDate}: provider removed the file or completed initial containment.`);
+      }
+      if (confidentialityTimeline.thirdPartyClaimDate) {
+        addUnique(timeline, `${confidentialityTimeline.thirdPartyClaimDate}: third-party IP demand letter or infringement claim.`);
+      }
+      if (confidentialityTimeline.indemnityNoticeDate) {
+        addUnique(timeline, `${confidentialityTimeline.indemnityNoticeDate}: customer indemnity notice.`);
+      }
+      if (confidentialityTimeline.unauthorizedDisclosureNoticePeriod) {
+        addUnique(timeline, `${durationRequirementLabel(confidentialityTimeline.unauthorizedDisclosureNoticePeriod)} unauthorized-disclosure notice period: calculate from the provider's actual discovery date once known.`);
+      }
+      if (confidentialityTimeline.indemnityNoticePeriod) {
+        addUnique(timeline, `${durationRequirementLabel(confidentialityTimeline.indemnityNoticePeriod)} indemnity notice period: calculate from customer receipt of the third-party claim.`);
+      }
+    } else if (refundAcceptanceIssue) {
       if (refundTimeline.prepaidPaymentDate) {
         const amount = refundTimeline.prepaidAmount ? ` ${refundTimeline.prepaidAmount}` : "";
         addUnique(timeline, `${refundTimeline.prepaidPaymentDate}: customer paid${amount} prepaid implementation fee.`);
@@ -1231,10 +1737,10 @@
     if (hasSignal(clauseSignals, "deemed receipt")) {
       addUnique(timeline, "Deemed receipt rule identified: notices are deemed received on the next business day.");
     }
-    if (cureDuration) {
+    if (cureDuration && !confidentialityIpIssue) {
       addUnique(timeline, `Cure period length identified: ${cureDuration}.`);
     }
-    if (actionDates.length && !refundAcceptanceIssue) {
+    if (actionDates.length && !refundAcceptanceIssue && !confidentialityIpIssue) {
       addUnique(timeline, `Suspension or termination action date identified: ${formatList(actionDates)}.`);
     }
     if (hasTag(activeIssueTags, "delivery") && !refundAcceptanceIssue) {
@@ -1257,7 +1763,7 @@
         addUnique(timeline, `Review or inspection period identified: ${deliveryTimeline.reviewPeriod}.`);
       }
     }
-    if (noticeDates.length && cureDuration && actionDates.length && !refundAcceptanceIssue) {
+    if (noticeDates.length && cureDuration && actionDates.length && !refundAcceptanceIssue && !confidentialityIpIssue) {
       addUnique(timeline, `Cure deadline must be calculated from deemed receipt of the ${noticeDates[0]} notice plus the ${cureDuration} cure period before the ${actionDates[0]} action.`);
     }
     if (servicePeriods.length && hasTag(activeIssueTags, "SLA")) {
@@ -1280,6 +1786,8 @@
     const deliveryTimeline = extractDeliveryTimeline(data);
     const fmTimeline = extractForceMajeureTimeline(data);
     const refundTimeline = extractRefundTerminationTimeline(data);
+    const confidentialityTimeline = extractConfidentialityIndemnityTimeline(data);
+    const confidentialMaterials = extractConfidentialMaterials(data);
     const ldTerms = extractLiquidatedDamagesTerms(data);
     const noticeDates = extractNoticeDates(data);
     const noticeDate = deliveryTimeline.noticeDate || noticeDates[0] || "the notice";
@@ -1297,6 +1805,57 @@
       hasTag(activeIssueTags, "refund") ||
       hasTag(activeIssueTags, "prepaid fees") ||
       hasTag(activeIssueTags, "acceptance / rejection");
+    const confidentialityIpIssue =
+      hasTag(activeIssueTags, "confidentiality") ||
+      hasTag(activeIssueTags, "unauthorized disclosure") ||
+      hasTag(activeIssueTags, "indemnity") ||
+      hasTag(activeIssueTags, "third-party IP claim");
+
+    if (confidentialityIpIssue) {
+      const disclosureDate = confidentialityTimeline.disclosureDate || "the upload date";
+      const discoveryDate = confidentialityTimeline.customerDiscoveryDate || "the customer discovery date";
+      const removalDate = confidentialityTimeline.removalDate || "the removal date";
+      const thirdPartyDate = confidentialityTimeline.thirdPartyClaimDate || "the third-party demand date";
+      const indemnityNoticeDate = confidentialityTimeline.indemnityNoticeDate || "the indemnity notice date";
+      const disclosureNoticePeriod = confidentialityTimeline.unauthorizedDisclosureNoticePeriod
+        ? durationRequirementLabel(confidentialityTimeline.unauthorizedDisclosureNoticePeriod)
+        : "contractual";
+      const indemnityNoticePeriod = confidentialityTimeline.indemnityNoticePeriod
+        ? durationRequirementLabel(confidentialityTimeline.indemnityNoticePeriod)
+        : "contractual";
+      const materialLabel = confidentialMaterials.length ? formatList(confidentialMaterials) : "customer confidential information";
+      const capLabel = capPeriod ? `${durationAdjective(capPeriod)} fee cap` : "liability cap";
+
+      if (hasTag(activeIssueTags, "confidentiality") || hasTag(activeIssueTags, "unauthorized disclosure")) {
+        addUnique(issues, `Whether the ${disclosureDate} upload to a public workspace disclosed customer confidential information.`);
+        addUnique(issues, `Whether the ${materialLabel} qualify as confidential information.`);
+        addUnique(issues, `Whether the provider first discovered the exposure before ${discoveryDate} and failed to notify within the ${disclosureNoticePeriod} notice requirement.`);
+        addUnique(issues, `Whether the ${removalDate} removal was sufficient containment and remediation.`);
+        if (hasAny(allText(data), ["anonymous page views", "anonymous views"])) {
+          addUnique(issues, "Whether anonymous page views show third-party access.");
+        }
+        if (hasAny(allText(data), ["subcontractor", "subcontractors"])) {
+          addUnique(issues, "Whether subcontractors had confidentiality obligations at least as protective as the Agreement.");
+        }
+      }
+      if (hasTag(activeIssueTags, "indemnity") || hasTag(activeIssueTags, "third-party IP claim")) {
+        addUnique(issues, `Whether the ${thirdPartyDate} third-party IP demand triggers indemnity.`);
+        addUnique(issues, `Whether the ${indemnityNoticeDate} indemnity notice was timely under the ${indemnityNoticePeriod} notice requirement.`);
+        addUnique(issues, `Whether the ${indemnityNoticeDate} notice was sent to the contractual notice contacts.`);
+        addUnique(issues, "Whether the analytics template was provider-owned or derived from customer-provided materials.");
+      }
+      if (hasTag(activeIssueTags, "liability cap carve-out")) {
+        addUnique(issues, `Whether confidentiality or indemnity carve-outs prevent the ${capLabel} from limiting recovery.`);
+      } else if (hasTag(activeIssueTags, "liability limitation")) {
+        addUnique(issues, `Whether the ${capLabel} limits recovery after applying any damages exclusions.`);
+      }
+      if (hasTag(activeIssueTags, "damages") || hasTag(activeIssueTags, "liability limitation")) {
+        addUnique(issues, "Whether remediation, investigation, defense, or business-impact damages are recoverable.");
+      }
+      if (issues.length) {
+        return issues;
+      }
+    }
 
     if (refundAcceptanceIssue) {
       if (refundTimeline.dataImportMilestoneDate || refundTimeline.trainingMilestoneDate) {
@@ -1477,11 +2036,51 @@
     const tags = diagnosis.activeIssueTags || diagnosis.issueTags || [];
     const fmTimeline = extractForceMajeureTimeline(data);
     const refundTimeline = extractRefundTerminationTimeline(data);
+    const confidentialityTimeline = extractConfidentialityIndemnityTimeline(data);
     const ldTerms = extractLiquidatedDamagesTerms(data);
     const refundAcceptanceIssue =
       hasTag(tags, "refund") ||
       hasTag(tags, "prepaid fees") ||
       hasTag(tags, "acceptance / rejection");
+    const confidentialityIpIssue =
+      hasTag(tags, "confidentiality") ||
+      hasTag(tags, "unauthorized disclosure") ||
+      hasTag(tags, "indemnity") ||
+      hasTag(tags, "third-party IP claim");
+
+    if (confidentialityIpIssue) {
+      const datedTimeline = [
+        confidentialityTimeline.disclosureDate,
+        confidentialityTimeline.customerDiscoveryDate,
+        confidentialityTimeline.removalDate,
+        confidentialityTimeline.thirdPartyClaimDate,
+        confidentialityTimeline.indemnityNoticeDate
+      ].filter(Boolean).join(" / ");
+      addUnique(steps, datedTimeline ? `Build a ${datedTimeline} timeline.` : "Build a confidentiality exposure, remediation, third-party claim, and indemnity notice timeline.");
+      if (hasTag(tags, "confidentiality") || hasTag(tags, "unauthorized disclosure")) {
+        addUnique(steps, "Determine provider's actual discovery date for the public exposure.");
+        addUnique(steps, `Verify whether the provider gave unauthorized-disclosure notice within the ${durationRequirementLabel(confidentialityTimeline.unauthorizedDisclosureNoticePeriod) || "contractual"} notice period.`);
+        addUnique(steps, "Review workspace access logs, including anonymous page views.");
+        addUnique(steps, "Verify subcontractor confidentiality obligations.");
+      }
+      if (hasTag(tags, "indemnity") || hasTag(tags, "third-party IP claim")) {
+        addUnique(steps, confidentialityTimeline.indemnityNoticeDate ? `Verify proof of ${confidentialityTimeline.indemnityNoticeDate} indemnity notice delivery to contractual notice contacts.` : "Verify proof of indemnity notice delivery to contractual notice contacts.");
+        addUnique(steps, "Compare the analytics template with the third-party copyrighted work.");
+        addUnique(steps, "Determine whether the template was provider-owned or derived from customer materials.");
+        addUnique(steps, "Estimate defense costs and remediation/investigation costs.");
+      }
+      if (hasTag(tags, "liability cap carve-out")) {
+        const capPeriod = durationAdjective(extractLiabilityCapPeriod(data.contractText));
+        addUnique(steps, `Analyze confidentiality and indemnity carve-outs from the ${capPeriod ? `${capPeriod} ` : ""}liability cap.`);
+      }
+      if (hasTag(tags, "damages") || hasTag(tags, "liability limitation")) {
+        addUnique(steps, "Review damages exclusions and recoverability of business-impact damages.");
+      }
+      if (data.desiredOutcome) {
+        addUnique(steps, `Frame the next report around the desired outcome: ${data.desiredOutcome}`);
+      }
+      return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+    }
 
     if (hasTag(tags, "force majeure") && hasTag(tags, "delivery")) {
       const datedTimeline = [
@@ -1591,7 +2190,17 @@
       text.includes("performed vs unperformed") ||
       text.includes("formal milestone acceptance") ||
       text.includes("rejected within") ||
-      text.includes("disputed amounts")
+      text.includes("disputed amounts") ||
+      text.includes("first discovered") ||
+      text.includes("anonymous page views") ||
+      text.includes("subcontractors") ||
+      text.includes("technical comparison") ||
+      text.includes("provider-owned") ||
+      text.includes("customer-provided") ||
+      text.includes("defense cost estimate") ||
+      text.includes("remediation") ||
+      text.includes("investigation") ||
+      text.includes("business-impact")
     );
   }
 
@@ -1666,7 +2275,7 @@
     const respondent = normalize(data.respondentPosition);
     const claimant = normalize(data.claimantPosition);
 
-    if (respondent.includes("disputed") || claimant.includes("undisputed")) {
+    if ((respondent.includes("disputed") || claimant.includes("undisputed")) && hasAny(respondent + " " + claimant, ["invoice", "payment", "amount", "undisputed"])) {
       facts.push("Whether the disputed amount was actually undisputed when payment became due");
     }
     if (respondent.includes("notice") || claimant.includes("notice")) {
@@ -1684,6 +2293,12 @@
     }
     if (respondent.includes("accepted") || claimant.includes("accepted")) {
       facts.push("Whether work or goods were accepted before the dispute escalated");
+    }
+    if (respondent.includes("confidential") || claimant.includes("confidential") || respondent.includes("disclosure") || claimant.includes("disclosure")) {
+      facts.push("Whether the alleged disclosure breached confidentiality obligations and what access records prove");
+    }
+    if (respondent.includes("indemnity") || claimant.includes("indemnity") || respondent.includes("infring") || claimant.includes("infring") || respondent.includes("copyright") || claimant.includes("copyright")) {
+      facts.push("Whether the third-party IP demand falls within indemnity coverage or a customer-materials exception");
     }
     if (!facts.length) {
       facts.push("Which facts each side can prove with dated records");
@@ -1712,24 +2327,25 @@
       risk_mode: data.riskMode,
       risk_signal: risk.level,
       risk,
-      active_issue_tags: activeIssueTags,
-      issue_tags: activeIssueTags,
+      active_issue_tags: [...activeIssueTags],
+      issue_tags: [...activeIssueTags],
       dispute_summary: summarize(data),
-      key_issues: keyIssues,
-      clause_signals: relevantClauseSignals,
-      relevant_clause_signals: relevantClauseSignals,
-      timeline_facts: timelineFacts,
+      key_issues: [...keyIssues],
+      clause_signals: [...relevantClauseSignals],
+      relevant_clause_signals: [...relevantClauseSignals],
+      timeline_facts: [...timelineFacts],
       position_matrix: {
         claimant: data.claimantPosition || "No claimant position provided.",
         respondent: data.respondentPosition || "No respondent position provided.",
         contested_facts: contestedFacts(data)
       },
-      evidence_gaps: evidenceGaps,
+      evidence_gaps: [...evidenceGaps],
       suggested_next_steps: []
     };
 
     diagnosis.suggested_next_steps = buildNextSteps(data, {
-      activeIssueTags: diagnosis.active_issue_tags
+      activeIssueTags: diagnosis.active_issue_tags,
+      evidenceGaps: diagnosis.evidence_gaps
     });
 
     return diagnosis;
@@ -1737,19 +2353,76 @@
 
   function detectContractTypes(data) {
     const types = [];
+    const contractSupportText = [data.contractText, data.metadata].join(" ");
+    const factSupportedSaas =
+      hasIssueFactTrigger(data, "sla") ||
+      hasIssueFactTrigger(data, "suspension", ["platform access", "user seats", "hosted software", "subscription platform"]);
     if (data.contractType) {
       addUnique(types, data.contractType);
     }
-    if (hasAny(data.contractText + " " + data.disputeDescription, ["saas", "platform", "subscription", "sla", "uptime"]) && !types.some((type) => normalize(type).includes("saas"))) {
+    if ((hasAny(contractSupportText, ["saas", "subscription platform", "hosted software", "uptime", "sla", "service credits", "service credit", "platform access", "user seats"]) || factSupportedSaas) && !types.some((type) => normalize(type).includes("saas"))) {
       addUnique(types, "SaaS Agreement");
     }
     return types.length ? types : ["Other"];
   }
 
+  function selectedDisputeTypeSupported(selected, activeIssueTags) {
+    const text = normalize(selected);
+    if (!text || text === "other") {
+      return false;
+    }
+    if (hasAny(text, ["payment", "invoice"])) {
+      return hasTag(activeIssueTags, "payment") || hasTag(activeIssueTags, "invoice dispute");
+    }
+    if (text.includes("refund")) {
+      return hasTag(activeIssueTags, "refund") || hasTag(activeIssueTags, "prepaid fees");
+    }
+    if (hasAny(text, ["force majeure", "external event"])) {
+      return hasTag(activeIssueTags, "force majeure");
+    }
+    if (hasAny(text, ["late delivery", "delivery", "acceptance"])) {
+      return hasTag(activeIssueTags, "delivery") || hasTag(activeIssueTags, "acceptance / rejection");
+    }
+    if (hasAny(text, ["sla", "service credit", "uptime", "downtime"])) {
+      return hasTag(activeIssueTags, "SLA") || hasTag(activeIssueTags, "service credit");
+    }
+    if (text.includes("suspension")) {
+      return hasTag(activeIssueTags, "suspension");
+    }
+    if (hasAny(text, ["notice", "cure"])) {
+      return hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period");
+    }
+    if (text.includes("termination")) {
+      return hasTag(activeIssueTags, "termination");
+    }
+    if (hasAny(text, ["damages", "liability"])) {
+      return hasTag(activeIssueTags, "damages") || hasTag(activeIssueTags, "liability limitation") || hasTag(activeIssueTags, "liability cap carve-out");
+    }
+    if (hasAny(text, ["confidentiality", "confidential", "disclosure"])) {
+      return hasTag(activeIssueTags, "confidentiality") || hasTag(activeIssueTags, "unauthorized disclosure");
+    }
+    if (hasAny(text, ["indemnity", "indemnification", "ip", "intellectual property"])) {
+      return hasTag(activeIssueTags, "indemnity") || hasTag(activeIssueTags, "third-party IP claim");
+    }
+    return false;
+  }
+
   function detectDisputeTypes(data, activeIssueTags, triggers) {
     const types = [];
-    if (data.disputeType && normalize(data.disputeType) !== "other") {
+    if (selectedDisputeTypeSupported(data.disputeType, activeIssueTags)) {
       addUnique(types, data.disputeType);
+    }
+    if (hasTag(activeIssueTags, "confidentiality")) {
+      addUnique(types, "Confidentiality");
+    }
+    if (hasTag(activeIssueTags, "unauthorized disclosure")) {
+      addUnique(types, "Unauthorized Disclosure / Data Exposure");
+    }
+    if (hasTag(activeIssueTags, "indemnity")) {
+      addUnique(types, "Indemnity");
+    }
+    if (hasTag(activeIssueTags, "third-party IP claim")) {
+      addUnique(types, "Third-Party IP Claim / Intellectual Property");
     }
     if (hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period")) {
       if (hasTag(activeIssueTags, "cure period")) {
@@ -1783,6 +2456,9 @@
       addUnique(types, "Acceptance/Rejection");
     } else if ((triggers.delivery || hasTag(activeIssueTags, "delivery")) && hasAny(allText(data), ["acceptance criteria", "accepted delivery", "acceptance test", "acceptance testing"])) {
       addUnique(types, "Delivery/Acceptance");
+    }
+    if (hasTag(activeIssueTags, "delivery") && hasAny(factText(data) + " " + data.disputeType, ["late delivery", "delayed", "missed", "deadline", "migration deadline"])) {
+      addUnique(types, "Late Delivery");
     }
     if (triggers.refund || hasTag(activeIssueTags, "refund")) {
       addUnique(types, "Refund");
@@ -1930,8 +2606,8 @@
         has_evidence: Boolean(input.evidence)
       },
       expected_outputs: {
-        must_include_issues: diagnosis.issue_tags.filter((tag) => tag !== "unclear").slice(0, 4),
-        must_include_evidence_gaps: diagnosis.evidence_gaps.slice(0, 4),
+        must_include_issues: (diagnosis.active_issue_tags || []).filter((tag) => tag !== "unclear"),
+        must_include_evidence_gaps: [...diagnosis.evidence_gaps],
         minimum_clause_signals: metrics.clauseSignalCount,
         risk_signal: diagnosis.risk_signal
       },
@@ -1988,10 +2664,18 @@
   }
 
   function caseNameFor(input, diagnosis) {
+    const activeTags = (diagnosis.active_issue_tags || diagnosis.issue_tags || []).filter((tag) => normalize(tag) !== "unclear");
+    let caseTags = activeTags.filter((tag) => !hasAny(tag, ["notice", "damages", "liability limitation", "liability cap carve-out"]));
+    if (hasTag(activeTags, "confidentiality") && hasTag(activeTags, "indemnity")) {
+      caseTags = ["confidentiality", "indemnity"];
+    } else if (hasTag(activeTags, "force majeure") && hasTag(activeTags, "delivery")) {
+      caseTags = ["force majeure", "delivery"];
+    } else if (hasTag(activeTags, "refund")) {
+      caseTags = ["refund"].concat(activeTags.filter((tag) => hasAny(tag, ["termination", "acceptance"])));
+    }
     const source = [
       input.contractType,
-      input.disputeType,
-      diagnosis.issue_tags[0],
+      ...caseTags.slice(0, 3),
       "golden"
     ].join(" ");
     return source
@@ -2113,7 +2797,10 @@
       analyzeDispute,
       diagnose,
       markdownReport,
-      structuredPreview
+      structuredPreview,
+      computeEvaluationMetrics,
+      buildTestCasePreview,
+      caseNameFor
     };
   }
 

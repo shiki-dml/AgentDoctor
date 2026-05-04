@@ -270,6 +270,114 @@ REFUND_TERMINATION_ACCEPTANCE_FIXTURE = {
 }
 
 
+CONFIDENTIALITY_IP_INDEMNITY_FIXTURE = {
+    "contractType": "Service Agreement",
+    "disputeType": "Damages/Liability",
+    "outputFormat": "Detailed",
+    "diagnosisDepth": "Detailed",
+    "riskMode": "Evidence-first",
+    "desiredOutcome": "Assess confidentiality breach, IP indemnity coverage, notice timing, and damages limits.",
+    "contractText": (
+        "This Service Agreement requires the provider to perform implementation and "
+        "analytics support services for the customer.\n\n"
+        "The provider must protect all customer confidential information using at "
+        "least reasonable care and may disclose it only to personnel or subcontractors "
+        "who need access to perform the services and are bound by confidentiality "
+        "obligations at least as protective as this Agreement.\n\n"
+        "Customer confidential information includes non-public business plans, pricing "
+        "models, product launch schedules, customer lists, technical documentation, "
+        "and any materials marked or reasonably understood to be confidential.\n\n"
+        "The provider must notify the customer within 3 business days after "
+        "discovering any unauthorized disclosure or suspected compromise of customer "
+        "confidential information and must reasonably cooperate in containment and "
+        "remediation.\n\n"
+        "The provider will indemnify, defend, and hold harmless the customer from "
+        "third-party claims alleging that provider-owned tools, templates, software, "
+        "or deliverables infringe intellectual property rights, except to the extent "
+        "the claim arises from customer-provided materials or customer modifications.\n\n"
+        "The customer must give written notice of any indemnifiable claim within 10 "
+        "days after receiving the claim. The provider may control the defense, but "
+        "may not settle in a way that admits customer fault or imposes non-monetary "
+        "obligations without the customer's written consent.\n\n"
+        "Neither party is liable for indirect, incidental, consequential, special, "
+        "punitive, or lost-profit damages. Total liability is capped at fees paid "
+        "under the affected statement of work during the twelve months before the "
+        "event giving rise to the claim.\n\n"
+        "The liability cap does not limit claims for breach of confidentiality, "
+        "willful misconduct, or indemnity obligations.\n\n"
+        "Neither party is responsible for delay caused by force majeure events beyond "
+        "its reasonable control, provided the affected party gives prompt written "
+        "notice and uses commercially reasonable mitigation efforts.\n\n"
+        "All notices must be sent by email to the notice contacts listed in the "
+        "statement of work and are deemed received on the next business day after "
+        "transmission."
+    ),
+    "disputeDescription": (
+        "The provider uploaded a customer product launch plan and pricing model to a "
+        "public project-management workspace on May 3. The customer discovered the "
+        "public link on May 6 and demanded that the provider remove the file and "
+        "identify everyone who accessed it.\n\n"
+        "The provider removed the file on May 8 but says the upload was accidental "
+        "and that only two subcontractor users accessed the workspace. The customer "
+        "argues that the workspace was publicly accessible without authentication "
+        "and that the provider failed to notify the customer within 3 business days "
+        "after discovering the exposure.\n\n"
+        "On May 10, a third-party software company sent the customer a demand letter "
+        "alleging that a provider-created analytics template delivered under the "
+        "project infringed the third party's copyright. The customer sent an "
+        "indemnity notice to the provider on May 12.\n\n"
+        "The provider disputes indemnity coverage, arguing that the allegedly "
+        "infringing analytics template was modified using customer-provided "
+        "materials. The customer argues that the template was provider-owned and "
+        "that the indemnity clause applies.\n\n"
+        "No party claims delayed delivery, unpaid invoices, refunds, SLA downtime, "
+        "service credits, suspension, government order, natural disaster, strike, "
+        "war, or other external uncontrollable event."
+    ),
+    "claimantPosition": (
+        "Customer claims the provider breached confidentiality obligations by "
+        "exposing the product launch plan and pricing model in a public workspace, "
+        "failed to give timely unauthorized-disclosure notice, and must indemnify "
+        "the customer against the May 10 third-party IP demand. Customer seeks "
+        "remediation costs, investigation costs, defense costs, and damages not "
+        "limited by the liability cap."
+    ),
+    "respondentPosition": (
+        "Provider claims the disclosure was accidental, quickly remediated, and "
+        "caused no proven loss. Provider denies indemnity because the third-party IP "
+        "demand allegedly arises from customer-provided materials or customer "
+        "modifications. Provider also argues that any recoverable damages are "
+        "limited by the damages exclusion and twelve-month fee cap unless a carve-out "
+        "applies."
+    ),
+    "evidence": (
+        "Available:\n"
+        "- Statement of work listing the project notice contacts\n"
+        "- Provider workspace upload log showing upload on May 3\n"
+        "- Screenshot of public workspace link captured by customer on May 6\n"
+        "- Provider removal confirmation dated May 8\n"
+        "- Workspace access log showing two named subcontractor users and several anonymous page views\n"
+        "- Customer product launch plan marked \"Confidential\"\n"
+        "- Customer pricing model marked \"Confidential\"\n"
+        "- Third-party IP demand letter dated May 10\n"
+        "- Customer indemnity notice to provider dated May 12\n"
+        "- Provider analytics template delivered under the project\n"
+        "- Email thread discussing whether customer materials were used in the analytics template\n"
+        "- Customer invoice for forensic review and remediation support\n\n"
+        "Missing or unclear:\n"
+        "- Exact date when the provider first discovered the public workspace exposure\n"
+        "- Whether anonymous page views reflect actual third-party access or internal testing\n"
+        "- Whether subcontractors were bound by confidentiality obligations at least as protective as the Agreement\n"
+        "- Proof that the customer's May 12 indemnity notice was sent to the contractual notice contacts\n"
+        "- Technical comparison between the provider analytics template and the third-party copyrighted work\n"
+        "- Evidence showing whether the analytics template was provider-owned or derived from customer-provided materials\n"
+        "- Defense cost estimate for the third-party IP claim\n"
+        "- Calculation of remediation, investigation, and claimed business-impact damages"
+    ),
+    "metadata": '{"project":"analytics implementation"}',
+}
+
+
 def test_github_pages_entrypoint_references_existing_static_assets() -> None:
     demo_html = ROOT / "docs" / "playground" / "index.html"
     html = demo_html.read_text(encoding="utf-8")
@@ -886,6 +994,265 @@ def test_playground_refund_termination_gaps_next_steps_and_exports_are_scoped() 
     assert "service-credit" not in "\n".join(exported["risk"]["rationale"]).lower()
 
 
+def test_playground_confidentiality_ip_indemnity_filters_false_issue_families() -> None:
+    diagnosis = _run_playground_diagnosis(
+        CONFIDENTIALITY_IP_INDEMNITY_FIXTURE
+    )["diagnosis"]
+    active_tags = {tag.lower() for tag in diagnosis["active_issue_tags"]}
+    dispute_text = diagnosis["dispute_type"]
+
+    assert diagnosis["contract_type"] == "Service Agreement"
+    assert "SaaS Agreement" not in diagnosis["contract_type"]
+
+    for expected in (
+        "confidentiality",
+        "unauthorized disclosure",
+        "notice",
+        "indemnity",
+        "third-party ip claim",
+        "damages",
+        "liability limitation",
+        "liability cap carve-out",
+    ):
+        assert expected in active_tags
+
+    for forbidden in (
+        "payment",
+        "invoice dispute",
+        "refund",
+        "delivery",
+        "late delivery",
+        "force majeure",
+        "sla",
+        "service credit",
+        "suspension",
+        "liquidated damages",
+        "cover costs",
+    ):
+        assert forbidden not in active_tags
+
+    for expected_type in (
+        "Confidentiality",
+        "Unauthorized Disclosure / Data Exposure",
+        "Indemnity",
+        "Third-Party IP Claim / Intellectual Property",
+        "Notice",
+        "Damages/Liability",
+    ):
+        assert expected_type in dispute_text
+
+    for forbidden_type in (
+        "Payment/Invoice Dispute",
+        "Refund",
+        "Force Majeure",
+        "SLA/Service Credit",
+        "Suspension",
+    ):
+        assert forbidden_type not in dispute_text
+
+
+def test_playground_confidentiality_ip_clauses_issues_and_timeline() -> None:
+    diagnosis = _run_playground_diagnosis(
+        CONFIDENTIALITY_IP_INDEMNITY_FIXTURE
+    )["diagnosis"]
+    clause_text = "\n".join(diagnosis["clause_signals"])
+    key_issue_text = "\n".join(diagnosis["key_issues"])
+    timeline_text = "\n".join(diagnosis["timeline_facts"])
+
+    for expected_clause in (
+        "confidentiality obligations",
+        "unauthorized-disclosure notice requirement",
+        "3-business-day unauthorized-disclosure notice requirement",
+        "indemnity clause",
+        "third-party IP claim indemnity",
+        "10-day indemnity notice requirement",
+        "defense control / settlement consent",
+        "consequential damages exclusion",
+        "lost-profit damages exclusion",
+        "twelve-month fee liability cap",
+        "confidentiality carve-out",
+        "indemnity carve-out",
+        "contractual notice contacts",
+        "deemed receipt rule",
+        "force majeure clause mentioned but not fact-triggered",
+    ):
+        assert expected_clause in clause_text
+
+    for required in (
+        "May 3 upload to a public workspace",
+        "product launch plan and pricing model qualify as confidential information",
+        "before May 6",
+        "3-business-day notice requirement",
+        "May 8 removal",
+        "anonymous page views show third-party access",
+        "subcontractors had confidentiality obligations",
+        "May 10 third-party IP demand triggers indemnity",
+        "May 12 indemnity notice was timely under the 10-day notice requirement",
+        "May 12 notice was sent to the contractual notice contacts",
+        "analytics template was provider-owned or derived from customer-provided materials",
+        "confidentiality or indemnity carve-outs prevent the twelve-month fee cap",
+        "remediation, investigation, defense, or business-impact damages are recoverable",
+    ):
+        assert required in key_issue_text
+
+    for forbidden in (
+        "refund calculation",
+        "performed vs unperformed services",
+        "lost productivity",
+        "unpaid invoices",
+        "force majeure notice",
+        "migration deadline",
+        "liquidated damages",
+        "temporary consultant",
+        "cover cost",
+        "SLA",
+        "uptime",
+        "suspension",
+    ):
+        assert forbidden.lower() not in key_issue_text.lower()
+
+    for expected_timeline in (
+        "May 3: provider uploaded confidential materials to a public workspace.",
+        "May 6: customer discovered the public link or workspace exposure.",
+        "May 8: provider removed the file or completed initial containment.",
+        "May 10: third-party IP demand letter or infringement claim.",
+        "May 12: customer indemnity notice.",
+        "3-business-day unauthorized-disclosure notice period",
+        "10-day indemnity notice period",
+        "Deemed receipt rule identified",
+    ):
+        assert expected_timeline in timeline_text
+
+
+def test_playground_confidentiality_ip_gaps_next_steps_preview_and_exports_are_scoped() -> None:
+    output = _run_playground_diagnosis(CONFIDENTIALITY_IP_INDEMNITY_FIXTURE)
+    diagnosis = output["diagnosis"]
+    exported = json.loads(output["json"])
+    markdown = output["markdown"]
+    test_case = output["test_case"]
+    gaps = "\n".join(exported["evidence_gaps"])
+    next_steps = "\n".join(exported["suggested_next_steps"])
+
+    for expected_gap in (
+        "Exact date when the provider first discovered the public workspace exposure",
+        "Whether anonymous page views reflect actual third-party access or internal testing",
+        "Whether subcontractors were bound by confidentiality obligations at least as protective as the Agreement",
+        "Proof that the customer's May 12 indemnity notice was sent to the contractual notice contacts",
+        "Technical comparison between the provider analytics template and the third-party copyrighted work",
+        "Evidence showing whether the analytics template was provider-owned or derived from customer-provided materials",
+        "Defense cost estimate for the third-party IP claim",
+        "Calculation of remediation, investigation, and claimed business-impact damages",
+    ):
+        assert expected_gap in gaps
+
+    for forbidden_gap in (
+        "invoice dates",
+        "payment due-date",
+        "invoice dispute notice",
+        "performed vs unperformed",
+        "refund calculation",
+    ):
+        assert forbidden_gap not in gaps.lower()
+
+    for expected_step in (
+        "Build a May 3 / May 6 / May 8 / May 10 / May 12 timeline.",
+        "Determine provider's actual discovery date for the public exposure.",
+        "Verify whether the provider gave unauthorized-disclosure notice within the 3-business-day notice period.",
+        "Review workspace access logs, including anonymous page views.",
+        "Verify subcontractor confidentiality obligations.",
+        "Verify proof of May 12 indemnity notice delivery to contractual notice contacts.",
+        "Compare the analytics template with the third-party copyrighted work.",
+        "Determine whether the template was provider-owned or derived from customer materials.",
+        "Estimate defense costs and remediation/investigation costs.",
+        "Analyze confidentiality and indemnity carve-outs from the twelve-month liability cap.",
+        "Review damages exclusions and recoverability of business-impact damages.",
+    ):
+        assert expected_step in next_steps
+
+    for forbidden_step in (
+        "force majeure notice timeline",
+        "migration deadline",
+        "remote tools",
+        "alternate staffing",
+        "temporary consultant",
+        "liquidated damages",
+        "invoice receipt",
+        "refund calculation",
+        "service credits",
+        "uptime",
+        "suspension",
+    ):
+        assert forbidden_step not in next_steps.lower()
+
+    assert exported["active_issue_tags"] == diagnosis["active_issue_tags"]
+    assert exported["issue_tags"] == diagnosis["active_issue_tags"]
+    assert exported["key_issues"] == diagnosis["key_issues"]
+    assert exported["evidence_gaps"] == diagnosis["evidence_gaps"]
+    assert exported["timeline_facts"] == diagnosis["timeline_facts"]
+    assert "payment" not in markdown.split("## Active Issue Tags", 1)[1].split(
+        "## Key Issues", 1
+    )[0].lower()
+
+    assert test_case["case_name"] == "service_agreement_confidentiality_indemnity_golden"
+    preview_issues = {issue.lower() for issue in test_case["expected_outputs"]["must_include_issues"]}
+    for expected in (
+        "confidentiality",
+        "unauthorized disclosure",
+        "indemnity",
+        "third-party ip claim",
+        "notice",
+        "damages",
+        "liability limitation",
+    ):
+        assert expected in preview_issues
+    for forbidden in ("payment", "invoice dispute", "refund", "force majeure"):
+        assert forbidden not in preview_issues
+
+
+def test_playground_diagnosis_runs_do_not_cross_contaminate_issue_templates() -> None:
+    refund_then_confidentiality = _run_playground_diagnoses_sequentially(
+        [REFUND_TERMINATION_ACCEPTANCE_FIXTURE, CONFIDENTIALITY_IP_INDEMNITY_FIXTURE]
+    )[1]
+    force_then_confidentiality = _run_playground_diagnoses_sequentially(
+        [POSITIVE_FORCE_MAJEURE_DELIVERY_FIXTURE, CONFIDENTIALITY_IP_INDEMNITY_FIXTURE]
+    )[1]
+    saas_then_confidentiality = _run_playground_diagnoses_sequentially(
+        [SAAS_NOTICE_CURE_FIXTURE, CONFIDENTIALITY_IP_INDEMNITY_FIXTURE]
+    )[1]
+
+    confidentiality_outputs = (
+        refund_then_confidentiality,
+        force_then_confidentiality,
+        saas_then_confidentiality,
+    )
+    for diagnosis in confidentiality_outputs:
+        text = json.dumps(diagnosis).lower()
+        for forbidden in (
+            "refund calculation",
+            "performed vs unperformed",
+            "lost productivity",
+            "force majeure notice",
+            "migration deadline",
+            "remote migration tools",
+            "alternate staffing",
+            "temporary consultant",
+            "liquidated damages",
+            "service credit",
+            "uptime",
+            "suspension",
+            "invoice receipt",
+            "invoice dispute",
+        ):
+            assert forbidden not in text
+
+    saas_then_refund = _run_playground_diagnoses_sequentially(
+        [SAAS_NOTICE_CURE_FIXTURE, REFUND_TERMINATION_ACCEPTANCE_FIXTURE]
+    )[1]
+    refund_text = json.dumps(saas_then_refund).lower()
+    for forbidden in ("service credit", "uptime", "suspension"):
+        assert forbidden not in refund_text
+
+
 def test_mkdocs_nav_preserves_github_pages_playground_route() -> None:
     mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
 
@@ -1156,6 +1523,8 @@ const input = JSON.parse(fs.readFileSync(0, "utf8"));
 const api = context.window.Contract2AgentPlayground;
 const diagnosis = api.analyzeDispute(input);
 const markdown = api.markdownReport(diagnosis);
+const metrics = api.computeEvaluationMetrics(input, diagnosis);
+const testCase = api.buildTestCasePreview(input, diagnosis, metrics);
 const jsonOutput = JSON.stringify(
   {{
     ...diagnosis,
@@ -1164,11 +1533,107 @@ const jsonOutput = JSON.stringify(
   null,
   2
 );
-process.stdout.write(JSON.stringify({{ diagnosis, markdown, json: jsonOutput }}));
+process.stdout.write(JSON.stringify({{ diagnosis, markdown, json: jsonOutput, test_case: testCase }}));
 """
     completed = subprocess.run(
         [node, "-e", script],
         input=json.dumps(input_case),
+        text=True,
+        capture_output=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    return json.loads(completed.stdout)
+
+
+def _run_playground_diagnoses_sequentially(input_cases: list[dict]) -> list[dict]:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node is required to execute the static playground diagnosis")
+
+    app_js_path = ROOT / "docs" / "assets" / "app.js"
+    script = f"""
+const fs = require("fs");
+const vm = require("vm");
+const code = fs.readFileSync({json.dumps(str(app_js_path))}, "utf8");
+function makeElement(id) {{
+  return {{
+    id,
+    value: "",
+    textContent: "",
+    innerHTML: "",
+    className: "",
+    dataset: {{}},
+    style: {{}},
+    addEventListener() {{}},
+    reset() {{}},
+    remove() {{}},
+    select() {{}},
+    setAttribute() {{}},
+    classList: {{ toggle() {{}}, remove() {{}}, add() {{}} }}
+  }};
+}}
+const elements = new Map();
+[
+  "diagnosis-form",
+  "result-output",
+  "evaluation-output",
+  "risk-badge",
+  "copy-status",
+  "sample-select",
+  "contract-type",
+  "dispute-type",
+  "output-format",
+  "diagnosis-depth",
+  "risk-mode",
+  "desired-outcome",
+  "contract-text",
+  "dispute-description",
+  "claimant-position",
+  "respondent-position",
+  "evidence",
+  "metadata",
+  "load-sample",
+  "copy-markdown",
+  "copy-json",
+  "copy-test-case",
+  "reset-form"
+].forEach((id) => elements.set(id, makeElement(id)));
+const sampleButtons = [
+  "service-payment",
+  "delivery-delay",
+  "termination-cure",
+  "refund-dispute",
+  "saas-suspension"
+].map((sample) => ({{
+  dataset: {{ sample }},
+  classList: {{ toggle() {{}}, remove() {{}}, add() {{}} }},
+  addEventListener() {{}}
+}}));
+const document = {{
+  getElementById(id) {{
+    if (!elements.has(id)) {{
+      elements.set(id, makeElement(id));
+    }}
+    return elements.get(id);
+  }},
+  querySelectorAll(selector) {{
+    return selector === ".sample-chip" ? sampleButtons : [];
+  }},
+  createElement(tag) {{
+    return makeElement(tag);
+  }},
+  body: {{ appendChild() {{}}, removeChild() {{}} }},
+  execCommand() {{ return true; }}
+}};
+const context = {{ document, window: {{}}, navigator: {{}}, console }};
+vm.runInNewContext(code, context);
+const inputs = JSON.parse(fs.readFileSync(0, "utf8"));
+const api = context.window.Contract2AgentPlayground;
+process.stdout.write(JSON.stringify(inputs.map((input) => api.analyzeDispute(input))));
+"""
+    completed = subprocess.run(
+        [node, "-e", script],
+        input=json.dumps(input_cases),
         text=True,
         capture_output=True,
     )

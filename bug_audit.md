@@ -1,5 +1,81 @@
 # Contract2Agent Bug Audit
 
+## 2026-05-04 Confidentiality / IP Indemnity Trigger-Gate Follow-Up
+
+### 1. What was wrong
+
+- The playground diagnosis engine could still let stale/default issue-family templates contaminate an unrelated confidentiality and IP indemnity case.
+- A Service Agreement involving public confidential-information exposure, third-party IP demand, indemnity notice, damages, and liability-cap carve-outs could incorrectly receive SaaS, payment, invoice, refund, delivery, force-majeure, SLA, suspension, liquidated-damages, and cover-cost concepts.
+- Evaluation Lab generated test-case previews could use active issues from broad selected/default dispute categories instead of the final filtered diagnosis.
+
+### 2. Root cause
+
+- Issue families were still triggered by broad substring and dropdown/default signals before factual trigger gates and negative facts were applied.
+- Clause signals, selected dispute type, and fact terms were not consistently separated. Examples:
+  - `software` matched the short force-majeure trigger `war`.
+  - a negative statement such as `No party claims ... service credits` could still support SaaS classification.
+  - `delivered under the project` could be confused with an active late-delivery dispute.
+- Template generation for key issues, evidence gaps, timeline facts, next steps, risk, and Evaluation Lab preview did not have a confidentiality/IP indemnity scoped path.
+
+### 3. Evidence of template contamination
+
+- The reported fixture should focus on May 3 public workspace disclosure, May 6 customer discovery, May 8 removal, May 10 third-party IP demand, May 12 indemnity notice, 3-business-day unauthorized-disclosure notice, 10-day indemnity notice, and twelve-month cap carve-outs.
+- The stale output instead included refund-calculation, performed-vs-unperformed services, invoice-date, force-majeure notice, migration deadline, temporary consultant, liquidated-damages, SLA/uptime, service-credit, and suspension terms from other playground fixtures.
+- The generated test-case preview used payment/refund/default golden state rather than current final active issues.
+
+### 4. Fix
+
+- Added an issue-family registry in `docs/assets/app.js` with active triggers, clause triggers, negative triggers, and blocker terms for payment, invoice dispute, refund, force majeure, confidentiality, indemnity, delivery, SLA, suspension, liquidated damages, and cover costs.
+- Added segment-level blocker filtering so negative facts such as `No party claims unpaid invoices`, `No party claims refunds`, `No party claims SLA downtime`, and `No party claims government order` block inactive families unless a separate positive factual trigger exists.
+- Tightened contract-type detection so `Service Agreement` is not upgraded to `SaaS Agreement` unless contract text or non-blocked facts contain SaaS-specific support.
+- Added confidentiality/IP indemnity timeline extraction, key-issue generation, evidence-gap generation, and next-step generation tied to active confidentiality, unauthorized disclosure, indemnity, third-party IP, damages, liability limitation, and liability-cap carve-out tags.
+- Added clause signals for unauthorized-disclosure notice timing, indemnity notice timing, defense control / settlement consent, confidentiality carve-outs, and indemnity carve-outs while keeping force majeure clause-only when not fact-triggered.
+- Made Evaluation Lab previews derive `case_name`, `must_include_issues`, and `must_include_evidence_gaps` from the final filtered diagnosis object.
+- Cloned diagnosis arrays before assigning legacy aliases so `issue_tags` mirrors `active_issue_tags` without reusing stale mutable output arrays.
+
+### 5. Files changed
+
+- `docs/assets/app.js`
+  - Added trigger-gated issue-family registry and blockers.
+  - Added confidentiality/IP indemnity fact triggers, timeline extraction, key issues, evidence gaps, next steps, dispute types, and preview generation.
+  - Tightened SaaS, force-majeure, delivery, refund, payment, SLA, suspension, and export alias behavior.
+- `tests/test_docs_site.py`
+  - Added the confidentiality/IP indemnity regression fixture.
+  - Added tests for active issue filtering, dispute type filtering, clause signals, role-classified timeline facts, key issues, evidence gaps, next steps, Evaluation Lab preview, export parity, and sequential cross-contamination.
+- `bug_audit.md`
+  - Added this audit entry.
+
+### 6. Tests added
+
+- `test_playground_confidentiality_ip_indemnity_filters_false_issue_families`
+- `test_playground_confidentiality_ip_clauses_issues_and_timeline`
+- `test_playground_confidentiality_ip_gaps_next_steps_preview_and_exports_are_scoped`
+- `test_playground_diagnosis_runs_do_not_cross_contaminate_issue_templates`
+
+### 7. Commands run
+
+| Command | Result | Summary |
+| --- | --- | --- |
+| `node --check docs\assets\app.js` | Passed | Static playground JavaScript syntax is valid. |
+| `python -m pytest tests\test_docs_site.py -q` | Passed | 32 passed in 2.06s. |
+| `python -m pytest` | Passed | 245 passed in 20.51s. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Python syntax compilation succeeded. |
+| `python scripts\check_docs_links.py` | Passed | Checked 26 Markdown files; all relative links resolve. |
+| `python -m mkdocs build --strict` | Passed | Documentation built successfully in 0.97s. |
+| `Test-Path package.json` | No package file | No npm `test`, `build`, `lint`, or `typecheck` scripts are present to run. |
+
+### 8. Build/test result
+
+- The static playground route remains `docs/playground/index.html`, preserving the GitHub Pages `/Contract2Agent/playground/` path.
+- Markdown and JSON exports now use the same final filtered diagnosis object shown in the UI.
+- Legacy `issue_tags` mirrors filtered `active_issue_tags`.
+- Sequential same-process playground runs no longer leak refund, force-majeure/migration, liquidated-damages, cover-cost, SLA/uptime, service-credit, suspension, invoice, or payment templates into the later confidentiality/IP diagnosis.
+
+### 9. Remaining limitations
+
+- The playground remains a deterministic browser-side analyzer. It now uses stricter trigger gates and blockers, but still depends on explicit text signals and nearby date context rather than legal NLP or a backend.
+- The issue-family registry is intentionally conservative; ambiguous facts may remain `unclear` or clause-only until the user provides stronger factual triggers.
+
 ## 2026-05-04 Refund / Termination / Acceptance Template Contamination Follow-Up
 
 ### 1. Remaining issue
