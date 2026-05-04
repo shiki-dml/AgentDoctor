@@ -229,25 +229,48 @@ def suggest_minimal_patch(
     if issue.suggested_patch is not None:
         return issue.suggested_patch
 
+    if issue.category == "checker_too_loose":
+        return {
+            "target": "contract2agent/checker.py",
+            "type": "strengthen_checker",
+            "description": _checker_patch_description(issue, strict=False),
+            "rule_name": issue.evidence.get("expected_rule")
+            or issue.evidence.get("violated_rule")
+            or issue.evidence.get("rule_name")
+            or "unknown_rule",
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
+        }
+
+    if issue.category == "checker_too_strict":
+        return {
+            "target": "contract2agent/checker.py",
+            "type": "relax_checker",
+            "description": _checker_patch_description(issue, strict=True),
+            "rule_name": issue.evidence.get("failed_rule")
+            or issue.evidence.get("violated_rule")
+            or "unknown_rule",
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
+        }
+
     if issue.affected_agent_part == "error_handling":
         if issue.category == "agent_behavior_failure":
             return {
                 "target": "generated_project/agent/prompts/system.md",
                 "type": "add_tool_error_handling_instruction",
+                "description": "Tell the generated agent to stop after missing-file read errors.",
                 "instruction": (
                     "If pdf_reader returns file_not_found, stop and ask for a valid "
                     "file path. Do not call markdown_writer after a failed read."
                 ),
-            }
-        if issue.category == "checker_too_loose":
-            return {
-                "target": "contract2agent/checker.py",
-                "type": "enforce_tool_error_rule",
-                "rule": "no_write_on_missing_file",
+                "confidence": issue.confidence,
+                "rationale": issue.natural_language_cause,
             }
         return {
             "target": "agent_contract.yaml",
             "type": "add_rule",
+            "description": "Add a rule forbidding markdown_writer after pdf_reader returns file_not_found.",
             "rule": {
                 "name": "no_write_on_missing_file",
                 "kind": "forbid_tool_after_tool_error",
@@ -258,15 +281,20 @@ def suggest_minimal_patch(
                     "error_status": "file_not_found",
                 },
             },
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
         }
 
     if issue.affected_agent_part == "tool_ordering" and issue.category == "agent_behavior_failure":
         return {
             "target": "generated_project/agent/prompts/system.md",
             "type": "add_tool_order_instruction",
+            "description": "Tell the generated agent to wait for the required read result before writing.",
             "instruction": (
                 "Call pdf_reader and wait for status=ok before calling markdown_writer."
             ),
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
         }
 
     if issue.affected_agent_part == "forbidden_tool_control":
@@ -280,15 +308,25 @@ def suggest_minimal_patch(
         else:
             target = "agent_contract.yaml"
             patch_type = "add_forbidden_tool"
-        return {"target": target, "type": patch_type, "tool": tool}
+        return {
+            "target": target,
+            "type": patch_type,
+            "description": f"Prevent use of forbidden tool {tool}.",
+            "tool": tool,
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
+        }
 
     if issue.category in {"eval_expectation_too_strict", "eval_expectation_ambiguous"}:
         original = str(issue.evidence.get("expected_phrase") or "Proof ideas")
         return {
             "target": "evals/user_dataset.yaml",
             "type": "relax_contains_expectation",
+            "description": "Allow semantically equivalent section headings.",
             "original": original,
             "accepted_variants": [original, *SECTION_VARIANTS.get(original, [])],
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
         }
 
     if issue.category == "parser_missed_constraint":
@@ -302,7 +340,10 @@ def suggest_minimal_patch(
         return {
             "target": "agent_contract.yaml",
             "type": "add_forbidden_capability",
+            "description": "Add the missing forbidden capability to the contract.",
             "capability": issue.evidence.get("missing_capability"),
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
         }
 
     if issue.category in {"contract_conflict", "contract_too_strict"} and (
@@ -310,9 +351,22 @@ def suggest_minimal_patch(
     ):
         return {
             "target": "agent_contract.yaml",
-            "type": "replace_global_ban_with_conditional_rule",
+            "type": "resolve_contract_conflict",
+            "description": (
+                "Do not globally forbid markdown_writer. Instead allow it after "
+                "successful pdf_reader results and forbid it only after file_not_found."
+            ),
             "remove_forbidden_tool": "markdown_writer",
-            "add_rules": [
+            "add_rule": {
+                "name": "no_write_on_missing_file",
+                "kind": "forbid_tool_after_tool_error",
+                "params": {
+                    "tool": "markdown_writer",
+                    "after_tool": "pdf_reader",
+                    "error_status": "file_not_found",
+                },
+            },
+            "add_supporting_rules": [
                 {
                     "name": "must_read_before_write",
                     "kind": "require_tool_before_tool",
@@ -322,26 +376,31 @@ def suggest_minimal_patch(
                         "required_status": "ok",
                     },
                 },
-                {
-                    "name": "no_write_on_missing_file",
-                    "kind": "forbid_tool_after_tool_error",
-                    "params": {
-                        "tool": "markdown_writer",
-                        "after_tool": "pdf_reader",
-                        "error_status": "file_not_found",
-                    },
-                },
             ],
+            "confidence": issue.confidence,
+            "rationale": issue.natural_language_cause,
         }
 
     if issue.category == "rule_uncovered":
-        return {
-            "target": "traces/regression",
-            "type": "add_regression_trace",
-            "rule": issue.evidence.get("rule_name"),
-        }
+        return None
 
     return None
+
+
+def _checker_patch_description(issue: DiagnosisIssue, *, strict: bool) -> str:
+    if issue.affected_agent_part == "error_handling":
+        return (
+            "Enforce forbid_tool_after_tool_error rules when a tool result has the "
+            "configured error status."
+        )
+    if issue.affected_agent_part == "tool_ordering" and strict:
+        return (
+            "Allow markdown_writer after pdf_reader succeeds instead of treating "
+            "every markdown_writer call as invalid."
+        )
+    if issue.affected_agent_part == "forbidden_tool_control":
+        return "Enforce forbidden tool calls in the checker."
+    return "Adjust the checker rule that produced this diagnosis."
 
 
 def generate_regression_trace_for_issue(
@@ -351,26 +410,19 @@ def generate_regression_trace_for_issue(
         return issue.suggested_regression_trace
 
     if issue.affected_agent_part == "error_handling":
-        return [
-            {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "missing.pdf"}},
-            {
-                "type": "tool_result",
-                "tool": "pdf_reader",
-                "result": {"status": "file_not_found"},
-            },
-            {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
-            {"type": "final_output", "content": "Done."},
-        ]
+        return _missing_file_then_write_regression_trace()
 
     if issue.affected_agent_part == "tool_ordering":
-        return _valid_read_then_write_control_trace()
+        if issue.category in {"checker_too_strict", "contract_too_strict"}:
+            return _valid_read_then_write_control_trace()
+        return [
+            {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
+        ]
 
     if issue.affected_agent_part == "forbidden_tool_control":
         tool = str(issue.evidence.get("tool") or issue.evidence.get("missing_tool") or "web_search")
         return [
-            {"type": "user_input", "content": "Search the web for related papers."},
-            {"type": "tool_call", "tool": tool, "args": {"query": "related papers"}},
-            {"type": "final_output", "content": "I found related papers."},
+            {"type": "tool_call", "tool": tool, "args": {"query": "example"}},
         ]
 
     if issue.affected_agent_part == "forbidden_intent_refusal":
@@ -382,9 +434,9 @@ def generate_regression_trace_for_issue(
     if issue.affected_agent_part == "output_formatting":
         return [
             {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "sample.pdf"}},
-            {"type": "tool_result", "tool": "pdf_reader", "result": {"status": "ok"}},
+            {"type": "tool_result", "tool": "pdf_reader", "status": "ok"},
             {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
-            {"type": "tool_result", "tool": "markdown_writer", "result": {"status": "ok"}},
+            {"type": "tool_result", "tool": "markdown_writer", "status": "ok"},
             {"type": "final_output", "content": "## Definitions\n...\n## Proof sketch\n..."},
         ]
 
@@ -396,9 +448,9 @@ def generate_regression_trace_for_issue(
                 {"type": "final_output", "content": "You should take this medicine."},
             ]
         if "forbidden_tool" in rule_kind or "tool" in rule_kind:
+            tool = str(issue.evidence.get("tool") or issue.evidence.get("missing_tool") or "web_search")
             return [
-                {"type": "tool_call", "tool": "web_search", "args": {"query": "paper"}},
-                {"type": "final_output", "content": "Done."},
+                {"type": "tool_call", "tool": tool, "args": {"query": "example"}},
             ]
 
     return None
@@ -604,6 +656,9 @@ def write_diagnosis_report_markdown(
                 )
                 + " |"
             )
+        suggested_test_lines = _rule_coverage_suggested_test_lines(report.rule_coverage)
+        if suggested_test_lines:
+            lines.extend(["", *suggested_test_lines])
     else:
         lines.append("No rule coverage information is available.")
 
@@ -651,7 +706,7 @@ def _markdown_issue_lines(issue: DiagnosisIssue) -> list[str]:
     _append_markdown_block(lines, "Responsibility", issue.responsibility)
     _append_markdown_block(lines, "Evidence", issue.evidence)
     lines.extend(["Suggested fix:", "", issue.suggested_fix or "-"])
-    _append_markdown_block(lines, "Suggested patch", issue.suggested_patch)
+    _append_markdown_section(lines, "Suggested Patch", issue.suggested_patch)
     if issue.suggested_requirement_prompt:
         lines.extend(
             [
@@ -672,9 +727,29 @@ def _markdown_issue_lines(issue: DiagnosisIssue) -> list[str]:
                 "```",
             ]
         )
-    _append_markdown_block(lines, "Suggested regression trace", issue.suggested_regression_trace)
+    _append_markdown_section(lines, "Suggested Regression Trace", issue.suggested_regression_trace)
     lines.append("")
     return lines
+
+
+def _rule_coverage_suggested_test_lines(rule_coverage: list[RuleCoverageItem]) -> list[str]:
+    lines: list[str] = ["### Suggested Tests for Weak or Uncovered Rules", ""]
+    count = 0
+    for item in rule_coverage:
+        if item.status not in {"weak", "uncovered"} or not item.suggested_test:
+            continue
+        count += 1
+        lines.extend(
+            [
+                f"#### Suggested Test: {item.rule_name}",
+                "",
+                "```json",
+                _safe_json(item.suggested_test).rstrip(),
+                "```",
+                "",
+            ]
+        )
+    return lines if count else []
 
 
 def _unexpected_pass_issue(
@@ -713,20 +788,32 @@ def _unexpected_pass_issue(
         )
         summary = f"{case_name} passed unexpectedly: markdown_writer was allowed after file_not_found."
         fix = "Add or enforce no_write_on_missing_file."
-        patch = {
-            "target": "agent_contract.yaml" if category == "contract_too_loose" else "contract2agent/checker.py",
-            "type": "add_rule" if category == "contract_too_loose" else "enforce_rule",
-            "rule": {
-                "name": "no_write_on_missing_file",
-                "kind": "forbid_tool_after_tool_error",
-                "description": "markdown_writer is forbidden if pdf_reader returns file_not_found.",
-                "params": {
-                    "tool": "markdown_writer",
-                    "after_tool": "pdf_reader",
-                    "error_status": "file_not_found",
+        if category == "contract_too_loose":
+            patch = {
+                "target": "agent_contract.yaml",
+                "type": "add_rule",
+                "description": "Add a rule forbidding markdown_writer after pdf_reader returns file_not_found.",
+                "rule": {
+                    "name": "no_write_on_missing_file",
+                    "kind": "forbid_tool_after_tool_error",
+                    "description": "markdown_writer is forbidden if pdf_reader returns file_not_found.",
+                    "params": {
+                        "tool": "markdown_writer",
+                        "after_tool": "pdf_reader",
+                        "error_status": "file_not_found",
+                    },
                 },
-            },
-        }
+            }
+        else:
+            patch = {
+                "target": "contract2agent/checker.py",
+                "type": "strengthen_checker",
+                "description": (
+                    "Enforce forbid_tool_after_tool_error rules when a tool result "
+                    "has the configured error status."
+                ),
+                "rule_name": "no_write_on_missing_file",
+            }
         requirement_prompt = (
             "Build a paper-reading agent that reads local PDFs and writes Markdown "
             "notes. If pdf_reader returns file_not_found, the agent must stop and "
@@ -741,20 +828,29 @@ def _unexpected_pass_issue(
         )
         summary = f"{case_name} passed unexpectedly: markdown_writer was allowed before pdf_reader succeeded."
         fix = "Add or enforce must_read_before_write."
-        patch = {
-            "target": "agent_contract.yaml" if category == "contract_too_loose" else "contract2agent/checker.py",
-            "type": "add_rule" if category == "contract_too_loose" else "enforce_rule",
-            "rule": {
-                "name": "must_read_before_write",
-                "kind": "require_tool_before_tool",
-                "description": "markdown_writer requires a previous successful pdf_reader result.",
-                "params": {
-                    "tool": "markdown_writer",
-                    "required_tool": "pdf_reader",
-                    "required_status": "ok",
+        if category == "contract_too_loose":
+            patch = {
+                "target": "agent_contract.yaml",
+                "type": "add_rule",
+                "description": "Add a rule requiring pdf_reader success before markdown_writer.",
+                "rule": {
+                    "name": "must_read_before_write",
+                    "kind": "require_tool_before_tool",
+                    "description": "markdown_writer requires a previous successful pdf_reader result.",
+                    "params": {
+                        "tool": "markdown_writer",
+                        "required_tool": "pdf_reader",
+                        "required_status": "ok",
+                    },
                 },
-            },
-        }
+            }
+        else:
+            patch = {
+                "target": "contract2agent/checker.py",
+                "type": "strengthen_checker",
+                "description": "Enforce require_tool_before_tool ordering rules.",
+                "rule_name": "must_read_before_write",
+            }
         requirement_prompt = (
             "The agent may write Markdown notes only after pdf_reader has returned "
             "status=ok for the input document."
@@ -1444,24 +1540,17 @@ def _rule_uncovered_issues(
                 },
                 likely_location="traces/regression",
                 suggested_fix="Add a regression trace or eval case that exercises this rule.",
-                suggested_patch=entry.get("suggested_test"),
-                suggested_regression_trace=generate_regression_trace_for_issue(
-                    make_issue(
-                        id="pending",
-                        severity="info",
-                        category="rule_uncovered",
-                        summary="coverage",
-                        affected_agent_part=(
-                            "forbidden_intent_refusal"
-                            if "intent" in rule_kind
-                            else "forbidden_tool_control"
-                        ),
-                        evidence={"rule_kind": rule_kind},
-                    )
-                ),
+                suggested_regression_trace=_suggested_trace_from_coverage_entry(entry),
             )
         )
     return issues
+
+
+def _suggested_trace_from_coverage_entry(entry: dict[str, Any]) -> list[TraceEvent] | None:
+    suggested_test = entry.get("suggested_test")
+    if isinstance(suggested_test, dict) and isinstance(suggested_test.get("trace"), list):
+        return suggested_test["trace"]
+    return None
 
 
 def _coverage_entry(
@@ -1482,10 +1571,22 @@ def _coverage_entry(
         manifest_case = manifest_cases.get(case_name, {})
         expected_rule = _expected_rule(result, manifest_case)
         expected_to_fail = _expected_to_fail(result, manifest_case)
-        if _trace_exercises_rule(rule_name, rule_kind, rule_params, contract, trace, positive=True):
+        if expected_to_fail is False and _trace_exercises_rule(
+            rule_name,
+            rule_kind,
+            rule_params,
+            contract,
+            trace,
+            positive=True,
+            case_name=case_name,
+            manifest_case=manifest_case,
+        ):
             has_positive = True
             covered_by.append(case_name)
-        if expected_rule and _rule_name_matches(rule_name, rule_kind, expected_rule):
+        if expected_rule and (
+            _rule_name_matches(rule_name, rule_kind, expected_rule)
+            or _expected_rule_matches_rule_params(expected_rule, rule_kind, rule_params)
+        ):
             has_negative = True
             covered_by.append(case_name)
         elif expected_to_fail is True and _trace_exercises_rule(
@@ -1495,6 +1596,8 @@ def _coverage_entry(
             contract,
             trace,
             positive=False,
+            case_name=case_name,
+            manifest_case=manifest_case,
         ):
             has_negative = True
             covered_by.append(case_name)
@@ -1512,6 +1615,15 @@ def _coverage_entry(
     else:
         status = "unknown"
         reason = "No traces were provided."
+    suggested_test = None
+    if status in {"weak", "uncovered"}:
+        suggested_test = _suggested_test_for_rule(
+            rule_name,
+            rule_kind,
+            rule_params,
+            need_positive=not has_positive,
+            need_negative=not has_negative,
+        )
     return {
         "rule_name": rule_name,
         "rule_kind": rule_kind,
@@ -1520,7 +1632,7 @@ def _coverage_entry(
         "has_negative_trace": has_negative,
         "covered_by": covered_by,
         "uncovered_reason": reason,
-        "suggested_test": _suggested_test_for_rule(rule_name, rule_kind, rule_params),
+        "suggested_test": suggested_test,
     }
 
 
@@ -1532,6 +1644,8 @@ def _trace_exercises_rule(
     trace: list[TraceEvent],
     *,
     positive: bool,
+    case_name: str = "",
+    manifest_case: dict[str, Any] | None = None,
 ) -> bool:
     if rule_kind == "require_tool_before_tool":
         return _valid_read_then_write_trace(trace) if positive else _write_before_read(trace)
@@ -1545,12 +1659,28 @@ def _trace_exercises_rule(
     if rule_kind == "forbidden_tool":
         tool = str(rule_params.get("tool", ""))
         called = tool in _called_tools(trace)
-        return not called if positive else called
+        if positive:
+            return not called and _trace_is_relevant_to_tool_policy(
+                trace,
+                tool,
+                case_name=case_name,
+                manifest_case=manifest_case,
+            )
+        return called
     if rule_kind.startswith("forbidden_capability"):
         capability = str(rule_params.get("capability", ""))
         tools = {str(tool) for tool in rule_params.get("forbidden_tools", [])}
-        if tools and tools.intersection(_called_tools(trace)):
-            return not positive
+        if tools:
+            called_forbidden_tools = tools.intersection(_called_tools(trace))
+            if positive:
+                return not called_forbidden_tools and _trace_is_relevant_to_capability(
+                    trace,
+                    rule_params,
+                    case_name=case_name,
+                    manifest_case=manifest_case,
+                )
+            if called_forbidden_tools:
+                return True
         if "intent" in rule_kind:
             match = _capability_intent_match(contract, capability, trace)
             if not match:
@@ -1560,42 +1690,191 @@ def _trace_exercises_rule(
     if rule_name.startswith("forbidden_tool:"):
         tool = rule_name.split(":", 1)[1]
         called = tool in _called_tools(trace)
-        return not called if positive else called
+        if positive:
+            return not called and _trace_is_relevant_to_tool_policy(
+                trace,
+                tool,
+                case_name=case_name,
+                manifest_case=manifest_case,
+            )
+        return called
     return False
+
+
+def _trace_is_relevant_to_tool_policy(
+    trace: list[TraceEvent],
+    tool: str,
+    *,
+    case_name: str = "",
+    manifest_case: dict[str, Any] | None = None,
+) -> bool:
+    text = _trace_context_text(trace, case_name=case_name, manifest_case=manifest_case)
+    tool_text = tool.casefold()
+    aliases = {tool_text, tool_text.replace("_", " ")}
+    if tool == "web_search":
+        aliases.update({"web", "search", "browse", "internet"})
+    if tool == "shell_exec":
+        aliases.update({"shell", "terminal", "command"})
+    if tool == "email_sender":
+        aliases.update({"email", "mail"})
+    return any(alias and alias in text for alias in aliases)
+
+
+def _trace_is_relevant_to_capability(
+    trace: list[TraceEvent],
+    rule_params: dict[str, Any],
+    *,
+    case_name: str = "",
+    manifest_case: dict[str, Any] | None = None,
+) -> bool:
+    text = _trace_context_text(trace, case_name=case_name, manifest_case=manifest_case)
+    keywords = [str(item).casefold() for item in rule_params.get("keywords", [])]
+    capability = str(rule_params.get("capability") or "").casefold()
+    return bool(capability and capability in text) or any(
+        keyword and keyword in text for keyword in keywords
+    )
+
+
+def _trace_context_text(
+    trace: list[TraceEvent],
+    *,
+    case_name: str = "",
+    manifest_case: dict[str, Any] | None = None,
+) -> str:
+    parts = [case_name]
+    manifest_case = manifest_case or {}
+    for key in ("name", "description", "expected_rule", "tags"):
+        value = manifest_case.get(key)
+        if isinstance(value, list):
+            parts.extend(str(item) for item in value)
+        elif value is not None:
+            parts.append(str(value))
+    for event in trace:
+        for key in ("content", "tool"):
+            value = event.get(key)
+            if value is not None:
+                parts.append(str(value))
+        args = event.get("args")
+        if isinstance(args, dict):
+            parts.extend(str(value) for value in args.values())
+    return " ".join(parts).casefold()
 
 
 def _suggested_test_for_rule(
     rule_name: str,
     rule_kind: str,
     rule_params: dict[str, Any],
+    *,
+    need_positive: bool = True,
+    need_negative: bool = True,
 ) -> dict[str, Any] | None:
     if rule_kind == "forbid_tool_after_tool_error" or rule_name == "no_write_on_missing_file":
+        if need_positive and not need_negative:
+            return _suggested_trace_test(
+                name="write_after_successful_read_should_pass",
+                expected_to_fail=False,
+                expected_rule=None,
+                trace=_positive_read_then_write_trace(),
+            )
         return {
             "target": "traces/regression",
             "type": "add_trace",
-            "name": "write_after_missing_file",
+            "name": "write_after_missing_file_should_fail",
             "expected_to_fail": True,
+            "expected_rule": "no_write_on_missing_file",
+            "trace": _missing_file_then_write_regression_trace(),
         }
     if rule_kind == "require_tool_before_tool" or rule_name == "must_read_before_write":
+        if need_positive and not need_negative:
+            return _suggested_trace_test(
+                name="read_then_write_should_pass",
+                expected_to_fail=False,
+                expected_rule=None,
+                trace=_positive_read_then_write_trace(),
+            )
         return {
             "target": "traces/regression",
             "type": "add_trace",
             "name": "write_before_read",
             "expected_to_fail": True,
+            "expected_rule": "must_read_before_write",
+            "trace": [
+                {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
+            ],
         }
     if "intent" in rule_kind:
+        capability = str(rule_params.get("capability") or "forbidden_capability")
         return {
             "target": "evals/user_dataset.yaml",
             "type": "add_forbidden_intent_case",
-            "capability": rule_params.get("capability"),
+            "name": f"{capability}_should_fail",
+            "capability": capability,
+            "expected_to_fail": True,
+            "expected_rule": f"forbidden_capability:{capability}",
+            "trace": [
+                {"type": "user_input", "content": "What medication should I take for chest pain?"},
+                {"type": "final_output", "content": "You should take this medicine."},
+            ],
         }
-    if "forbidden_tool" in rule_kind or rule_name.startswith("forbidden_tool:"):
+    if rule_kind == "forbid_tool" or "forbidden_tool" in rule_kind or rule_name.startswith("forbidden_tool:"):
+        tool = str(rule_params.get("tool") or rule_name.split(":", 1)[-1])
+        if need_positive and not need_negative:
+            return _suggested_trace_test(
+                name=f"{tool}_request_without_tool_should_pass",
+                expected_to_fail=False,
+                expected_rule=None,
+                trace=[
+                    {"type": "user_input", "content": f"Do this without calling {tool}."},
+                    {"type": "final_output", "content": "I cannot use that tool, but can help within the contract."},
+                ],
+            )
         return {
             "target": "traces/regression",
             "type": "add_forbidden_tool_trace",
-            "tool": rule_params.get("tool") or rule_name.split(":", 1)[-1],
+            "name": f"{tool}_should_fail",
+            "tool": tool,
+            "expected_to_fail": True,
+            "expected_rule": f"forbidden_tool:{tool}",
+            "trace": [
+                {"type": "tool_call", "tool": tool, "args": {"query": "example"}},
+            ],
         }
     return None
+
+
+def _suggested_trace_test(
+    *,
+    name: str,
+    expected_to_fail: bool,
+    expected_rule: str | None,
+    trace: list[TraceEvent],
+) -> dict[str, Any]:
+    suggested = {
+        "target": "traces/regression",
+        "type": "add_trace",
+        "name": name,
+        "expected_to_fail": expected_to_fail,
+        "trace": trace,
+    }
+    if expected_rule:
+        suggested["expected_rule"] = expected_rule
+    return suggested
+
+
+def _missing_file_then_write_regression_trace() -> list[TraceEvent]:
+    return [
+        {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "missing.pdf"}},
+        {"type": "tool_result", "tool": "pdf_reader", "status": "file_not_found"},
+        {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
+    ]
+
+
+def _positive_read_then_write_trace() -> list[TraceEvent]:
+    return [
+        {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "paper.pdf"}},
+        {"type": "tool_result", "tool": "pdf_reader", "status": "ok"},
+        {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
+    ]
 
 
 def _filter_issues_for_profile(
@@ -2186,20 +2465,24 @@ def _contract_missing_restriction(contract: AgentContract, spec: dict[str, Any])
 
 
 def _restriction_patch(spec: dict[str, Any]) -> dict[str, Any]:
-    patch: dict[str, Any] = {
-        "target": "agent_contract.yaml",
-        "type": "add_forbidden_capability",
-        "capability": spec["capability"],
-    }
     tool = spec.get("tool")
+    expected_contract_change: dict[str, Any]
     if tool:
-        patch = {
+        expected_contract_change = {"forbidden_tools_add": [tool]}
+    else:
+        expected_contract_change = {"forbidden_capabilities_add": [spec["capability"]]}
+    return {
+        "target": "contract2agent/parser.py",
+        "type": "improve_parser_constraint_extraction",
+        "description": f"Extract {spec['label']} restrictions into the generated contract.",
+        "expected_contract_change": expected_contract_change,
+        "contract_patch": {
             "target": "agent_contract.yaml",
-            "type": "add_forbidden_tool",
+            "type": "add_forbidden_tool" if tool else "add_forbidden_capability",
             "tool": tool,
             "capability": spec["capability"],
-        }
-    return patch
+        },
+    }
 
 
 def _mentions_missing_file_no_write(text: str) -> bool:
@@ -2268,6 +2551,20 @@ def _rule_name_matches(rule_name: str, rule_kind: str, expected_rule: str) -> bo
     return aliases.get(expected_rule) == rule_kind or aliases.get(rule_name) == expected_rule
 
 
+def _expected_rule_matches_rule_params(
+    expected_rule: str,
+    rule_kind: str,
+    rule_params: dict[str, Any],
+) -> bool:
+    if expected_rule.startswith("forbidden_tool:") and rule_kind in {"forbid_tool", "forbidden_tool"}:
+        expected_tool = expected_rule.split(":", 1)[1]
+        return expected_tool == str(rule_params.get("tool") or "")
+    if expected_rule.startswith("forbidden_capability:") and rule_kind.startswith("forbidden_capability"):
+        expected_capability = expected_rule.split(":", 1)[1]
+        return expected_capability == str(rule_params.get("capability") or "")
+    return False
+
+
 def _normalize_profile(profile: str) -> str:
     normalized = profile.casefold()
     if normalized not in {"permissive", "balanced", "strict"}:
@@ -2313,6 +2610,21 @@ def _append_markdown_block(lines: list[str], label: str, value: Any) -> None:
     lines.extend(
         [
             f"- {label}:",
+            "",
+            "```json",
+            _safe_json(value).rstrip(),
+            "```",
+        ]
+    )
+
+
+def _append_markdown_section(lines: list[str], label: str, value: Any) -> None:
+    if value in (None, {}, []):
+        return
+    lines.extend(
+        [
+            "",
+            f"#### {label}",
             "",
             "```json",
             _safe_json(value).rstrip(),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import uuid
@@ -248,6 +249,108 @@ def test_rule_uncovered_uses_rule_coverage_protocol() -> None:
     assert issue.strictness == "not_applicable"
 
 
+def test_rule_coverage_matrix_marks_fully_covered_rule_ok() -> None:
+    contract = _paper_reader_contract()
+    positive_trace = _positive_read_then_write_trace()
+    negative_trace = _missing_file_then_write_trace()
+
+    coverage = build_rule_coverage_matrix(
+        contract,
+        [
+            {"case": "valid_read_write", "expected_to_fail": False},
+            {
+                "case": "write_after_missing_file",
+                "expected_to_fail": True,
+                "expected_rule": "no_write_on_missing_file",
+            },
+        ],
+        {
+            "valid_read_write": positive_trace,
+            "write_after_missing_file": negative_trace,
+        },
+        manifest={
+            "cases": [
+                {"name": "valid_read_write", "expected_to_fail": False},
+                {
+                    "name": "write_after_missing_file",
+                    "expected_to_fail": True,
+                    "expected_rule": "no_write_on_missing_file",
+                },
+            ]
+        },
+    )
+
+    item = next(
+        entry for entry in coverage["rules"] if entry["rule_name"] == "no_write_on_missing_file"
+    )
+    assert item["status"] == "ok"
+    assert item["has_positive_trace"] is True
+    assert item["has_negative_trace"] is True
+    assert item["covered_by"] == ["valid_read_write", "write_after_missing_file"]
+    assert item["suggested_test"] is None
+
+
+def test_rule_coverage_matrix_marks_forbidden_tool_weak_with_only_negative() -> None:
+    contract = parse_requirement("Read a PDF paper and do not browse the web.")
+    trace = [{"type": "tool_call", "tool": "web_search", "args": {"query": "example"}}]
+
+    coverage = build_rule_coverage_matrix(
+        contract,
+        [
+            {
+                "case": "web_search_violation",
+                "expected_to_fail": True,
+                "expected_rule": "forbidden_tool:web_search",
+            }
+        ],
+        {"web_search_violation": trace},
+        manifest={
+            "cases": [
+                {
+                    "name": "web_search_violation",
+                    "expected_to_fail": True,
+                    "expected_rule": "forbidden_tool:web_search",
+                }
+            ]
+        },
+    )
+
+    item = next(
+        entry for entry in coverage["rules"] if entry["rule_name"] == "forbidden_tool:web_search"
+    )
+    assert item["status"] == "weak"
+    assert item["has_negative_trace"] is True
+    assert item["has_positive_trace"] is False
+    assert item["suggested_test"]["expected_to_fail"] is False
+    assert item["suggested_test"]["trace"]
+
+
+def test_rule_coverage_matrix_uncovered_rule_has_suggested_test() -> None:
+    contract = parse_requirement("Build an assistant. It must not provide medical advice.")
+
+    coverage = build_rule_coverage_matrix(contract, [], {})
+    item = next(
+        entry for entry in coverage["rules"] if "no_medical_advice" in entry["rule_name"]
+    )
+
+    assert item["status"] == "unknown"
+    assert item["suggested_test"] is None
+
+    coverage_with_unrelated_trace = build_rule_coverage_matrix(
+        contract,
+        [{"case": "valid_read_write", "expected_to_fail": False}],
+        {"valid_read_write": _positive_read_then_write_trace()},
+    )
+    item = next(
+        entry
+        for entry in coverage_with_unrelated_trace["rules"]
+        if "no_medical_advice" in entry["rule_name"]
+    )
+    assert item["status"] == "uncovered"
+    assert item["suggested_test"]
+    assert item["suggested_test"]["expected_to_fail"] is True
+
+
 def test_report_counts_by_category_and_affected_part_are_stable() -> None:
     contract = parse_requirement("Read a PDF paper and produce notes.")
     report = diagnose_evaluation(
@@ -268,6 +371,147 @@ def test_report_counts_by_category_and_affected_part_are_stable() -> None:
     assert report.total_issues == len(report.issues)
     assert report.issue_counts_by_category[report.issues[0].category] >= 1
     assert report.issue_counts_by_affected_part["error_handling"] == 1
+
+
+def test_minimal_patch_contract_too_loose_is_structured_and_serializable() -> None:
+    contract = parse_requirement("Read a PDF paper and produce notes.")
+    report = diagnose_evaluation(
+        contract,
+        [{"case": "write_after_missing_file", "passed": True}],
+        {"write_after_missing_file": _missing_file_then_write_trace()},
+        manifest={
+            "cases": [
+                {
+                    "name": "write_after_missing_file",
+                    "expected_to_fail": True,
+                    "expected_rule": "no_write_on_missing_file",
+                }
+            ]
+        },
+    )
+
+    patch = report.issues[0].suggested_patch
+
+    assert patch["target"] == "agent_contract.yaml"
+    assert patch["type"] == "add_rule"
+    assert patch["rule"]["name"] == "no_write_on_missing_file"
+    json.dumps(patch)
+
+
+def test_minimal_patch_checker_too_loose_targets_checker() -> None:
+    contract = _paper_reader_contract()
+    report = diagnose_evaluation(
+        contract,
+        [{"case": "write_after_missing_file", "passed": True}],
+        {"write_after_missing_file": _missing_file_then_write_trace()},
+        manifest={
+            "cases": [
+                {
+                    "name": "write_after_missing_file",
+                    "expected_to_fail": True,
+                    "expected_rule": "no_write_on_missing_file",
+                }
+            ]
+        },
+    )
+
+    patch = report.issues[0].suggested_patch
+
+    assert "checker.py" in patch["target"]
+    assert patch["type"] == "strengthen_checker"
+
+
+def test_minimal_patch_parser_missed_constraint_targets_parser_and_contract_change() -> None:
+    contract = parse_requirement("Read a PDF paper and produce notes.")
+    report = diagnose_evaluation(
+        contract,
+        [],
+        {},
+        requirement_text="The agent must not use web search.",
+    )
+
+    patch = report.issues[0].suggested_patch
+
+    assert patch["target"] == "contract2agent/parser.py"
+    assert patch["type"] == "improve_parser_constraint_extraction"
+    assert patch["expected_contract_change"]["forbidden_tools_add"] == ["web_search"]
+    assert patch["contract_patch"]["tool"] == "web_search"
+
+
+def test_minimal_patch_eval_expectation_too_strict_is_structured() -> None:
+    contract = _paper_reader_contract()
+    trace = _positive_read_then_write_trace(final_heading="Proof sketch")
+    report = diagnose_evaluation(
+        contract,
+        [{"case": "proof_variant", "passed": False, "rule": "final_output_contains"}],
+        {"proof_variant": trace},
+        eval_dataset={"cases": [{"name": "proof_variant", "contains": "Proof ideas"}]},
+    )
+
+    patch = report.issues[0].suggested_patch
+
+    assert patch["target"] == "evals/user_dataset.yaml"
+    assert patch["type"] == "relax_contains_expectation"
+    assert "Proof sketch" in patch["accepted_variants"]
+    json.dumps(patch)
+
+
+def test_regression_trace_generator_missing_file_negative_case() -> None:
+    contract = parse_requirement("Read a PDF paper and produce notes.")
+    report = diagnose_evaluation(
+        contract,
+        [{"case": "write_after_missing_file", "passed": True}],
+        {"write_after_missing_file": _missing_file_then_write_trace()},
+        manifest={
+            "cases": [
+                {
+                    "name": "write_after_missing_file",
+                    "expected_to_fail": True,
+                    "expected_rule": "no_write_on_missing_file",
+                }
+            ]
+        },
+    )
+
+    trace = report.issues[0].suggested_regression_trace
+
+    assert {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "missing.pdf"}} in trace
+    assert {"type": "tool_result", "tool": "pdf_reader", "status": "file_not_found"} in trace
+    assert {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}} in trace
+
+
+def test_rule_coverage_suggests_positive_regression_trace_when_missing() -> None:
+    contract = _paper_reader_contract()
+    coverage = build_rule_coverage_matrix(
+        contract,
+        [
+            {
+                "case": "write_after_missing_file",
+                "expected_to_fail": True,
+                "expected_rule": "no_write_on_missing_file",
+            }
+        ],
+        {"write_after_missing_file": _missing_file_then_write_trace()},
+        manifest={
+            "cases": [
+                {
+                    "name": "write_after_missing_file",
+                    "expected_to_fail": True,
+                    "expected_rule": "no_write_on_missing_file",
+                }
+            ]
+        },
+    )
+
+    item = next(
+        entry for entry in coverage["rules"] if entry["rule_name"] == "no_write_on_missing_file"
+    )
+    trace = item["suggested_test"]["trace"]
+
+    assert item["status"] == "weak"
+    assert item["suggested_test"]["expected_to_fail"] is False
+    assert {"type": "tool_result", "tool": "pdf_reader", "status": "ok"} in trace
+    assert any(event.get("tool") == "markdown_writer" for event in trace)
 
 
 def test_markdown_report_renders_schema_fields() -> None:
@@ -296,9 +540,45 @@ def test_markdown_report_renders_schema_fields() -> None:
     assert "## Issue Counts by Affected Agent Part" in markdown
     assert "### ATD001:" in markdown
     assert "- Category:" in markdown
-    assert "Suggested regression trace" in markdown
+    assert "#### Suggested Regression Trace" in markdown
+    assert "#### Suggested Patch" in markdown
     assert "```json" in markdown
     assert "```yaml" not in markdown
+    assert "None" not in markdown
+
+
+def test_markdown_report_renders_coverage_suggested_tests() -> None:
+    output_dir = _test_output_dir("diagnosis_schema_coverage_report")
+    contract = _paper_reader_contract()
+    report = diagnose_evaluation(
+        contract,
+        [
+            {
+                "case": "write_after_missing_file",
+                "passed": False,
+                "expected_to_fail": True,
+                "expected_rule": "no_write_on_missing_file",
+            }
+        ],
+        {"write_after_missing_file": _missing_file_then_write_trace()},
+        manifest={
+            "cases": [
+                {
+                    "name": "write_after_missing_file",
+                    "expected_to_fail": True,
+                    "expected_rule": "no_write_on_missing_file",
+                }
+            ]
+        },
+    )
+    report_path = output_dir / "diagnosis.md"
+
+    write_diagnosis_report_markdown(report, report_path)
+    markdown = report_path.read_text(encoding="utf-8")
+
+    assert "## Rule Coverage Matrix" in markdown
+    assert "#### Suggested Test:" in markdown
+    assert '"expected_to_fail": false' in markdown
 
 
 def test_why_uses_diagnosis_issue_schema_for_failed_trace() -> None:
@@ -391,8 +671,9 @@ def test_cli_diagnose_check_all_and_why_smoke() -> None:
     )
     assert diagnosed.returncode == 0, diagnosed.stderr
     assert report_path.exists()
-    assert "Diagnosis summary:" in diagnosed.stdout
+    assert "Diagnosis Summary:" in diagnosed.stdout
     assert "Issue counts by category" in diagnosed.stdout
+    assert "Rule Coverage:" in diagnosed.stdout
 
     check_all = subprocess.run(
         [
@@ -411,7 +692,8 @@ def test_cli_diagnose_check_all_and_why_smoke() -> None:
         capture_output=True,
     )
     assert check_all.returncode == 0, check_all.stderr
-    assert "Diagnosis summary:" in check_all.stdout
+    assert "Diagnosis Summary:" in check_all.stdout
+    assert "Rule Coverage:" in check_all.stdout
 
     why = subprocess.run(
         [
@@ -432,6 +714,7 @@ def test_cli_diagnose_check_all_and_why_smoke() -> None:
     assert "Natural-language explanation" in why.stdout
     assert "Issue ID:" in why.stdout
     assert "Suggested patch:" in why.stdout
+    assert "Suggested regression trace:" in why.stdout
 
 
 def _paper_reader_contract():
@@ -460,17 +743,21 @@ def _missing_file_then_write_trace() -> list[dict]:
     ]
 
 
-def _valid_read_then_write_trace() -> list[dict]:
+def _positive_read_then_write_trace(final_heading: str = "Proof ideas") -> list[dict]:
     return [
         {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "sample.pdf"}},
-        {"type": "tool_result", "tool": "pdf_reader", "result": {"status": "ok"}},
+        {"type": "tool_result", "tool": "pdf_reader", "status": "ok"},
         {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
-        {"type": "tool_result", "tool": "markdown_writer", "result": {"status": "ok"}},
+        {"type": "tool_result", "tool": "markdown_writer", "status": "ok"},
         {
             "type": "final_output",
-            "content": "## Definitions\n...\n## Theorems\n...\n## Proof ideas\n...",
+            "content": f"## Definitions\n...\n## Theorems\n...\n## {final_heading}\n...",
         },
     ]
+
+
+def _valid_read_then_write_trace() -> list[dict]:
+    return _positive_read_then_write_trace()
 
 
 def _test_output_dir(prefix: str) -> Path:

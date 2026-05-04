@@ -815,17 +815,17 @@ def _why_report_lines(explanation: dict[str, Any]) -> list[str]:
         lines.extend(
             [
                 "",
-                "Responsibility:",
-                json.dumps(responsibility, indent=2, sort_keys=True),
+                f"Responsibility: {responsibility.get('primary') or '-'}",
             ]
         )
     suggested_patch = main_issue.get("suggested_patch")
     if suggested_patch:
+        patch_type = suggested_patch.get("type") or "-"
+        target = suggested_patch.get("target") or "-"
         lines.extend(
             [
                 "",
-                "Suggested patch:",
-                json.dumps(suggested_patch, indent=2, sort_keys=True),
+                f"Suggested patch: {patch_type} -> {target}",
             ]
         )
     suggested_trace = main_issue.get("suggested_regression_trace")
@@ -833,8 +833,7 @@ def _why_report_lines(explanation: dict[str, Any]) -> list[str]:
         lines.extend(
             [
                 "",
-                "Suggested regression trace:",
-                json.dumps(suggested_trace, indent=2, sort_keys=True),
+                f"Suggested regression trace: {len(suggested_trace)} event(s)",
             ]
         )
     return lines
@@ -842,7 +841,7 @@ def _why_report_lines(explanation: dict[str, Any]) -> list[str]:
 
 def _diagnosis_summary_lines(report: Any) -> list[str]:
     lines = [
-        "Diagnosis summary:",
+        "Diagnosis Summary:",
         f"- Total issues: {report.total_issues}",
     ]
     if getattr(report, "issue_counts_by_category", None):
@@ -865,6 +864,17 @@ def _diagnosis_summary_lines(report: Any) -> list[str]:
         lines.append(
             f"- {issue.id}: {issue.severity} {issue.category} "
             f"{issue.strictness} {issue.affected_agent_part} - {issue.summary}"
+        )
+    coverage_summary = getattr(report, "rule_coverage_summary", {}) or {}
+    if coverage_summary or getattr(report, "rule_coverage", None):
+        lines.extend(
+            [
+                "Rule Coverage:",
+                f"- ok: {coverage_summary.get('ok', 0)}",
+                f"- weak: {coverage_summary.get('weak', 0)}",
+                f"- uncovered: {coverage_summary.get('uncovered', 0)}",
+                f"- unknown: {coverage_summary.get('unknown', 0)}",
+            ]
         )
     return lines
 
