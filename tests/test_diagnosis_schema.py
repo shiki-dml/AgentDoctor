@@ -717,6 +717,35 @@ def test_cli_diagnose_check_all_and_why_smoke() -> None:
     assert "Suggested regression trace:" in why.stdout
 
 
+def test_cli_why_reports_malformed_trace_instead_of_empty_trace() -> None:
+    root = Path(__file__).resolve().parents[1]
+    output_dir = _test_output_dir("diagnosis_cli_malformed")
+    contract_path = output_dir / "agent_contract.yaml"
+    trace_path = output_dir / "broken_trace.json"
+    save_contract(_paper_reader_contract(), contract_path)
+    trace_path.write_text("{not valid json", encoding="utf-8")
+
+    why = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "contract2agent.cli",
+            "why",
+            "--contract",
+            str(contract_path),
+            "--trace",
+            str(trace_path),
+        ],
+        cwd=root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert why.returncode == 0, why.stderr
+    assert "malformed_trace" in why.stdout
+    assert "missing a final_output" not in why.stdout
+
+
 def _paper_reader_contract():
     return parse_requirement(
         "Read a PDF paper, handle file not found, and do not browse the web."

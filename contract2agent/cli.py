@@ -12,7 +12,7 @@ from contract2agent.baseline import (
     format_comparison_summary,
     save_baseline,
 )
-from contract2agent.checker import CheckResult, check_trace, check_trace_file
+from contract2agent.checker import CheckResult, check_trace
 from contract2agent.compiler import (
     compile_contract,
     create_demo_project,
@@ -93,7 +93,7 @@ def _cmd_compile(contract: Path, out: Path) -> None:
 
 def _cmd_check(contract: Path, trace: Path) -> int:
     loaded_contract = load_contract(contract)
-    result = check_trace_file(loaded_contract, trace)
+    result = _check_trace_path(loaded_contract, trace, expected_to_fail=None)
     if result.passed:
         console.print("PASS: trace satisfies the contract")
         return 0
@@ -626,7 +626,7 @@ def _cmd_why(
     if (error := _validate_choice(profile, "--profile", ("permissive", "balanced", "strict"))) is not None:
         return error
     loaded_contract = load_contract(contract)
-    loaded_trace = load_trace_file_or_empty(trace)
+    loaded_trace = _load_trace_file_for_diagnosis(trace)
     manifest = _load_manifest(manifest_path) if manifest_path is not None else {}
     manifest_case = dict(manifest.get(trace.stem, {}))
     manifest_case.setdefault("name", trace.stem)
@@ -726,6 +726,15 @@ def _check_trace_path(
 ) -> CheckResult:
     try:
         trace = json.loads(trace_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        result = CheckResult(passed=True, expected_failure=expected_to_fail)
+        result.add_failure(
+            f"Trace file was not found: {trace_path}. "
+            "This violates rule: malformed_trace.",
+            rule="malformed_trace",
+            evidence={"path": str(trace_path), "reason": "file_not_found"},
+        )
+        return result
     except json.JSONDecodeError as exc:
         result = CheckResult(passed=True, expected_failure=expected_to_fail)
         result.add_failure(
@@ -735,27 +744,48 @@ def _check_trace_path(
             evidence={"path": str(trace_path), "line": exc.lineno, "column": exc.colno},
         )
         return result
+    except OSError as exc:
+        result = CheckResult(passed=True, expected_failure=expected_to_fail)
+        result.add_failure(
+            f"Trace file could not be read: {exc}. "
+            "This violates rule: malformed_trace.",
+            rule="malformed_trace",
+            evidence={"path": str(trace_path), "reason": type(exc).__name__},
+        )
+        return result
     return check_trace(contract, trace, expected_failure=expected_to_fail)
 
 
 def _load_trace_directory(traces: Path) -> dict[str, list[dict[str, Any]]]:
     loaded: dict[str, list[dict[str, Any]]] = {}
     for trace_path in sorted(traces.glob("*.json")):
-        try:
-            data = json.loads(trace_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            loaded[trace_path.stem] = []
-            continue
-        loaded[trace_path.stem] = data if isinstance(data, list) else []
+        loaded[trace_path.stem] = _load_trace_file_for_diagnosis(trace_path)
     return loaded
 
 
-def load_trace_file_or_empty(trace: Path) -> list[dict[str, Any]]:
+def _load_trace_file_for_diagnosis(trace: Path) -> list[dict[str, Any]]:
     try:
         data = json.loads(trace.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return []
-    return data if isinstance(data, list) else []
+    except FileNotFoundError:
+        return _malformed_trace(trace, "Trace file was not found.")
+    except json.JSONDecodeError as exc:
+        return _malformed_trace(
+            trace,
+            f"Trace JSON could not be parsed at line {exc.lineno}, column {exc.colno}: {exc.msg}.",
+        )
+    if not isinstance(data, list):
+        return _malformed_trace(trace, "Trace JSON must contain a list of event objects.")
+    return data
+
+
+def _malformed_trace(trace: Path, message: str) -> list[dict[str, Any]]:
+    return [
+        {
+            "type": "malformed_trace",
+            "path": str(trace),
+            "message": message,
+        }
+    ]
 
 
 def _load_yaml_mapping(path: Path | None) -> dict[str, Any]:

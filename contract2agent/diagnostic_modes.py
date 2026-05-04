@@ -124,6 +124,8 @@ class ScoringRule:
 
 @dataclass(frozen=True)
 class TestCase:
+    __test__ = False
+
     id: str
     name: str
     description: str

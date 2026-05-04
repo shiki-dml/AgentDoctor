@@ -99,7 +99,7 @@ python -m mkdocs build --strict
 
 ## Notes for Contributors
 
-- Read [AGENTS.md](../AGENTS.md) before broad edits; it records repository-specific setup, cleanup, and safety rules.
+- Read the repository root `AGENTS.md` before broad edits; it records repository-specific setup, cleanup, and safety rules.
 - Keep CLI documentation aligned with `contract2agent/cli.py`.
 - Do not document unimplemented flags as if they work.
 - Keep sample reports clearly marked as examples.

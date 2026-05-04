@@ -61,6 +61,10 @@ def diagnose_evaluation(
         issue.suggested_patch = suggest_minimal_patch(issue, contract)
         if issue.suggested_regression_trace is None:
             issue.suggested_regression_trace = generate_regression_trace_for_issue(issue)
+        if issue.suggested_regression_trace is not None:
+            issue.suggested_regression_trace = _canonical_regression_trace(
+                issue.suggested_regression_trace
+            )
         key = (
             issue.category,
             issue.summary,
@@ -78,6 +82,10 @@ def diagnose_evaluation(
         expected_to_fail = _expected_to_fail(result, manifest_case)
         expected_rule = _expected_rule(result, manifest_case)
         passed = _result_passed(result)
+
+        if passed is False and _result_rule(result) == "malformed_trace":
+            add_issue(_malformed_trace_issue(case_name, trace, result))
+            continue
 
         forbidden_calls = _forbidden_tool_calls(contract, trace)
         if forbidden_calls and passed is not None:
@@ -894,6 +902,31 @@ def _unexpected_pass_issue(
         suggested_patch=patch,
         suggested_requirement_prompt=requirement_prompt,
         suggested_regression_trace=trace,
+    )
+
+
+def _malformed_trace_issue(
+    case_name: str,
+    trace: list[TraceEvent],
+    result: dict[str, Any],
+) -> DiagnosisIssue:
+    return issue_from_legacy_failure(
+        "malformed_trace",
+        summary=f"{case_name}: trace input is malformed.",
+        evidence={
+            "case": case_name,
+            "checker_message": _result_message(result),
+            "checker_evidence": result.get("evidence", {}),
+            "trace_preview": trace[:1],
+        },
+        natural_language_cause=(
+            "The trace fixture is malformed, so the checker cannot evaluate agent "
+            "behavior reliably. Fix the trace JSON shape before treating this as "
+            "an agent, contract, or checker behavior failure."
+        ),
+        confidence=0.9,
+        likely_location="trace fixture",
+        suggested_fix="Fix the trace fixture so it is a JSON list of valid event objects.",
     )
 
 
@@ -2095,9 +2128,9 @@ def _valid_read_then_write_trace(trace: list[TraceEvent]) -> bool:
 def _valid_read_then_write_control_trace() -> list[TraceEvent]:
     return [
         {"type": "tool_call", "tool": "pdf_reader", "args": {"path": "sample.pdf"}},
-        {"type": "tool_result", "tool": "pdf_reader", "result": {"status": "ok"}},
+        {"type": "tool_result", "tool": "pdf_reader", "status": "ok"},
         {"type": "tool_call", "tool": "markdown_writer", "args": {"path": "notes.md"}},
-        {"type": "tool_result", "tool": "markdown_writer", "result": {"status": "ok"}},
+        {"type": "tool_result", "tool": "markdown_writer", "status": "ok"},
         {
             "type": "final_output",
             "content": "## Definitions\n...\n## Theorems\n...\n## Proof ideas\n...",
@@ -2266,6 +2299,37 @@ def _tool_result_status(event: TraceEvent) -> str | None:
     if isinstance(result, dict) and "status" in result:
         return str(result.get("status"))
     return None
+
+
+def _canonical_regression_trace(trace: list[TraceEvent]) -> list[TraceEvent]:
+    return [_canonical_regression_event(event) for event in trace]
+
+
+def _canonical_regression_event(event: TraceEvent) -> TraceEvent:
+    if event.get("type") != "tool_result":
+        return dict(event)
+
+    result = event.get("result")
+    status = event.get("status")
+    if status is None and isinstance(result, dict):
+        status = result.get("status")
+
+    canonical = {
+        key: value
+        for key, value in event.items()
+        if key not in {"status", "result"}
+    }
+    if status is not None:
+        canonical["status"] = str(status)
+
+    if isinstance(result, dict):
+        remaining_result = {
+            key: value for key, value in result.items() if key != "status"
+        }
+        if remaining_result:
+            canonical["result"] = remaining_result
+
+    return canonical
 
 
 def _looks_like_forbidden_refusal(
