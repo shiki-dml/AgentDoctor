@@ -123,6 +123,31 @@ diagnosis, and repair guidance.
 - `agent_behavior_failure`: the contract and checker are reasonable, but the
   agent behavior in the trace violates them.
 
+## Diagnosis Issue Protocol
+
+`c2a diagnose`, `c2a check-all --diagnose`, and `c2a why` use a stable
+`DiagnosisIssue` protocol. Each issue includes:
+
+- severity, category, strictness, and affected agent part
+- summary and natural-language cause
+- machine-readable evidence
+- deterministic confidence and confidence reason
+- likely location and responsibility
+- suggested fix, structured patch shape, and suggested regression trace when
+  available
+
+The stable diagnosis enums live in `contract2agent.diagnosis_schema`:
+
+- `DiagnosisCategory`
+- `Strictness`
+- `Severity`
+- `AffectedAgentPart`
+
+Diagnosis reports include total issue counts, counts by category, counts by
+affected agent part, structured issues, and a rule coverage matrix. Markdown
+reports render the same fields in a stable format for review and future static
+report UIs.
+
 ## Failure Taxonomy v0.1
 
 Failure taxonomy turns raw test, scorer, trace, and baseline failures into

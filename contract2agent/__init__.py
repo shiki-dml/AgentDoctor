@@ -45,15 +45,27 @@ from contract2agent.diagnosis import (
     suggest_minimal_patch,
     write_regression_traces,
 )
+from contract2agent.diagnosis_schema import (
+    AffectedAgentPart,
+    DiagnosisCategory,
+    RuleCoverageItem,
+    Severity as DiagnosisSeverity,
+    Strictness,
+    issue_from_legacy_failure,
+    make_issue,
+)
 from contract2agent.schema import AgentContract, ForbiddenCapabilitySpec
 
 __all__ = [
     "AgentContract",
+    "AffectedAgentPart",
     "CapabilityReport",
     "CapabilitySpec",
     "CounterexampleCase",
     "DiagnosisIssue",
     "DiagnosisReport",
+    "DiagnosisCategory",
+    "DiagnosisSeverity",
     "DiagnosticMode",
     "DiagnosticRound",
     "ForbiddenCapabilitySpec",
@@ -69,7 +81,9 @@ __all__ = [
     "PotentialRisk",
     "ReviewItem",
     "ReviewPolicy",
+    "RuleCoverageItem",
     "Severity",
+    "Strictness",
     "TestCase",
     "build_rule_coverage_matrix",
     "build_validation_plan",
@@ -81,6 +95,8 @@ __all__ = [
     "generate_capability_report",
     "generate_counterexamples",
     "generate_regression_trace_for_issue",
+    "issue_from_legacy_failure",
+    "make_issue",
     "run_auto_diagnosis",
     "run_deep_diagnosis",
     "run_quick_diagnosis",
