@@ -19,68 +19,50 @@
     {
       type: "tool_call",
       tool: "pdf_reader",
-      args: {
-        path: "missing.pdf"
-      }
+      args: { path: "missing.pdf" }
     },
     {
       type: "tool_result",
       tool: "pdf_reader",
-      status: "file_not_found"
+      result: { status: "file_not_found" }
     },
     {
       type: "tool_call",
       tool: "markdown_writer",
-      args: {
-        path: "notes.md"
-      }
+      args: { path: "notes.md" }
     }
   ];
 
   var SAMPLES = {
     paper_reader_valid: {
-      description: "Valid read/write flow with a missing-file guard.",
+      description: "A healthy trace: the agent reads a PDF successfully, then writes Markdown notes.",
       contract: {
         name: "paper_reader",
         goal: "Read a PDF paper and write Markdown notes.",
         tools: ["pdf_reader", "markdown_writer"],
         forbidden_tools: ["web_search"],
-        rules: [
-          {
-            name: "no_write_on_missing_file",
-            kind: "forbid_tool_after_tool_error",
-            params: {
-              tool: "markdown_writer",
-              after_tool: "pdf_reader",
-              error_status: "file_not_found"
-            }
-          }
-        ]
+        rules: [clone(MISSING_FILE_RULE)]
       },
       trace: [
         {
           type: "tool_call",
           tool: "pdf_reader",
-          args: {
-            path: "paper.pdf"
-          }
+          args: { path: "paper.pdf" }
         },
         {
           type: "tool_result",
           tool: "pdf_reader",
-          status: "ok"
+          result: { status: "ok" }
         },
         {
           type: "tool_call",
           tool: "markdown_writer",
-          args: {
-            path: "notes.md"
-          }
+          args: { path: "notes.md" }
         }
       ]
     },
     missing_file_write: {
-      description: "Missing-file trace that writes notes after a failed read.",
+      description: "A missing PDF is reported, but the trace still writes notes. The contract also lacks the stop rule.",
       contract: {
         name: "paper_reader_missing_file_gap",
         goal: "Read a PDF paper and write Markdown notes.",
@@ -88,41 +70,37 @@
         forbidden_tools: ["web_search"],
         rules: []
       },
-      trace: MISSING_FILE_REGRESSION_TRACE
+      trace: clone(MISSING_FILE_REGRESSION_TRACE)
     },
     forbidden_web_search: {
-      description: "Trace calls a tool that the contract forbids.",
+      description: "The contract forbids web search, but the trace calls web_search anyway.",
       contract: {
         name: "offline_paper_reader",
         goal: "Read a supplied PDF and summarize it without external research.",
-        tools: ["pdf_reader", "web_search"],
+        tools: ["pdf_reader", "markdown_writer", "web_search"],
         forbidden_tools: ["web_search"],
-        rules: []
+        rules: [clone(MISSING_FILE_RULE)]
       },
       trace: [
         {
           type: "tool_call",
           tool: "pdf_reader",
-          args: {
-            path: "paper.pdf"
-          }
+          args: { path: "paper.pdf" }
         },
         {
           type: "tool_result",
           tool: "pdf_reader",
-          status: "ok"
+          result: { status: "ok" }
         },
         {
           type: "tool_call",
           tool: "web_search",
-          args: {
-            query: "paper title background"
-          }
+          args: { query: "paper title background" }
         }
       ]
     },
     contract_conflict_markdown: {
-      description: "Goal requires Markdown writing but the same tool is globally forbidden.",
+      description: "The goal asks for Markdown notes, but markdown_writer is globally forbidden.",
       contract: {
         name: "conflicted_paper_reader",
         goal: "Read a PDF paper and write Markdown notes.",
@@ -133,44 +111,30 @@
       trace: []
     },
     parser_missed_no_web: {
-      description: "Original requirement bans web search, but forbidden_tools omits web_search.",
+      description: "The original requirement bans web search, but the parsed contract forgot to forbid web_search.",
       contract: {
         name: "requirement_parser_preview",
         requirement_text: "Read the provided PDF and write concise Markdown notes. Do not use web search or any external network.",
         goal: "Read a PDF paper and write Markdown notes.",
         tools: ["pdf_reader", "markdown_writer", "web_search"],
         forbidden_tools: [],
-        rules: [
-          {
-            name: "no_write_on_missing_file",
-            kind: "forbid_tool_after_tool_error",
-            params: {
-              tool: "markdown_writer",
-              after_tool: "pdf_reader",
-              error_status: "file_not_found"
-            }
-          }
-        ]
+        rules: [clone(MISSING_FILE_RULE)]
       },
       trace: [
         {
           type: "tool_call",
           tool: "pdf_reader",
-          args: {
-            path: "paper.pdf"
-          }
+          args: { path: "paper.pdf" }
         },
         {
           type: "tool_result",
           tool: "pdf_reader",
-          status: "ok"
+          result: { status: "ok" }
         },
         {
           type: "tool_call",
           tool: "markdown_writer",
-          args: {
-            path: "notes.md"
-          }
+          args: { path: "notes.md" }
         }
       ]
     }
@@ -181,7 +145,7 @@
   document.addEventListener("DOMContentLoaded", initPlayground);
 
   function initPlayground() {
-    var root = document.querySelector("[data-agentdoctor-playground]");
+    var root = document.querySelector("[data-contract2agent-playground]");
     if (!root) {
       return;
     }
@@ -189,6 +153,7 @@
     var refs = {
       root: root,
       sample: document.getElementById("ad-sample-select"),
+      sampleDescription: document.getElementById("ad-sample-description"),
       contract: document.getElementById("ad-contract-input"),
       trace: document.getElementById("ad-trace-input"),
       analyze: document.getElementById("ad-analyze-button"),
@@ -196,12 +161,13 @@
       copy: document.getElementById("ad-copy-button"),
       clear: document.getElementById("ad-clear-button"),
       status: document.getElementById("ad-playground-status"),
+      empty: document.getElementById("ad-empty-output"),
       summary: document.getElementById("ad-summary-output"),
       issues: document.getElementById("ad-issues-output"),
       coverage: document.getElementById("ad-coverage-output"),
       patches: document.getElementById("ad-patches-output"),
       regression: document.getElementById("ad-regression-output"),
-      rawJson: document.getElementById("ad-report-json")
+      json: document.getElementById("ad-json-output")
     };
 
     if (!refs.sample || !refs.contract || !refs.trace || !refs.analyze) {
@@ -227,83 +193,108 @@
     loadSample(refs, refs.sample.value || "paper_reader_valid");
   }
 
-  function loadSample(refs, name) {
-    var sample = SAMPLES[name] || SAMPLES.paper_reader_valid;
+  function loadSample(refs, sampleId) {
+    var sample = getSamples()[sampleId] || getSamples().paper_reader_valid;
     refs.contract.value = stringifyJson(sample.contract);
     refs.trace.value = sample.trace && sample.trace.length ? stringifyJson(sample.trace) : "";
+    if (refs.sampleDescription) {
+      refs.sampleDescription.textContent = sample.description;
+    }
     currentReport = null;
     setCopyEnabled(refs, false);
-    clearResults(refs);
-    setStatus(refs, sample.description + " Click Analyze to run the static checks.", "info");
+    renderEmpty(refs, "Sample loaded.", sample.description + " Click Analyze to preview the diagnosis.");
+    setStatus(refs, sample.description + " Click Analyze.", "info");
+  }
+
+  function getSamples() {
+    return SAMPLES;
   }
 
   function clearInputs(refs) {
     refs.contract.value = "";
     refs.trace.value = "";
+    if (refs.sampleDescription) {
+      refs.sampleDescription.textContent = "Paste your own JSON, or choose a sample scenario.";
+    }
     currentReport = null;
     setCopyEnabled(refs, false);
-    clearResults(refs);
-    setStatus(refs, "Inputs cleared. Paste contract JSON to analyze.", "info");
+    renderEmpty(refs, "Inputs cleared.", "Paste a contract JSON object, optionally add a trace, then click Analyze.");
+    setStatus(refs, "Inputs cleared.", "info");
   }
 
   function handleAnalyze(refs) {
-    var contractResult = parseInput(refs.contract.value, "Contract", false);
-    var traceResult = parseInput(refs.trace.value, "Trace", true);
+    setStatus(refs, "Analyzing the contract and trace in this browser...", "info");
 
-    if (!contractResult.ok || !traceResult.ok) {
+    var contractResult = parseJsonInput("Contract", refs.contract.value, false);
+    var traceResult = parseJsonInput("Trace", refs.trace.value, true);
+    var errors = [contractResult.error, traceResult.error].filter(Boolean);
+
+    if (errors.length) {
       currentReport = null;
       setCopyEnabled(refs, false);
-      renderParseErrors(refs, [contractResult.error, traceResult.error].filter(Boolean));
+      renderInputErrors(refs, errors);
+      setStatus(refs, "Fix the JSON input and run Analyze again.", "error");
       return false;
     }
 
-    var report = analyzeContract(contractResult.value, traceResult.empty ? null : traceResult.value);
+    var issues = analyzeContract(contractResult.value, traceResult.empty ? null : traceResult.value);
+    var coverage = buildRuleCoveragePreview(contractResult.value, traceResult.empty ? null : traceResult.value);
+    var report = buildReport(contractResult.value, issues, coverage);
+
     currentReport = report;
     setCopyEnabled(refs, true);
     renderReport(refs, report);
-    setStatus(refs, "Analysis complete. " + report.total_issues + " issue(s) found.", report.total_issues ? "warning" : "success");
+    setStatus(
+      refs,
+      report.total_issues
+        ? "Analysis complete. " + report.total_issues + " issue(s) need review."
+        : "Analysis complete. No issues detected in this preview.",
+      report.total_issues ? "warning" : "success"
+    );
     return true;
   }
 
-  function parseInput(text, label, allowEmpty) {
+  function parseJsonInput(label, text, allowEmpty) {
     var trimmed = String(text || "").trim();
     if (!trimmed) {
       if (allowEmpty) {
-        return { ok: true, value: null, empty: true };
+        return { ok: true, value: null, empty: true, error: null };
       }
-      return { ok: false, error: label + " input is required." };
+      return { ok: false, value: null, empty: true, error: label + " JSON is required." };
     }
 
     try {
       var value = JSON.parse(trimmed);
       if (label === "Contract" && !isPlainObject(value)) {
-        return { ok: false, error: "Contract input must be a JSON object." };
+        return { ok: false, value: null, empty: false, error: "Contract JSON must be an object." };
       }
       if (label === "Trace" && !Array.isArray(value) && !isTraceObject(value)) {
-        return { ok: false, error: "Trace input must be a JSON array or an object with an events array." };
+        return { ok: false, value: null, empty: false, error: "Trace JSON must be an array, or an object with an events array." };
       }
-      return { ok: true, value: value, empty: false };
+      return { ok: true, value: value, empty: false, error: null };
     } catch (error) {
-      return { ok: false, error: label + " JSON parse error: " + error.message };
+      return { ok: false, value: null, empty: false, error: label + " JSON parse error: " + error.message };
     }
   }
 
   function analyzeContract(contract, trace) {
-    var issues = []
-      .concat(validateContract(contract))
-      .concat(detectContractConflicts(contract))
-      .concat(detectMissingFileRuleGap(contract))
-      .concat(detectTraceViolations(contract, trace))
-      .concat(detectForbiddenToolViolations(contract, trace))
-      .concat(detectParserMissedConstraints(contract));
+    return assignIssueIds(
+      []
+        .concat(validateContract(contract))
+        .concat(detectContractConflicts(contract))
+        .concat(detectMissingFileRuleGap(contract))
+        .concat(detectTraceViolations(contract, trace))
+        .concat(detectForbiddenToolViolations(contract, trace))
+        .concat(detectParserMissedConstraints(contract))
+        .concat(detectRuleCoverageGaps(contract, trace))
+    );
+  }
 
-    issues = assignIssueIds(issues);
-
-    var coverage = buildRuleCoveragePreview(contract, trace);
-
+  function buildReport(contract, issues, coverage) {
     return {
-      source: "docs_playground",
-      contract_name: typeof contract.name === "string" && contract.name.trim() ? contract.name.trim() : null,
+      source: "contract2agent_playground",
+      preview_scope: "static_browser_preview",
+      contract_name: hasNonEmptyString(contract.name) ? contract.name.trim() : null,
       total_issues: issues.length,
       issue_counts_by_category: countBy(issues, "category"),
       issue_counts_by_affected_part: countBy(issues, "affected_agent_part"),
@@ -324,7 +315,7 @@
         strictness: "ambiguous",
         affected_agent_part: "contract_consistency",
         summary: "Contract is missing a name.",
-        natural_language_cause: "A stable contract name helps reports, baselines, and fixtures identify which agent was analyzed.",
+        natural_language_cause: "A stable contract name makes reports, baselines, and trace fixtures easier to compare.",
         evidence: { missing_field: "name" },
         confidence: 0.95,
         suggested_fix: "Add a short, stable name field to the contract."
@@ -338,7 +329,7 @@
         strictness: "ambiguous",
         affected_agent_part: "contract_consistency",
         summary: "Contract is missing a goal.",
-        natural_language_cause: "The playground needs a goal to detect intent-level conflicts such as writing notes while forbidding the writing tool.",
+        natural_language_cause: "Without a goal, Contract2Agent has less context for intent-level conflicts such as requiring notes while forbidding the writing tool.",
         evidence: { missing_field: "goal" },
         confidence: 0.9,
         suggested_fix: "Add a concise goal that states the expected agent outcome."
@@ -352,7 +343,7 @@
         strictness: "ambiguous",
         affected_agent_part: "contract_consistency",
         summary: "Contract is missing tools.",
-        natural_language_cause: "The contract does not declare which tools the agent may use, so tool-order and forbidden-tool checks have limited context.",
+        natural_language_cause: "Tool declarations give the trace checker enough context to reason about allowed and forbidden calls.",
         evidence: { missing_field: "tools" },
         confidence: 0.95,
         suggested_fix: "Add a tools array listing the available tool names."
@@ -369,17 +360,19 @@
         confidence: 0.95,
         suggested_fix: "Change tools to an array, for example: \"tools\": [\"pdf_reader\", \"markdown_writer\"]."
       }));
-    } else if (contract.tools.length === 0) {
+    }
+
+    if (Object.prototype.hasOwnProperty.call(contract, "forbidden_tools") && !Array.isArray(contract.forbidden_tools)) {
       issues.push(buildIssue({
         severity: "warning",
         category: "contract_conflict",
         strictness: "ambiguous",
         affected_agent_part: "contract_consistency",
-        summary: "Contract tools array is empty.",
-        natural_language_cause: "An empty tools array leaves tool-use expectations underspecified for trace diagnosis.",
-        evidence: { field: "tools", observed_length: 0 },
-        confidence: 0.85,
-        suggested_fix: "List the tools that the agent is allowed to call."
+        summary: "Contract forbidden_tools field is not an array.",
+        natural_language_cause: "Forbidden tools need to be listed as an array so trace calls can be compared safely.",
+        evidence: { field: "forbidden_tools", observed_type: valueType(contract.forbidden_tools) },
+        confidence: 0.95,
+        suggested_fix: "Change forbidden_tools to an array. Use an empty array when no tools are forbidden."
       }));
     }
 
@@ -390,7 +383,7 @@
         strictness: "ambiguous",
         affected_agent_part: "contract_consistency",
         summary: "Contract rules field is not an array.",
-        natural_language_cause: "The rules field should be an array so rule coverage and missing-rule checks can inspect each rule deterministically.",
+        natural_language_cause: "Rules should be an array so coverage and missing-rule checks can inspect each item.",
         evidence: { field: "rules", observed_type: valueType(contract.rules) },
         confidence: 0.95,
         suggested_fix: "Change rules to an array. Use an empty array when no rules are declared."
@@ -415,19 +408,18 @@
         category: "contract_conflict",
         strictness: "ambiguous",
         affected_agent_part: "contract_consistency",
-        summary: "Goal requires Markdown writing but markdown_writer is forbidden.",
-        natural_language_cause: "The goal asks the agent to produce Markdown notes or writing, but forbidden_tools globally forbids markdown_writer. The contract is internally inconsistent until the write permission is narrowed or the goal changes.",
+        summary: "Goal requires Markdown writing, but markdown_writer is forbidden.",
+        natural_language_cause: "The goal asks the agent to produce Markdown notes, while forbidden_tools blocks the only writing tool. The contract is internally inconsistent.",
         evidence: {
           goal: goal,
           forbidden_tools: stringArray(contract.forbidden_tools),
           matched_goal_terms: ["Markdown", "notes", "write"]
         },
         confidence: 0.9,
-        suggested_fix: "Do not globally forbid markdown_writer. Instead forbid it only after pdf_reader returns file_not_found.",
+        suggested_fix: "Allow markdown_writer for successful reads, and forbid it only after pdf_reader returns file_not_found.",
         suggested_patch: {
           target: "agent_contract.yaml",
           type: "resolve_contract_conflict",
-          description: "Do not globally forbid markdown_writer. Instead forbid it only after pdf_reader returns file_not_found.",
           remove_forbidden_tool: "markdown_writer",
           add_rule: clone(MISSING_FILE_RULE)
         }
@@ -439,9 +431,8 @@
     var tools = normalizedStringArray(contract.tools);
     var hasPdfReader = tools.indexOf("pdf_reader") !== -1;
     var hasMarkdownWriter = tools.indexOf("markdown_writer") !== -1;
-    var hasRule = hasNoWriteOnMissingFileRule(contract);
 
-    if (!hasPdfReader || !hasMarkdownWriter || hasRule) {
+    if (!hasPdfReader || !hasMarkdownWriter || hasNoWriteOnMissingFileRule(contract)) {
       return [];
     }
 
@@ -452,7 +443,7 @@
         strictness: "too_loose",
         affected_agent_part: "error_handling",
         summary: "Missing rule for writing after a missing PDF.",
-        natural_language_cause: "The contract allows pdf_reader and markdown_writer but does not include a rule equivalent to no_write_on_missing_file. Without that rule, the agent may write notes after pdf_reader returns file_not_found.",
+        natural_language_cause: "The contract allows pdf_reader and markdown_writer, but does not include a rule equivalent to no_write_on_missing_file.",
         evidence: {
           tools: stringArray(contract.tools),
           required_rule: clone(MISSING_FILE_RULE)
@@ -462,7 +453,6 @@
         suggested_patch: {
           target: "agent_contract.yaml",
           type: "add_rule",
-          description: "Add a rule forbidding markdown_writer after pdf_reader returns file_not_found.",
           rule: clone(MISSING_FILE_RULE)
         },
         suggested_regression_trace: clone(MISSING_FILE_REGRESSION_TRACE)
@@ -477,30 +467,25 @@
     }
 
     var hasRule = hasNoWriteOnMissingFileRule(contract);
-    var category = hasRule ? "checker_too_loose" : "contract_too_loose";
-    var cause = hasRule
-      ? "The contract contains no_write_on_missing_file, but the trace still shows pdf_reader returning file_not_found followed later by markdown_writer. A checker or runtime monitor should reject this sequence."
-      : "The trace shows pdf_reader returning file_not_found followed later by markdown_writer, and the contract lacks the missing-file handling rule that would forbid this sequence.";
-
     return [
       buildIssue({
         severity: "error",
-        category: category,
+        category: hasRule ? "checker_too_loose" : "contract_too_loose",
         strictness: "too_loose",
-        affected_agent_part: "error_handling",
+        affected_agent_part: hasRule ? "trace_checker" : "error_handling",
         summary: "Trace writes after pdf_reader reports file_not_found.",
-        natural_language_cause: cause,
+        natural_language_cause: hasRule
+          ? "The contract contains no_write_on_missing_file, but this trace still reaches markdown_writer after a missing-file result. The checker or monitor should reject the sequence."
+          : "The trace shows pdf_reader returning file_not_found followed by markdown_writer, and the contract lacks the rule that would forbid that sequence.",
         evidence: {
           matched_steps: sequence.matched_steps,
-          file_not_found: "pdf_reader",
-          markdown_writer: "tool_call",
           file_not_found_event: sequence.file_not_found_event,
           write_event: sequence.write_event
         },
         confidence: 0.95,
         suggested_fix: hasRule
-          ? "Ensure the checker and runtime monitor enforce no_write_on_missing_file."
-          : "Add the no_write_on_missing_file rule and use this trace as a negative regression case.",
+          ? "Ensure the trace checker and runtime monitor enforce no_write_on_missing_file."
+          : "Add no_write_on_missing_file and use this trace as a negative regression case.",
         suggested_patch: hasRule
           ? {
               target: "contract2agent/checker.py",
@@ -510,7 +495,6 @@
           : {
               target: "agent_contract.yaml",
               type: "add_rule",
-              description: "Add a rule forbidding markdown_writer after pdf_reader returns file_not_found.",
               rule: clone(MISSING_FILE_RULE)
             },
         suggested_regression_trace: clone(MISSING_FILE_REGRESSION_TRACE)
@@ -531,35 +515,33 @@
         return;
       }
 
-      var isWebSearch = tool === "web_search";
       issues.push(buildIssue({
         severity: "error",
         category: "agent_behavior_failure",
-        strictness: "too_loose",
-        affected_agent_part: "forbidden_tool_control",
+        strictness: "not_applicable",
+        affected_agent_part: tool === "web_search" ? "forbidden_tool_control" : "capability_scope",
         summary: "Trace calls forbidden tool " + tool + ".",
-        natural_language_cause: "The contract forbids " + tool + ", but the trace contains tool_call events for that tool.",
+        natural_language_cause: "The contract forbids " + tool + ", but the trace contains one or more tool_call events for that tool.",
         evidence: {
           forbidden_tool: tool,
-          matched_steps: calls.map(function (call) {
-            return call.index;
-          }),
-          calls: calls.map(function (call) {
-            return call.event;
-          })
+          matched_steps: calls.map(function (call) { return call.index; }),
+          calls: calls.map(function (call) { return call.event; })
         },
         confidence: 0.96,
-        suggested_fix: isWebSearch
-          ? "If web_search is intentionally forbidden, ensure the checker and runtime monitor enforce forbidden_tools."
-          : "Ensure the agent prompt, checker, and runtime monitor enforce forbidden_tools.",
+        suggested_fix: "Keep the forbidden tool in the contract, then check the agent prompt, checker, and runtime monitor for enforcement gaps.",
         suggested_patch: {
-          target: isWebSearch ? "contract2agent/checker.py" : "agent_contract.yaml",
-          type: isWebSearch ? "enforce_forbidden_tools" : "tighten_forbidden_tool_policy",
-          tool: tool,
-          description: isWebSearch
-            ? "If web_search is intentionally forbidden, ensure the checker and runtime monitor enforce forbidden_tools."
-            : "Make the forbidden tool policy explicit and add a negative trace for this tool."
-        }
+          target: "agent_contract.yaml",
+          type: "confirm_forbidden_tool",
+          forbidden_tool: tool,
+          description: "Ensure forbidden_tools includes " + tool + " and add a negative trace that calls it."
+        },
+        suggested_regression_trace: [
+          {
+            type: "tool_call",
+            tool: tool,
+            args: tool === "web_search" ? { query: "external background" } : {}
+          }
+        ]
       }));
     });
 
@@ -568,43 +550,74 @@
 
   function detectParserMissedConstraints(contract) {
     var requirement = requirementText(contract);
-    if (!requirement.text) {
-      return [];
-    }
-
-    var match = noWebSearchRestriction(requirement.text);
+    var matchedRestriction = noWebSearchRestriction(requirement.text);
     var forbiddenTools = normalizedStringArray(contract.forbidden_tools);
-    if (!match || forbiddenTools.indexOf("web_search") !== -1) {
+    var declaredTools = normalizedStringArray(contract.tools);
+
+    if (!matchedRestriction || forbiddenTools.indexOf("web_search") !== -1) {
       return [];
     }
 
     return [
       buildIssue({
-        severity: "warning",
+        severity: "error",
         category: "parser_missed_constraint",
         strictness: "too_loose",
         affected_agent_part: "contract_parser",
-        summary: "Requirement bans web search but forbidden_tools omits web_search.",
-        natural_language_cause: "The original requirement contains a no-web-search or no-external-network restriction, but the parsed contract still allows web_search. The parser should extract that restriction into forbidden_tools.",
+        summary: "Requirement bans web search, but the contract does not forbid web_search.",
+        natural_language_cause: "The source requirement contains a no-web-search restriction, but forbidden_tools omits web_search. The parsed contract is looser than the user instruction.",
         evidence: {
+          matched_restriction: matchedRestriction,
           requirement_fields: requirement.fields,
-          matched_restriction: match,
+          tools_include_web_search: declaredTools.indexOf("web_search") !== -1,
           forbidden_tools: stringArray(contract.forbidden_tools)
         },
-        confidence: 0.9,
-        suggested_fix: "Add web_search to forbidden_tools and improve parser extraction for no-web-search requirements.",
+        confidence: 0.92,
+        suggested_fix: "Add web_search to forbidden_tools and add a negative trace that calls web_search.",
         suggested_patch: {
           target: "agent_contract.yaml",
           type: "add_forbidden_tool",
-          tool: "web_search",
-          parser_improvement: {
-            target: "contract2agent/parser.py",
-            type: "improve_parser_constraint_extraction",
-            description: "Extract no-web-search restrictions into forbidden_tools."
+          forbidden_tool: "web_search"
+        },
+        suggested_regression_trace: [
+          {
+            type: "tool_call",
+            tool: "web_search",
+            args: { query: "paper background" }
           }
-        }
+        ]
       })
     ];
+  }
+
+  function detectRuleCoverageGaps(contract, trace) {
+    var coverage = buildRuleCoveragePreview(contract, trace);
+    return coverage
+      .filter(function (item) {
+        return item.status === "uncovered";
+      })
+      .map(function (item) {
+        return buildIssue({
+          severity: "info",
+          category: "rule_uncovered",
+          strictness: "not_applicable",
+          affected_agent_part: "rule_coverage",
+          summary: "Rule lacks trace coverage: " + item.rule_name + ".",
+          natural_language_cause: item.uncovered_reason || "No trace in this preview exercises the rule.",
+          evidence: {
+            rule_name: item.rule_name,
+            rule_kind: item.rule_kind,
+            coverage_status: item.status
+          },
+          confidence: 0.78,
+          suggested_fix: item.suggested_test
+            ? "Add a focused trace for " + item.rule_name + "."
+            : "Add positive and negative traces that exercise this rule.",
+          suggested_regression_trace: item.suggested_test && item.suggested_test.trace
+            ? item.suggested_test.trace
+            : null
+        });
+      });
   }
 
   function buildRuleCoveragePreview(contract, trace) {
@@ -626,9 +639,9 @@
           rule_kind: ruleKind,
           has_positive_trace: hasPositive,
           has_negative_trace: hasNegative,
-          status: ruleCoverageStatus(traceProvided, hasPositive, hasNegative),
+          status: coverageStatus(traceProvided, hasPositive, hasNegative),
           covered_by: hasPositive || hasNegative ? ["playground_trace"] : [],
-          uncovered_reason: hasPositive || hasNegative ? null : "No trace path exercised this rule.",
+          uncovered_reason: hasPositive || hasNegative ? null : "No trace path exercises no_write_on_missing_file.",
           suggested_test: hasNegative ? null : { trace: clone(MISSING_FILE_REGRESSION_TRACE) }
         });
         return;
@@ -642,7 +655,7 @@
         status: traceProvided ? "unknown" : "uncovered",
         covered_by: [],
         uncovered_reason: traceProvided
-          ? "The playground does not implement coverage logic for this rule kind."
+          ? "The static playground does not implement coverage logic for this rule kind."
           : "No trace was provided."
       });
     });
@@ -655,7 +668,7 @@
         rule_kind: "forbidden_tool",
         has_positive_trace: false,
         has_negative_trace: hasNegative,
-        status: forbiddenToolCoverageStatus(traceProvided, hasNegative),
+        status: hasNegative ? "weak" : traceProvided ? "unknown" : "uncovered",
         covered_by: hasNegative ? ["playground_trace"] : [],
         uncovered_reason: hasNegative ? null : "No negative trace calls " + tool + ".",
         suggested_test: hasNegative ? null : {
@@ -671,6 +684,19 @@
     });
 
     return coverage;
+  }
+
+  function coverageStatus(traceProvided, hasPositive, hasNegative) {
+    if (!traceProvided) {
+      return "uncovered";
+    }
+    if (hasPositive && hasNegative) {
+      return "ok";
+    }
+    if (hasPositive || hasNegative) {
+      return "weak";
+    }
+    return "uncovered";
   }
 
   function buildIssue(fields) {
@@ -699,23 +725,37 @@
   }
 
   function renderReport(refs, report) {
+    hideEmpty(refs);
     renderSummary(refs.summary, report);
     renderIssues(refs.issues, report.issues);
-    renderCoverage(refs.coverage, report.rule_coverage);
+    renderCoverageTable(refs.coverage, report.rule_coverage);
     renderPatchPreviews(refs.patches, report.issues);
     renderRegressionTraces(refs.regression, report.issues);
-    refs.rawJson.textContent = stringifyJson(report);
+    renderJsonPreview(refs.json, report);
   }
 
-  function renderParseErrors(refs, errors) {
-    clearResults(refs);
+  function renderEmpty(refs, title, message) {
+    clearOutputSections(refs);
+    if (refs.empty) {
+      refs.empty.hidden = false;
+      refs.empty.replaceChildren(el("strong", "", title), el("span", "", message));
+    }
+  }
+
+  function hideEmpty(refs) {
+    if (refs.empty) {
+      refs.empty.hidden = true;
+    }
+  }
+
+  function renderInputErrors(refs, errors) {
+    hideEmpty(refs);
+    clearOutputSections(refs);
     var section = createSection("Input Error");
     errors.forEach(function (message) {
       section.appendChild(el("p", "ad-error-text", message));
     });
     refs.summary.replaceChildren(section);
-    refs.rawJson.textContent = "No report generated because the input could not be parsed.";
-    setStatus(refs, "Fix the input JSON and run Analyze again.", "error");
   }
 
   function renderSummary(container, report) {
@@ -724,17 +764,19 @@
     var grid = el("div", "ad-summary-grid");
     var severityCounts = report.issue_counts_by_severity || {};
 
-    grid.appendChild(summaryCard("Total issues", String(report.total_issues)));
-    grid.appendChild(summaryCard("Errors", String(severityCounts.error || 0)));
-    grid.appendChild(summaryCard("Warnings", String(severityCounts.warning || 0)));
-    grid.appendChild(summaryCard("Coverage items", String(report.rule_coverage.length)));
+    grid.appendChild(summaryCard("Total issues", report.total_issues));
+    grid.appendChild(summaryCard("Errors", severityCounts.error || 0));
+    grid.appendChild(summaryCard("Warnings", severityCounts.warning || 0));
+    grid.appendChild(summaryCard("Coverage items", report.rule_coverage.length));
     section.appendChild(grid);
 
     if (report.total_issues === 0) {
-      section.appendChild(el("p", "ad-empty", "No deterministic issues found in this playground run."));
+      var noIssues = el("div", "ad-callout ad-callout--success");
+      noIssues.appendChild(el("strong", "", "No issues detected in this browser-side preview."));
+      noIssues.appendChild(el("span", "", "The full CLI can run deeper checks, write reports, and generate regression trace files."));
+      section.appendChild(noIssues);
     } else {
       section.appendChild(countList("Issue categories", report.issue_counts_by_category));
-      section.appendChild(countList("Affected parts", report.issue_counts_by_affected_part));
     }
 
     container.appendChild(section);
@@ -745,50 +787,56 @@
     var section = createSection("Issues");
 
     if (!issues.length) {
-      section.appendChild(el("p", "ad-empty", "No issues to display."));
+      section.appendChild(el("p", "ad-empty", "No issue cards for this report."));
       container.appendChild(section);
       return;
     }
 
     issues.forEach(function (issue) {
-      var card = el("article", "ad-issue-card ad-issue-card--" + issue.severity);
-      var header = el("div", "ad-issue-card__header");
-      var title = el("h4", "", issue.id + " " + issue.summary);
-      var badges = el("div", "ad-badge-row");
-      badges.appendChild(badge(issue.severity, "severity"));
-      badges.appendChild(badge(issue.category, "category"));
-      badges.appendChild(badge(issue.strictness, "strictness"));
-      header.appendChild(title);
-      header.appendChild(badges);
-      card.appendChild(header);
-
-      card.appendChild(labeledText("Affected part", issue.affected_agent_part));
-      card.appendChild(labeledText("Cause", issue.natural_language_cause));
-      card.appendChild(labeledText("Confidence", String(issue.confidence)));
-
-      if (issue.suggested_fix) {
-        card.appendChild(labeledText("Suggested fix", issue.suggested_fix));
-      }
-
-      card.appendChild(labeledBlock("Evidence", issue.evidence));
-
-      if (issue.suggested_patch) {
-        card.appendChild(labeledBlock("Suggested patch preview", issue.suggested_patch));
-      }
-
-      if (issue.suggested_regression_trace) {
-        card.appendChild(labeledBlock("Suggested regression trace preview", issue.suggested_regression_trace));
-      }
-
-      section.appendChild(card);
+      section.appendChild(renderIssueCard(issue));
     });
-
     container.appendChild(section);
   }
 
-  function renderCoverage(container, coverage) {
+  function renderIssueCard(issue) {
+    var card = el("article", "ad-issue-card ad-issue-card--" + safeClass(issue.severity));
+    var header = el("div", "ad-issue-card__header");
+    var titleBlock = el("div", "ad-issue-card__title");
+    titleBlock.appendChild(el("span", "ad-issue-id", issue.id));
+    titleBlock.appendChild(el("h4", "", issue.summary));
+
+    var badges = el("div", "ad-badge-row");
+    badges.appendChild(badge(issue.severity, "severity"));
+    badges.appendChild(badge(issue.category, "category"));
+    badges.appendChild(badge(issue.strictness, "strictness"));
+    badges.appendChild(badge(issue.affected_agent_part, "part"));
+
+    header.appendChild(titleBlock);
+    header.appendChild(badges);
+    card.appendChild(header);
+    card.appendChild(labeledText("Cause", issue.natural_language_cause));
+
+    if (issue.suggested_fix) {
+      card.appendChild(labeledText("Suggested fix", issue.suggested_fix));
+    }
+
+    card.appendChild(labeledText("Confidence", Math.round(issue.confidence * 100) + "%"));
+    card.appendChild(detailsBlock("Evidence", issue.evidence));
+
+    if (issue.suggested_patch) {
+      card.appendChild(detailsBlock("Suggested patch preview", issue.suggested_patch));
+    }
+
+    if (issue.suggested_regression_trace) {
+      card.appendChild(detailsBlock("Suggested regression trace", issue.suggested_regression_trace));
+    }
+
+    return card;
+  }
+
+  function renderCoverageTable(container, coverage) {
     container.replaceChildren();
-    var section = createSection("Rule Coverage Preview");
+    var section = createSection("Rule Coverage");
 
     if (!coverage.length) {
       section.appendChild(el("p", "ad-empty", "No declared rules or forbidden tools to preview."));
@@ -801,7 +849,7 @@
     table.className = "ad-coverage-table";
     var thead = document.createElement("thead");
     var headerRow = document.createElement("tr");
-    ["Rule", "Kind", "Positive coverage", "Negative coverage", "Status"].forEach(function (label) {
+    ["Rule", "Kind", "Positive", "Negative", "Status"].forEach(function (label) {
       headerRow.appendChild(el("th", "", label));
     });
     thead.appendChild(headerRow);
@@ -819,6 +867,7 @@
       row.appendChild(statusCell);
       tbody.appendChild(row);
     });
+
     table.appendChild(tbody);
     wrapper.appendChild(table);
     section.appendChild(wrapper);
@@ -827,21 +876,21 @@
 
   function renderPatchPreviews(container, issues) {
     container.replaceChildren();
-    var section = createSection("Suggested Patch Preview");
-    var patches = issues.filter(function (issue) {
+    var section = createSection("Suggested Patches");
+    var patchIssues = issues.filter(function (issue) {
       return issue.suggested_patch;
     });
 
-    if (!patches.length) {
+    if (!patchIssues.length) {
       section.appendChild(el("p", "ad-empty", "No patch previews for this report."));
       container.appendChild(section);
       return;
     }
 
-    patches.forEach(function (issue) {
+    patchIssues.forEach(function (issue) {
       var card = el("article", "ad-preview-card");
       card.appendChild(el("h4", "", issue.id + " " + issue.summary));
-      card.appendChild(renderJsonBlock(issue.suggested_patch));
+      card.appendChild(detailsBlock("Patch JSON", issue.suggested_patch, true));
       section.appendChild(card);
     });
 
@@ -850,34 +899,40 @@
 
   function renderRegressionTraces(container, issues) {
     container.replaceChildren();
-    var section = createSection("Suggested Regression Trace Preview");
-    var traces = issues.filter(function (issue) {
+    var section = createSection("Regression Traces");
+    var traceIssues = issues.filter(function (issue) {
       return issue.suggested_regression_trace;
     });
 
-    if (!traces.length) {
+    if (!traceIssues.length) {
       section.appendChild(el("p", "ad-empty", "No regression trace previews for this report."));
       container.appendChild(section);
       return;
     }
 
-    traces.forEach(function (issue) {
+    traceIssues.forEach(function (issue) {
       var card = el("article", "ad-preview-card");
       card.appendChild(el("h4", "", issue.id + " " + issue.summary));
-      card.appendChild(renderJsonBlock(issue.suggested_regression_trace));
+      card.appendChild(detailsBlock("Trace JSON", issue.suggested_regression_trace, true));
       section.appendChild(card);
     });
 
     container.appendChild(section);
   }
 
-  function clearResults(refs) {
-    refs.summary.replaceChildren();
-    refs.issues.replaceChildren();
-    refs.coverage.replaceChildren();
-    refs.patches.replaceChildren();
-    refs.regression.replaceChildren();
-    refs.rawJson.textContent = "Run Analyze to generate a report.";
+  function renderJsonPreview(container, report) {
+    container.replaceChildren();
+    var section = createSection("Report JSON");
+    section.appendChild(detailsBlock("Raw report", report));
+    container.appendChild(section);
+  }
+
+  function clearOutputSections(refs) {
+    [refs.summary, refs.issues, refs.coverage, refs.patches, refs.regression, refs.json].forEach(function (node) {
+      if (node) {
+        node.replaceChildren();
+      }
+    });
   }
 
   function copyReportJson(refs) {
@@ -889,7 +944,7 @@
     var text = stringifyJson(currentReport);
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).then(function () {
-        setStatus(refs, "Report JSON copied.", "success");
+        setStatus(refs, "Copied. Report JSON is on your clipboard.", "success");
       }).catch(function () {
         fallbackCopy(text, refs);
       });
@@ -900,12 +955,12 @@
   }
 
   function fallbackCopy(text, refs) {
-    var temporary = document.createElement("textarea");
-    temporary.value = text;
-    temporary.setAttribute("readonly", "");
-    temporary.className = "ad-copy-buffer";
-    document.body.appendChild(temporary);
-    temporary.select();
+    var buffer = document.createElement("textarea");
+    buffer.value = text;
+    buffer.setAttribute("readonly", "");
+    buffer.className = "ad-copy-buffer";
+    document.body.appendChild(buffer);
+    buffer.select();
 
     var copied = false;
     try {
@@ -914,8 +969,12 @@
       copied = false;
     }
 
-    document.body.removeChild(temporary);
-    setStatus(refs, copied ? "Report JSON copied." : "Clipboard is unavailable. Select the raw JSON block and copy manually.", copied ? "success" : "error");
+    document.body.removeChild(buffer);
+    setStatus(
+      refs,
+      copied ? "Copied. Report JSON is on your clipboard." : "Unable to copy. Select the raw JSON block and copy manually.",
+      copied ? "success" : "error"
+    );
   }
 
   function hasNoWriteOnMissingFileRule(contract) {
@@ -976,11 +1035,9 @@
   }
 
   function findToolCalls(trace, tool) {
-    var events = traceEvents(trace);
-    var normalizedTool = normalize(tool);
     var calls = [];
-    events.forEach(function (event, index) {
-      if (isToolCall(event, normalizedTool)) {
+    traceEvents(trace).forEach(function (event, index) {
+      if (isToolCall(event, tool)) {
         calls.push({ index: index, event: event });
       }
     });
@@ -1054,32 +1111,12 @@
       /\bwithout\s+(?:any\s+)?external\s+network\b/i
     ];
     for (var index = 0; index < patterns.length; index += 1) {
-      var match = String(text).match(patterns[index]);
+      var match = String(text || "").match(patterns[index]);
       if (match) {
         return match[0];
       }
     }
     return "";
-  }
-
-  function ruleCoverageStatus(traceProvided, hasPositive, hasNegative) {
-    if (!traceProvided) {
-      return "uncovered";
-    }
-    if (hasNegative) {
-      return "weak";
-    }
-    if (hasPositive) {
-      return "weak";
-    }
-    return "uncovered";
-  }
-
-  function forbiddenToolCoverageStatus(traceProvided, hasNegative) {
-    if (hasNegative) {
-      return "weak";
-    }
-    return traceProvided ? "unknown" : "uncovered";
   }
 
   function countBy(items, key) {
@@ -1156,7 +1193,7 @@
   function summaryCard(label, value) {
     var card = el("div", "ad-summary-card");
     card.appendChild(el("span", "ad-summary-card__label", label));
-    card.appendChild(el("strong", "ad-summary-card__value", value));
+    card.appendChild(el("strong", "ad-summary-card__value", String(value)));
     return card;
   }
 
@@ -1181,11 +1218,15 @@
     return wrapper;
   }
 
-  function labeledBlock(label, value) {
-    var wrapper = el("div", "ad-labeled");
-    wrapper.appendChild(el("span", "ad-labeled__label", label));
-    wrapper.appendChild(renderJsonBlock(value));
-    return wrapper;
+  function detailsBlock(label, value, open) {
+    var details = document.createElement("details");
+    details.className = "ad-details";
+    if (open) {
+      details.open = true;
+    }
+    details.appendChild(el("summary", "", label));
+    details.appendChild(renderJsonBlock(value));
+    return details;
   }
 
   function renderJsonBlock(value) {
@@ -1197,9 +1238,11 @@
   }
 
   function badge(value, kind) {
-    var normalizedValue = normalize(value).replace(/[^a-z0-9_-]/g, "_");
-    var node = el("span", "ad-badge ad-badge--" + kind + " ad-badge--" + normalizedValue, value);
-    return node;
+    return el("span", "ad-badge ad-badge--" + safeClass(kind) + " ad-badge--" + safeClass(value), value);
+  }
+
+  function safeClass(value) {
+    return normalize(value).replace(/[^a-z0-9_-]/g, "_");
   }
 
   function el(tagName, className, text) {
@@ -1223,7 +1266,7 @@
     if (!refs.status) {
       return;
     }
-    refs.status.className = "ad-status ad-status--" + (level || "info");
+    refs.status.className = "ad-status ad-status--" + safeClass(level || "info");
     refs.status.textContent = message;
   }
 }());

@@ -1,9 +1,9 @@
 # Time Cost
 
-AgentDoctor has two time-cost surfaces:
+Contract2Agent has two time-cost surfaces:
 
 1. Measured diagnostic timing inside quick, deep, and auto reports.
-2. Static pre-run estimates from `agentdoctor cost-estimate`.
+2. Static pre-run estimates from `c2a cost-estimate`.
 
 Measured timing tells you how long current tests took. Static estimates help decide whether to run quick, deep, or auto before spending runtime and review effort.
 
@@ -35,13 +35,13 @@ reports/patches/patch_001.diff
 
 ## Static Cost Estimate
 
-`agentdoctor cost-estimate` performs a rough static estimate. It does not run tests, call the agent, call tools, call LLM APIs, or measure actual runtime.
+`c2a cost-estimate` performs a rough static estimate. It does not run tests, call the agent, call tools, call LLM APIs, or measure actual runtime.
 
 ```bash
-agentdoctor cost-estimate --from-triage .agentdoctor/triage/latest.json
-agentdoctor cost-estimate --mode deep --budget balanced
-agentdoctor cost-estimate --mode auto --max-auto-iterations 4
-agentdoctor cost-estimate --budget conservative --max-rounds 2 --max-tests 12
+c2a cost-estimate --from-triage .agentdoctor/triage/latest.json
+c2a cost-estimate --mode deep --budget balanced
+c2a cost-estimate --mode auto --max-auto-iterations 4
+c2a cost-estimate --budget conservative --max-rounds 2 --max-tests 12
 ```
 
 Reports are written to:
@@ -141,8 +141,8 @@ The last two rounds improved confidence by less than 0.03. Further auto-repair m
 Use a static estimate before a larger deep run:
 
 ```bash
-agentdoctor cost-estimate --mode deep --budget balanced
-agentdoctor deep --rounds 3 --review on-fail
+c2a cost-estimate --mode deep --budget balanced
+c2a deep --rounds 3 --review on-fail
 ```
 
 Inspect measured timing afterward in `reports/latest.json` and `reports/rounds/*.json`.
@@ -152,7 +152,7 @@ Inspect measured timing afterward in `reports/latest.json` and `reports/rounds/*
 Use explicit budgets for auto:
 
 ```bash
-agentdoctor auto --target-confidence 0.85 --max-rounds 6 --max-time-minutes 30 --max-patches 4
+c2a auto --target-confidence 0.85 --max-rounds 6 --max-time-minutes 30 --max-patches 4
 ```
 
 Stop and review manually when efficiency warnings appear.

@@ -134,7 +134,7 @@ def _proposal_for_group(
     reviewer_notes = list(strategy.reviewer_notes)
     reviewer_notes.extend(target.warnings)
     reviewer_notes.append(
-        "Use validation_tags with `agentdoctor deep --focus ...`; add `--compare-baseline latest` when a saved baseline should be checked."
+        "Use validation_tags with `c2a deep --focus ...`; add `--compare-baseline latest` when a saved baseline should be checked."
     )
 
     if _can_generate_diff(strategy, target):

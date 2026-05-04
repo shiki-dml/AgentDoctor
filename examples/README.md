@@ -1,6 +1,6 @@
-# AgentDoctor Examples
+# Contract2Agent Examples
 
-This directory contains GitHub-readable examples for AgentDoctor. The sample reports are illustrative examples, not actual run outputs from this repository checkout.
+This directory contains GitHub-readable examples for Contract2Agent. The sample reports are illustrative examples, not actual run outputs from this repository checkout.
 
 ## Example Agents
 
@@ -19,11 +19,11 @@ This directory contains GitHub-readable examples for AgentDoctor. The sample rep
 ## Typical Workflow
 
 ```bash
-agentdoctor triage --agent examples/paper-reader-agent/agent.yaml
-agentdoctor quick
-agentdoctor deep --rounds 3 --review on-fail
-agentdoctor patch-preview --from-run reports/latest.json
-agentdoctor auto --target-confidence 0.85 --max-rounds 6 --review on-fail
+c2a triage --agent examples/paper-reader-agent/agent.yaml
+c2a quick
+c2a deep --rounds 3 --review on-fail
+c2a patch-preview --from-run reports/latest.json
+c2a auto --target-confidence 0.85 --max-rounds 6 --review on-fail
 ```
 
 The current quick/deep/auto implementation uses deterministic offline traces and can run without an LLM API key.

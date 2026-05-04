@@ -1,6 +1,8 @@
 # CLI Reference
 
-The installed commands are `agentdoctor` and `c2a`. They point to the same implementation. The examples below use `agentdoctor`.
+Use `c2a` for the CLI. A legacy `agentdoctor` console-script alias remains for backward compatibility with existing local installs, but the examples below use `c2a`.
+
+Some output directories still use the legacy `.agentdoctor/` runtime path for backward compatibility. Treat that as a storage path, not the public project name.
 
 If Typer is installed, the CLI has rich help output. A minimal argparse fallback is also implemented so the same subcommands remain available in lean environments.
 
@@ -32,7 +34,7 @@ Purpose: inspect agent config, prompts, tools, eval metadata, baseline status, p
 Syntax:
 
 ```bash
-agentdoctor triage [--agent PATH] [--goal TEXT] [--project-root PATH] [--format markdown|json] [--output PATH] [--allow-auto] [--include-cost]
+c2a triage [--agent PATH] [--goal TEXT] [--project-root PATH] [--format markdown|json] [--output PATH] [--allow-auto] [--include-cost]
 ```
 
 Options:
@@ -50,12 +52,12 @@ Options:
 Examples:
 
 ```bash
-agentdoctor triage
-agentdoctor triage --agent ./agent.yaml
-agentdoctor triage --goal "paper reading agent"
-agentdoctor triage --project-root .
-agentdoctor triage --allow-auto
-agentdoctor triage --include-cost
+c2a triage
+c2a triage --agent ./agent.yaml
+c2a triage --goal "paper reading agent"
+c2a triage --project-root .
+c2a triage --allow-auto
+c2a triage --include-cost
 ```
 
 Output files:
@@ -74,7 +76,7 @@ Purpose: run one fast smoke-diagnosis round over the highest-priority behavior c
 Syntax:
 
 ```bash
-agentdoctor quick [--contract PATH] [--out PATH] [--agent PATH] [--save-baseline] [--baseline-name NAME] [--compare-baseline [REF]]
+c2a quick [--contract PATH] [--out PATH] [--agent PATH] [--save-baseline] [--baseline-name NAME] [--compare-baseline [REF]]
 ```
 
 Options:
@@ -91,10 +93,10 @@ Options:
 Examples:
 
 ```bash
-agentdoctor quick
-agentdoctor quick --contract ./agent_contract.yaml
-agentdoctor quick --save-baseline --baseline-name quick-smoke
-agentdoctor quick --compare-baseline
+c2a quick
+c2a quick --contract ./agent_contract.yaml
+c2a quick --save-baseline --baseline-name quick-smoke
+c2a quick --compare-baseline
 ```
 
 Output files:
@@ -114,7 +116,7 @@ Purpose: run multi-round diagnosis with review policies, traces, tool calls, sco
 Syntax:
 
 ```bash
-agentdoctor deep --rounds N [--review never|on-fail|each-round] [--contract PATH] [--out PATH] [--agent PATH] [--save-baseline] [--baseline-name NAME] [--compare-baseline [REF]] [--focus TAGS]
+c2a deep --rounds N [--review never|on-fail|each-round] [--contract PATH] [--out PATH] [--agent PATH] [--save-baseline] [--baseline-name NAME] [--compare-baseline [REF]] [--focus TAGS]
 ```
 
 Options:
@@ -134,13 +136,13 @@ Options:
 Examples:
 
 ```bash
-agentdoctor deep --rounds 3
-agentdoctor deep --rounds 5 --review never
-agentdoctor deep --rounds 5 --review on-fail
-agentdoctor deep --rounds 5 --review each-round
-agentdoctor deep --rounds 3 --save-baseline
-agentdoctor deep --rounds 3 --compare-baseline
-agentdoctor deep --rounds 2 --focus tool_order,output_schema
+c2a deep --rounds 3
+c2a deep --rounds 5 --review never
+c2a deep --rounds 5 --review on-fail
+c2a deep --rounds 5 --review each-round
+c2a deep --rounds 3 --save-baseline
+c2a deep --rounds 3 --compare-baseline
+c2a deep --rounds 2 --focus tool_order,output_schema
 ```
 
 Output files:
@@ -154,7 +156,7 @@ reports/rounds/round_002.json
 
 `--rounds` must be at least `1` and no more than the implemented `MAX_DEEP_ROUNDS` limit of `20`.
 
-Deep mode does not currently expose `--max-time-minutes`; runtime budgeting is available in `agentdoctor auto`, and static pre-run estimates are available through `agentdoctor cost-estimate`.
+Deep mode does not currently expose `--max-time-minutes`; runtime budgeting is available in `c2a auto`, and static pre-run estimates are available through `c2a cost-estimate`.
 
 ## Auto
 
@@ -163,7 +165,7 @@ Purpose: run diagnosis, create/apply limited safe prompt/config patches, validat
 Syntax:
 
 ```bash
-agentdoctor auto [--target-confidence FLOAT] [--max-rounds N] [--max-time-minutes N] [--max-patches N] [--min-improvement FLOAT] [--review never|on-fail|each-round] [--contract PATH] [--out PATH] [--repo-root PATH] [--agent PATH] [--save-baseline] [--baseline-name NAME] [--compare-baseline [REF]]
+c2a auto [--target-confidence FLOAT] [--max-rounds N] [--max-time-minutes N] [--max-patches N] [--min-improvement FLOAT] [--review never|on-fail|each-round] [--contract PATH] [--out PATH] [--repo-root PATH] [--agent PATH] [--save-baseline] [--baseline-name NAME] [--compare-baseline [REF]]
 ```
 
 Options:
@@ -187,10 +189,10 @@ Options:
 Examples:
 
 ```bash
-agentdoctor auto --target-confidence 0.85
-agentdoctor auto --target-confidence 0.90 --max-rounds 8
-agentdoctor auto --target-confidence 0.90 --max-rounds 8 --max-time-minutes 30
-agentdoctor auto --target-confidence 0.85 --max-patches 4 --review on-fail
+c2a auto --target-confidence 0.85
+c2a auto --target-confidence 0.90 --max-rounds 8
+c2a auto --target-confidence 0.90 --max-rounds 8 --max-time-minutes 30
+c2a auto --target-confidence 0.85 --max-patches 4 --review on-fail
 ```
 
 Output files:
@@ -204,7 +206,7 @@ reports/patches/patch_001.diff
 
 `reports/patches/` is populated only when auto mode applies an allowlisted prompt/config patch and has a diff to record. The main runtime budget flags are `--max-rounds`, `--max-time-minutes`, `--max-patches`, and `--min-improvement`.
 
-Current auto mode does not implement `--preview-patches` or `--require-patch-approval` flags. For preview-only patch proposals, run `agentdoctor patch-preview --from-run reports/latest.json`.
+Current auto mode does not implement `--preview-patches` or `--require-patch-approval` flags. For preview-only patch proposals, run `c2a patch-preview --from-run reports/latest.json`.
 
 ## Patch Preview
 
@@ -213,16 +215,16 @@ Purpose: generate human-reviewable patch proposals from diagnostic findings. In 
 Syntax:
 
 ```bash
-agentdoctor patch-preview [--from-run PATH] [--from-findings PATH] [--failure-type TYPE] [--output PATH] [--format markdown|json] [--dry-run] [--allow-apply] [--apply PATCH_ID] [--project-root PATH]
+c2a patch-preview [--from-run PATH] [--from-findings PATH] [--failure-type TYPE] [--output PATH] [--format markdown|json] [--dry-run] [--allow-apply] [--apply PATCH_ID] [--project-root PATH]
 ```
 
 Examples:
 
 ```bash
-agentdoctor patch-preview --from-run reports/latest.json
-agentdoctor patch-preview --from-run reports/latest.json --failure-type OUTPUT_SCHEMA_ERROR
-agentdoctor patch-preview --from-run reports/latest.json --output .agentdoctor/patches
-agentdoctor patch-preview --from-run reports/latest.json --format json
+c2a patch-preview --from-run reports/latest.json
+c2a patch-preview --from-run reports/latest.json --failure-type OUTPUT_SCHEMA_ERROR
+c2a patch-preview --from-run reports/latest.json --output .agentdoctor/patches
+c2a patch-preview --from-run reports/latest.json --format json
 ```
 
 Output files:
@@ -244,16 +246,16 @@ Purpose: estimate diagnostic complexity, test count, tool-call ranges, runtime l
 Syntax:
 
 ```bash
-agentdoctor cost-estimate [--from-triage PATH] [--mode quick|deep|auto] [--budget conservative|balanced|thorough] [--max-rounds N] [--max-tests N] [--max-runtime-minutes N] [--max-llm-calls N] [--max-tool-calls N] [--max-tool-calls-per-test N] [--max-repeated-runs N] [--max-auto-iterations N] [--max-patch-attempts N] [--output PATH] [--format markdown|json]
+c2a cost-estimate [--from-triage PATH] [--mode quick|deep|auto] [--budget conservative|balanced|thorough] [--max-rounds N] [--max-tests N] [--max-runtime-minutes N] [--max-llm-calls N] [--max-tool-calls N] [--max-tool-calls-per-test N] [--max-repeated-runs N] [--max-auto-iterations N] [--max-patch-attempts N] [--output PATH] [--format markdown|json]
 ```
 
 Examples:
 
 ```bash
-agentdoctor cost-estimate --from-triage .agentdoctor/triage/latest.json
-agentdoctor cost-estimate --mode deep --budget balanced
-agentdoctor cost-estimate --mode auto --max-auto-iterations 4
-agentdoctor cost-estimate --budget conservative --max-rounds 2 --max-tests 12
+c2a cost-estimate --from-triage .agentdoctor/triage/latest.json
+c2a cost-estimate --mode deep --budget balanced
+c2a cost-estimate --mode auto --max-auto-iterations 4
+c2a cost-estimate --budget conservative --max-rounds 2 --max-tests 12
 ```
 
 Output files:
@@ -272,14 +274,14 @@ This is a static estimate. It does not run tests, call tools, call LLM APIs, or 
 The original trace-diagnosis commands remain available:
 
 ```bash
-agentdoctor demo --out demo_project
-agentdoctor counterexamples demo_project/agent_contract.yaml --out demo_project/traces/counterexamples
-agentdoctor check --contract demo_project/agent_contract.yaml --trace demo_project/traces/passing_trace.json
-agentdoctor check-all --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --diagnose
-agentdoctor diagnose --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --manifest demo_project/traces/counterexamples/manifest.yaml --out demo_project/reports/diagnosis_report.md
-agentdoctor why --contract demo_project/agent_contract.yaml --trace demo_project/traces/passing_trace.json
-agentdoctor restrictions demo_project/agent_contract.yaml
-agentdoctor capabilities demo_project/agent_contract.yaml --out demo_project/capabilities.yaml
+c2a demo --out demo_project
+c2a counterexamples demo_project/agent_contract.yaml --out demo_project/traces/counterexamples
+c2a check --contract demo_project/agent_contract.yaml --trace demo_project/traces/passing_trace.json
+c2a check-all --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --diagnose
+c2a diagnose --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --manifest demo_project/traces/counterexamples/manifest.yaml --out demo_project/reports/diagnosis_report.md
+c2a why --contract demo_project/agent_contract.yaml --trace demo_project/traces/passing_trace.json
+c2a restrictions demo_project/agent_contract.yaml
+c2a capabilities demo_project/agent_contract.yaml --out demo_project/capabilities.yaml
 ```
 
 Use these commands when you are working directly with `AgentContract` files and saved traces.

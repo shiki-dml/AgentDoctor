@@ -197,8 +197,8 @@ def generate_recommendation(
     reasoning: list[str] = []
 
     if allow_auto and auto_readiness.eligible:
-        command = f"agentdoctor auto{agent_part}{goal_part} --target-confidence 0.85 --max-rounds 6 --review on-fail"
-        alternatives.append(f"agentdoctor deep{agent_part}{goal_part} --rounds 3 --review on-fail")
+        command = f"c2a auto{agent_part}{goal_part} --target-confidence 0.85 --max-rounds 6 --review on-fail"
+        alternatives.append(f"c2a deep{agent_part}{goal_part} --rounds 3 --review on-fail")
         return (
             Recommendation(
                 recommended_mode="auto",
@@ -212,16 +212,16 @@ def generate_recommendation(
         )
 
     if risk.risk_level == "low" and classification.agent_type != "unknown":
-        command = f"agentdoctor quick{agent_part}{goal_part}"
-        alternatives.append(f"agentdoctor deep{agent_part}{goal_part} --rounds 3 --review on-fail")
+        command = f"c2a quick{agent_part}{goal_part}"
+        alternatives.append(f"c2a deep{agent_part}{goal_part} --rounds 3 --review on-fail")
         reasoning.append("Low static risk was detected.")
         return (
             Recommendation("quick", 1, "on-fail", None, reasoning, alternatives),
             command,
         )
     if risk.risk_level == "high":
-        command = f"agentdoctor deep{agent_part}{goal_part} --rounds 5 --review each-round"
-        alternatives.append(f"agentdoctor deep{agent_part}{goal_part} --rounds 3 --review on-fail")
+        command = f"c2a deep{agent_part}{goal_part} --rounds 5 --review each-round"
+        alternatives.append(f"c2a deep{agent_part}{goal_part} --rounds 3 --review on-fail")
         reasoning.extend(["High static risk was detected.", "Each-round review is recommended for high-risk tools or side effects."])
         return (
             Recommendation("deep", 5, "each-round", None, reasoning, alternatives),
@@ -229,24 +229,24 @@ def generate_recommendation(
         )
     if risk.risk_level == "unknown" or classification.agent_type == "unknown":
         if not agent_arg:
-            command = "agentdoctor triage --agent ./agent.yaml"
-            alternatives.append(f"agentdoctor deep{goal_part} --rounds 3 --review on-fail")
+            command = "c2a triage --agent ./agent.yaml"
+            alternatives.append(f"c2a deep{goal_part} --rounds 3 --review on-fail")
             reasoning.append("Agent config or agent type is unknown; select an agent config before formal diagnosis.")
             return (
                 Recommendation("deep", 3, "on-fail", None, reasoning, alternatives),
                 command,
             )
-        command = f"agentdoctor deep{agent_part}{goal_part} --rounds 3 --review on-fail"
+        command = f"c2a deep{agent_part}{goal_part} --rounds 3 --review on-fail"
         reasoning.append("Risk or type is unknown, so deep diagnosis gives broader coverage than quick mode.")
         return (
             Recommendation("deep", 3, "on-fail", None, reasoning, alternatives),
             command,
         )
 
-    command = f"agentdoctor deep{agent_part}{goal_part} --rounds 3 --review on-fail"
-    alternatives.append(f"agentdoctor quick{agent_part}{goal_part}")
+    command = f"c2a deep{agent_part}{goal_part} --rounds 3 --review on-fail"
+    alternatives.append(f"c2a quick{agent_part}{goal_part}")
     if not allow_auto and auto_readiness.eligible:
-        alternatives.append(f"agentdoctor triage{agent_part}{goal_part} --allow-auto")
+        alternatives.append(f"c2a triage{agent_part}{goal_part} --allow-auto")
     reasoning.append("Medium static risk or incomplete coverage was detected.")
     return (
         Recommendation("deep", 3, "on-fail", None, reasoning, alternatives),

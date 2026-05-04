@@ -7,14 +7,14 @@ Baselines are saved diagnostic states used for regression comparison. They help 
 Use deep mode for the strongest baseline:
 
 ```bash
-agentdoctor deep --rounds 3 --save-baseline --baseline-name stable-v1
+c2a deep --rounds 3 --save-baseline --baseline-name stable-v1
 ```
 
 Quick and auto can also save baselines:
 
 ```bash
-agentdoctor quick --save-baseline
-agentdoctor auto --target-confidence 0.85 --save-baseline
+c2a quick --save-baseline
+c2a auto --target-confidence 0.85 --save-baseline
 ```
 
 Quick baselines are smoke-test references. For release or regression workflows, prefer a deep baseline.
@@ -22,10 +22,10 @@ Quick baselines are smoke-test references. For release or regression workflows, 
 ## Compare a Baseline
 
 ```bash
-agentdoctor deep --rounds 3 --compare-baseline
-agentdoctor deep --rounds 3 --compare-baseline latest
-agentdoctor deep --rounds 3 --compare-baseline stable-v1
-agentdoctor auto --target-confidence 0.85 --compare-baseline
+c2a deep --rounds 3 --compare-baseline
+c2a deep --rounds 3 --compare-baseline latest
+c2a deep --rounds 3 --compare-baseline stable-v1
+c2a auto --target-confidence 0.85 --compare-baseline
 ```
 
 Bare `--compare-baseline` is normalized to `latest`.
@@ -51,7 +51,7 @@ Baseline records include:
 - patch summary
 - eval suite summary
 - report paths
-- AgentDoctor version
+- Contract2Agent version
 - reference to the agent state snapshot
 
 ## Snapshot Contents
@@ -106,6 +106,8 @@ Secret contents are not read, copied, printed, or written to reports.
 ## Output Layout
 
 Baseline artifacts are local files under `.agentdoctor/`:
+
+The `.agentdoctor/` path is a legacy runtime directory kept for compatibility.
 
 ```text
 .agentdoctor/
@@ -162,9 +164,9 @@ Baseline comparison can detect:
 
 ## Regression Workflow
 
-1. Run `agentdoctor deep --rounds 3 --save-baseline --baseline-name stable-v1`.
+1. Run `c2a deep --rounds 3 --save-baseline --baseline-name stable-v1`.
 2. Change prompts, tool descriptions, workflow, or eval config.
-3. Run `agentdoctor deep --rounds 3 --compare-baseline stable-v1`.
+3. Run `c2a deep --rounds 3 --compare-baseline stable-v1`.
 4. Review `comparison_latest.md`.
 5. Use patch preview or rollback review when regressions appear.
 

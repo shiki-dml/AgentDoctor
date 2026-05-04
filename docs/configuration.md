@@ -1,6 +1,8 @@
 # Configuration
 
-AgentDoctor reads a bounded set of agent, prompt, tool, eval, baseline, and AgentDoctor config files. It excludes secrets, credentials, virtual environments, build output, and unreadable or oversized files from triage and snapshot content.
+Contract2Agent reads a bounded set of agent, prompt, tool, eval, baseline, and local tool config files. It excludes secrets, credentials, virtual environments, build output, and unreadable or oversized files from triage and snapshot content.
+
+Legacy `agentdoctor.yaml` and `.agentdoctor/` paths remain recognized for backward compatibility. They are storage/config compatibility names, not the public project name.
 
 ## Common Project Files
 
@@ -15,7 +17,7 @@ AgentDoctor reads a bounded set of agent, prompt, tool, eval, baseline, and Agen
 | `workflow_config.yaml`, `workflow_config.yml` | Workflow, review, approval, limits, and tool-order policy. |
 | `eval_config.yaml`, `eval_config.yml` | Evaluation metadata and scoring hints. |
 | `evals/*.yaml`, `evals/*.yml`, `evals/*.json` | Eval cases discovered by triage and baseline snapshots. |
-| `agentdoctor.yaml`, `agentdoctor.yml`, `.agentdoctor/config.yaml` | AgentDoctor-specific local configuration. |
+| `agentdoctor.yaml`, `agentdoctor.yml`, `.agentdoctor/config.yaml` | Legacy-compatible local configuration. |
 
 ## Minimal Agent Config
 
@@ -86,7 +88,7 @@ cases:
 
 ## AgentContract Files
 
-Quick, deep, and auto can use an `agent_contract.yaml` through `--contract`. If no contract is provided, AgentDoctor uses a built-in paper-reader sample contract.
+Quick, deep, and auto can use an `agent_contract.yaml` through `--contract`. If no contract is provided, Contract2Agent uses a built-in paper-reader sample contract.
 
 The contract schema includes:
 
@@ -144,7 +146,7 @@ Snapshots may include:
 - eval file hashes from `evals/`, `tests/evals/`, `agentdoctor_tests/`, and `.agentdoctor/evals/`
 - command used
 - timestamp
-- AgentDoctor version
+- Contract2Agent version
 - Python/platform metadata
 - git commit and dirty-state metadata when available
 - stable SHA-256 file hashes
@@ -162,7 +164,7 @@ Snapshots, triage, patch preview, and cost estimate must exclude secret-like fil
 - private tokens and API keys
 - generated reports under `reports/`
 - runtime `.agentdoctor/triage/`, `.agentdoctor/baselines/`, `.agentdoctor/patches/`, `.agentdoctor/cost/`, `.agentdoctor/runs/`, and `.agentdoctor/tmp/`
-- lock files unless they are intentionally reviewed outside AgentDoctor snapshot/patch flows
+- lock files unless they are intentionally reviewed outside Contract2Agent snapshot/patch flows
 - `node_modules/`, `.venv/`, `venv/`, `.git/`, `dist/`, `build/`, `__pycache__/`
 
 Secret contents are not read, copied, printed, or written to reports. This is why some reports may mention that files were excluded without showing their contents.

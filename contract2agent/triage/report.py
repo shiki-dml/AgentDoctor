@@ -44,7 +44,7 @@ def format_terminal_summary(plan: TriagePlan) -> str:
     behaviors = [behavior.title for behavior in plan.key_behaviors_to_test[:5]]
     warnings = [warning.title for warning in plan.warnings[:5]]
     lines = [
-        "AgentDoctor Triage Plan",
+        "Contract2Agent Triage Plan",
         "",
         f"Agent: {plan.agent_summary.name or 'unknown'}",
         f"Type: {plan.agent_classification.agent_type}",
@@ -76,7 +76,7 @@ def format_terminal_summary(plan: TriagePlan) -> str:
 def format_markdown_report(plan: TriagePlan) -> str:
     data = to_plain_data(plan)
     lines = [
-        "# AgentDoctor Triage Plan",
+        "# Contract2Agent Triage Plan",
         "",
         f"Triage ID: `{plan.triage_id}`",
         f"Created: `{plan.created_at}`",

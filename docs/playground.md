@@ -1,10 +1,13 @@
-# AgentDoctor Playground
+# Playground
 
-Try AgentDoctor in your browser. Paste an agent contract and optional trace, then run deterministic checks to see diagnosis-style feedback.
+Paste an agent contract and a sample trace. Contract2Agent will highlight likely
+rule gaps, strictness problems, coverage gaps, and repair suggestions directly
+in your browser.
 
-This playground runs entirely in your browser. It does not upload your contract or trace. It is a lightweight static preview of AgentDoctor's diagnosis concepts. For full analysis, run the [c2a CLI](cli.md) locally.
-
-The playground is intentionally limited: it uses plain JavaScript, built-in JSON samples, and deterministic checks. It does not use a backend, database, login, LLM API, Python-in-browser runtime, Pyodide, React, or patch application.
+!!! note "Privacy"
+    This playground runs entirely in your browser. It does not upload your
+    contract or trace. It is a lightweight static preview of Contract2Agent's
+    diagnosis concepts; full analysis runs through the [local CLI](cli.md).
 
 <noscript>
   <div class="ad-playground ad-playground--noscript">
@@ -12,70 +15,99 @@ The playground is intentionally limited: it uses plain JavaScript, built-in JSON
   </div>
 </noscript>
 
-<div class="ad-playground" data-agentdoctor-playground>
-  <div class="ad-playground__toolbar">
-    <div class="ad-field ad-field--sample">
-      <label for="ad-sample-select">Sample scenario</label>
-      <select id="ad-sample-select" class="ad-control">
-        <option value="paper_reader_valid" selected>Paper reader: valid read then write</option>
-        <option value="missing_file_write">Missing file handling: write after file_not_found</option>
-        <option value="forbidden_web_search">Forbidden web search</option>
-        <option value="contract_conflict_markdown">Contract conflict: markdown_writer required but forbidden</option>
-        <option value="parser_missed_no_web">Parser missed restriction: requirement says no web search but contract allows it</option>
-      </select>
+<div class="ad-playground" data-contract2agent-playground>
+  <section class="ad-playground__intro">
+    <div>
+      <p class="ad-kicker">Static browser-side preview</p>
+      <h2>Explore a trace diagnosis</h2>
+      <p>Choose a sample or paste your own JSON. The preview checks a focused subset of Contract2Agent behavior contracts without a backend, framework, or network call.</p>
     </div>
-    <div class="ad-playground__actions" aria-label="Playground actions">
-      <button type="button" id="ad-analyze-button" class="ad-button ad-button--primary">Analyze</button>
-      <button type="button" id="ad-reset-button" class="ad-button">Reset sample</button>
-      <button type="button" id="ad-copy-button" class="ad-button" disabled>Copy report JSON</button>
-      <button type="button" id="ad-clear-button" class="ad-button ad-button--quiet">Clear</button>
-    </div>
-  </div>
-
-  <p id="ad-playground-status" class="ad-status" role="status" aria-live="polite">Choose a sample and click Analyze.</p>
-
-  <div class="ad-editor-grid">
-    <section class="ad-editor-pane">
-      <div class="ad-editor-pane__header">
-        <label for="ad-contract-input">Agent contract/config JSON</label>
-        <span>Paste JSON, or use the built-in samples.</span>
-      </div>
-      <textarea id="ad-contract-input" class="ad-textarea" spellcheck="false" rows="24"></textarea>
-    </section>
-
-    <section class="ad-editor-pane">
-      <div class="ad-editor-pane__header">
-        <label for="ad-trace-input">Optional trace JSON</label>
-        <span>Leave blank to preview contract-only coverage.</span>
-      </div>
-      <textarea id="ad-trace-input" class="ad-textarea" spellcheck="false" rows="24"></textarea>
-    </section>
-  </div>
-
-  <section class="ad-results" aria-live="polite">
-    <h2>Results</h2>
-    <div id="ad-summary-output" class="ad-output-section"></div>
-    <div id="ad-issues-output" class="ad-output-section"></div>
-    <div id="ad-coverage-output" class="ad-output-section"></div>
-    <div id="ad-patches-output" class="ad-output-section"></div>
-    <div id="ad-regression-output" class="ad-output-section"></div>
-    <div class="ad-output-section">
-      <h3>Raw Report JSON</h3>
-      <pre id="ad-report-json" class="ad-json-block" tabindex="0">Run Analyze to generate a report.</pre>
-    </div>
+    <p id="ad-playground-status" class="ad-status ad-status--info" role="status" aria-live="polite">Choose a sample or paste your own contract, then click Analyze.</p>
   </section>
+
+  <div class="ad-playground__shell">
+    <section class="ad-panel ad-panel--inputs" aria-labelledby="ad-inputs-title">
+      <div class="ad-panel__header">
+        <div>
+          <h3 id="ad-inputs-title">Inputs</h3>
+          <p>Start from a sample scenario or use your own contract and trace JSON.</p>
+        </div>
+      </div>
+
+      <div class="ad-field ad-field--sample">
+        <label for="ad-sample-select">Sample scenario</label>
+        <select id="ad-sample-select" class="ad-control">
+          <option value="paper_reader_valid" selected>Valid read/write</option>
+          <option value="missing_file_write">Missing file handling</option>
+          <option value="forbidden_web_search">Forbidden web search</option>
+          <option value="contract_conflict_markdown">Contract conflict</option>
+          <option value="parser_missed_no_web">Missed no-web-search restriction</option>
+        </select>
+        <p id="ad-sample-description" class="ad-field__hint"></p>
+      </div>
+
+      <div class="ad-playground__actions" aria-label="Playground actions">
+        <button type="button" id="ad-analyze-button" class="ad-button ad-button--primary">Analyze</button>
+        <button type="button" id="ad-reset-button" class="ad-button">Reset sample</button>
+        <button type="button" id="ad-copy-button" class="ad-button" disabled>Copy report JSON</button>
+        <button type="button" id="ad-clear-button" class="ad-button ad-button--quiet">Clear</button>
+      </div>
+
+      <div class="ad-editor-stack">
+        <section class="ad-editor-pane">
+          <div class="ad-editor-pane__header">
+            <label for="ad-contract-input">Agent contract JSON</label>
+            <span>Required</span>
+          </div>
+          <textarea id="ad-contract-input" class="ad-textarea" spellcheck="false" rows="20" aria-describedby="ad-contract-help"></textarea>
+          <p id="ad-contract-help" class="ad-field__hint">Use a JSON object with fields such as name, goal, tools, forbidden_tools, and rules.</p>
+        </section>
+
+        <section class="ad-editor-pane">
+          <div class="ad-editor-pane__header">
+            <label for="ad-trace-input">Trace JSON</label>
+            <span>Optional</span>
+          </div>
+          <textarea id="ad-trace-input" class="ad-textarea" spellcheck="false" rows="20" aria-describedby="ad-trace-help"></textarea>
+          <p id="ad-trace-help" class="ad-field__hint">Use a JSON array of events, or an object with an events array.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="ad-panel ad-panel--results" aria-labelledby="ad-results-title" aria-live="polite">
+      <div class="ad-panel__header">
+        <div>
+          <h3 id="ad-results-title">Report Preview</h3>
+          <p>Results are arranged for review first. Raw JSON stays at the bottom.</p>
+        </div>
+      </div>
+
+      <div id="ad-empty-output" class="ad-empty-state">
+        <strong>Ready when you are.</strong>
+        <span>Choose a sample or paste your own contract, then click Analyze.</span>
+      </div>
+
+      <div id="ad-summary-output" class="ad-output-section"></div>
+      <div id="ad-issues-output" class="ad-output-section"></div>
+      <div id="ad-coverage-output" class="ad-output-section"></div>
+      <div id="ad-patches-output" class="ad-output-section"></div>
+      <div id="ad-regression-output" class="ad-output-section"></div>
+      <div id="ad-json-output" class="ad-output-section"></div>
+    </section>
+  </div>
 </div>
 
-## First-Version Scope
+## Preview Scope
 
-The playground checks a small, deterministic subset of AgentDoctor concepts:
+The playground checks a small deterministic subset of Contract2Agent concepts:
 
 - contract field validation
-- contract conflicts involving Markdown writing
+- conflicts involving Markdown writing
 - missing `no_write_on_missing_file` coverage
 - traces that write after `pdf_reader` returns `file_not_found`
 - forbidden tool calls
 - parser-missed no-web-search restrictions
-- simplified rule coverage preview
+- simplified rule coverage
 
-Patch previews and regression traces shown here are suggestions only. The page never applies patches and never modifies files.
+Patch previews and regression traces shown here are suggestions only. The page
+never applies patches and never modifies files.

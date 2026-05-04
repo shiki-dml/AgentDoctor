@@ -7,24 +7,24 @@ Auto should be used carefully. Diagnostic confidence is a deterministic heuristi
 ## Command
 
 ```bash
-agentdoctor auto --target-confidence 0.85
+c2a auto --target-confidence 0.85
 ```
 
 Common variants:
 
 ```bash
-agentdoctor auto --target-confidence 0.85
-agentdoctor auto --target-confidence 0.90 --max-rounds 8
-agentdoctor auto --target-confidence 0.90 --max-rounds 8 --max-time-minutes 30
-agentdoctor auto --target-confidence 0.85 --max-patches 4 --review on-fail
-agentdoctor auto --target-confidence 0.85 --save-baseline
-agentdoctor auto --target-confidence 0.85 --compare-baseline
+c2a auto --target-confidence 0.85
+c2a auto --target-confidence 0.90 --max-rounds 8
+c2a auto --target-confidence 0.90 --max-rounds 8 --max-time-minutes 30
+c2a auto --target-confidence 0.85 --max-patches 4 --review on-fail
+c2a auto --target-confidence 0.85 --save-baseline
+c2a auto --target-confidence 0.85 --compare-baseline
 ```
 
 Current auto mode does not expose `--preview-patches` or `--require-patch-approval`. Use preview-only patch review separately:
 
 ```bash
-agentdoctor patch-preview --from-run reports/latest.json
+c2a patch-preview --from-run reports/latest.json
 ```
 
 ## Target Confidence
@@ -39,7 +39,7 @@ Targets such as `0.95` or higher are risky because they can encourage overfittin
 
 ## Heuristic Confidence Warning
 
-AgentDoctor combines available weighted components such as key task pass rate, tool-call correctness, output schema score, regression score, stability score, and safety score. Missing components are normalized instead of crashing.
+Contract2Agent combines available weighted components such as key task pass rate, tool-call correctness, output schema score, regression score, stability score, and safety score. Missing components are normalized instead of crashing.
 
 This number is a diagnostic heuristic. It is useful for comparing runs, triggering stop conditions, and summarizing progress. It is not proof that the agent is correct or safe.
 

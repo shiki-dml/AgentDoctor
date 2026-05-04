@@ -9,16 +9,16 @@ import pytest
 
 
 @pytest.fixture(scope="session", autouse=True)
-def agentdoctor_test_root() -> Path:
-    root = Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor" / uuid.uuid4().hex
+def contract2agent_test_root() -> Path:
+    root = Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent" / uuid.uuid4().hex
     root.mkdir(parents=True, exist_ok=True)
-    previous = os.environ.get("AGENTDOCTOR_TEST_ROOT")
-    os.environ["AGENTDOCTOR_TEST_ROOT"] = str(root)
+    previous = os.environ.get("CONTRACT2AGENT_TEST_ROOT")
+    os.environ["CONTRACT2AGENT_TEST_ROOT"] = str(root)
     try:
         yield root
     finally:
         if previous is None:
-            os.environ.pop("AGENTDOCTOR_TEST_ROOT", None)
+            os.environ.pop("CONTRACT2AGENT_TEST_ROOT", None)
         else:
-            os.environ["AGENTDOCTOR_TEST_ROOT"] = previous
+            os.environ["CONTRACT2AGENT_TEST_ROOT"] = previous
         shutil.rmtree(root, ignore_errors=True)

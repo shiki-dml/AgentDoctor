@@ -1,4 +1,4 @@
-"""AgentTraceDoctor compatibility package for offline agent trace diagnosis."""
+"""Contract2Agent compatibility package for offline agent trace diagnosis."""
 
 __version__ = "0.1.0"
 

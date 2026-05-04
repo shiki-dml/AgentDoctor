@@ -35,7 +35,7 @@ def test_patch_proposal_model_serializes_to_json() -> None:
         after_summary="Adds JSON-only rule.",
         expected_effect=["Schema failures decrease."],
         validation_tags=["output_schema", "regression"],
-        validation_command="agentdoctor deep --rounds 2 --review on-fail",
+        validation_command="c2a deep --rounds 2 --review on-fail",
         regression_risks=["May reduce task completeness."],
         baseline_impact={"baseline_exists": False},
         risk_level="medium",
@@ -76,7 +76,7 @@ def test_patch_preview_cli_command_exists() -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert "AgentDoctor Patch Preview" in completed.stdout
+    assert "Contract2Agent Patch Preview" in completed.stdout
     assert (root / ".agentdoctor" / "patches" / "latest.md").exists()
 
 
@@ -133,7 +133,7 @@ def test_patch_preview_reviewer_notes_match_current_cli_capabilities() -> None:
 
     assert "--focus or --compare-baseline" not in notes
     assert "does not yet support" not in notes
-    assert "agentdoctor deep --focus" in notes
+    assert "c2a deep --focus" in notes
     assert "--compare-baseline latest" in notes
 
 
@@ -593,8 +593,8 @@ def _write_run(root: Path, findings: list[dict], extra: dict | None = None) -> P
 def _project(prefix: str) -> Path:
     base = Path(
         os.environ.get(
-            "AGENTDOCTOR_TEST_ROOT",
-            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor-test-runs"),
+            "CONTRACT2AGENT_TEST_ROOT",
+            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent-test-runs"),
         )
     )
     root = base / "patch_preview"

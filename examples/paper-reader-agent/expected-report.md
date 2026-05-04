@@ -2,7 +2,7 @@
 
 This is an illustrative example, not an actual run output.
 
-## AgentDoctor Triage Plan
+## Contract2Agent Triage Plan
 
 Agent: `paper_reader_agent`
 
@@ -50,7 +50,7 @@ on-fail
 Recommended next command:
 
 ```bash
-agentdoctor deep --rounds 3 --review on-fail
+c2a deep --rounds 3 --review on-fail
 ```
 
 ## Expected Deep Diagnosis Themes

@@ -83,7 +83,7 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for minimal envs.
 
 def _cmd_new(requirement: str, out: Path) -> None:
     target = create_project_from_requirement(requirement, out)
-    console.print(f"Created AgentTraceDoctor project at {target}")
+    console.print(f"Created Contract2Agent project at {target}")
 
 
 def _cmd_compile(contract: Path, out: Path) -> None:
@@ -318,7 +318,7 @@ def _mode_contract(contract: Path | None = None) -> Any:
 def _command_string() -> str:
     command = Path(sys.argv[0]).name
     if command in {"cli.py", "__main__.py"}:
-        command = "agentdoctor"
+        command = "c2a"
     return " ".join([command, *sys.argv[1:]])
 
 
@@ -1033,7 +1033,7 @@ if _HAS_TYPER:
         save_baseline_flag: bool = typer.Option(
             False,
             "--save-baseline",
-            help="Save this diagnostic run as an AgentDoctor baseline.",
+            help="Save this diagnostic run as a Contract2Agent baseline.",
         ),
         baseline_name: str | None = typer.Option(
             None,
@@ -1084,7 +1084,7 @@ if _HAS_TYPER:
         save_baseline_flag: bool = typer.Option(
             False,
             "--save-baseline",
-            help="Save this diagnostic run as an AgentDoctor baseline.",
+            help="Save this diagnostic run as a Contract2Agent baseline.",
         ),
         baseline_name: str | None = typer.Option(
             None,
@@ -1172,7 +1172,7 @@ if _HAS_TYPER:
         save_baseline_flag: bool = typer.Option(
             False,
             "--save-baseline",
-            help="Save this diagnostic run as an AgentDoctor baseline.",
+            help="Save this diagnostic run as a Contract2Agent baseline.",
         ),
         baseline_name: str | None = typer.Option(
             None,

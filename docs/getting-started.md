@@ -1,26 +1,33 @@
 # Getting Started
 
-This guide uses the implemented `agentdoctor` command. The same command surface is also available through `c2a` for compatibility.
+Use this path when you want a local diagnosis run quickly: install the CLI,
+point Contract2Agent at a small agent config, then inspect the Markdown report.
+
+The examples use `c2a`.
+
+Want to try the idea before creating files? Open the [Playground](playground.md)
+for a static browser-side preview.
 
 ## Install
 
 Install from a local checkout:
 
 ```bash
-git clone https://github.com/shiki-dml/AgentDoctor.git
-cd AgentDoctor
-pip install -e .
+cd path/to/contract2agent
+python -m pip install -e .
 ```
 
 For development and documentation work:
 
 ```bash
-pip install -e ".[dev,docs]"
+python -m pip install -e ".[dev,docs]"
 ```
 
 ## Minimal Agent Files
 
-AgentDoctor can run quick/deep/auto with a built-in sample contract, but triage is more useful when it can inspect your files. A minimal research-agent setup can look like this:
+Contract2Agent can run quick/deep/auto with a built-in sample contract, but triage
+is more useful when it can inspect your files. A minimal research-agent setup
+can look like this:
 
 ```yaml
 # agent.yaml
@@ -59,7 +66,7 @@ Triage discovers common files such as `agent.yaml`, `prompts/*.md`, `tool_descri
 ## First Triage
 
 ```bash
-agentdoctor triage --agent ./agent.yaml
+c2a triage --agent ./agent.yaml
 ```
 
 Triage writes:
@@ -76,7 +83,7 @@ Use the recommended next command from the terminal output or from `.agentdoctor/
 ## First Quick Check
 
 ```bash
-agentdoctor quick
+c2a quick
 ```
 
 Quick mode runs one smoke-diagnosis round and writes:
@@ -92,7 +99,7 @@ Quick is intentionally incomplete. Treat it as a fast development check, not a p
 ## First Deep Diagnosis
 
 ```bash
-agentdoctor deep --rounds 3 --review on-fail
+c2a deep --rounds 3 --review on-fail
 ```
 
 Deep mode runs multiple rounds, aggregates findings, writes round JSON files, and keeps review items in the final report. It does not modify agent files.
@@ -102,13 +109,13 @@ Deep mode runs multiple rounds, aggregates findings, writes round JSON files, an
 Save a reliable reference after a deep run:
 
 ```bash
-agentdoctor deep --rounds 3 --save-baseline --baseline-name stable-v1
+c2a deep --rounds 3 --save-baseline --baseline-name stable-v1
 ```
 
 Compare a later run:
 
 ```bash
-agentdoctor deep --rounds 3 --compare-baseline stable-v1
+c2a deep --rounds 3 --compare-baseline stable-v1
 ```
 
 Baseline artifacts are written under `.agentdoctor/baselines/`.
@@ -131,7 +138,7 @@ reports/rounds/round_001.json
 For preview-only patch proposals after a diagnostic run:
 
 ```bash
-agentdoctor patch-preview --from-run reports/latest.json
+c2a patch-preview --from-run reports/latest.json
 ```
 
 Patch preview writes `.agentdoctor/patches/latest.md`, `.agentdoctor/patches/latest.json`, and per-proposal `.md`, `.json`, and `.diff` artifacts when a diff can be generated.

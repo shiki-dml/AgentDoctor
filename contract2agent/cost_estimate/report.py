@@ -57,7 +57,7 @@ def format_terminal_summary(estimate: EstimatedDiagnosticCost) -> str:
         and value is not None
     ]
     lines = [
-        "AgentDoctor Time Cost Estimate",
+        "Contract2Agent Time Cost Estimate",
         "",
         f"Mode: {estimate.mode}",
         f"Complexity: {estimate.complexity_level}",
@@ -88,7 +88,7 @@ def format_terminal_summary(estimate: EstimatedDiagnosticCost) -> str:
 def format_markdown_report(estimate: EstimatedDiagnosticCost) -> str:
     data = to_plain_data(estimate)
     lines = [
-        "# AgentDoctor Time Cost Estimate",
+        "# Contract2Agent Time Cost Estimate",
         "",
         f"Estimate ID: `{estimate.cost_estimate_id}`",
         f"Created: `{estimate.created_at}`",

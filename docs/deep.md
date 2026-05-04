@@ -7,22 +7,22 @@ Deep does not automatically modify the agent.
 ## Command
 
 ```bash
-agentdoctor deep --rounds 3 --review on-fail
+c2a deep --rounds 3 --review on-fail
 ```
 
 Common variants:
 
 ```bash
-agentdoctor deep --rounds 3
-agentdoctor deep --rounds 5 --review never
-agentdoctor deep --rounds 5 --review on-fail
-agentdoctor deep --rounds 5 --review each-round
-agentdoctor deep --rounds 3 --save-baseline
-agentdoctor deep --rounds 3 --compare-baseline
-agentdoctor deep --rounds 2 --focus tool_order,output_schema
+c2a deep --rounds 3
+c2a deep --rounds 5 --review never
+c2a deep --rounds 5 --review on-fail
+c2a deep --rounds 5 --review each-round
+c2a deep --rounds 3 --save-baseline
+c2a deep --rounds 3 --compare-baseline
+c2a deep --rounds 2 --focus tool_order,output_schema
 ```
 
-Deep currently does not implement `--max-time-minutes`; use `agentdoctor cost-estimate --mode deep` before running or use auto mode when a hard runtime budget is needed.
+Deep currently does not implement `--max-time-minutes`; use `c2a cost-estimate --mode deep` before running or use auto mode when a hard runtime budget is needed.
 
 ## Round Behavior
 
@@ -54,7 +54,7 @@ Each round contains:
 | `on-fail` | Requires review when a round has failures, warnings, suspicious tool behavior, or review-required findings. |
 | `each-round` | Requires review after every round. Recommended for high-risk agents. |
 
-In non-interactive environments, AgentDoctor does not wait forever for input. It records review requirements and follows a safe mode default.
+In non-interactive environments, Contract2Agent does not wait forever for input. It records review requirements and follows a safe mode default.
 
 ## Output
 
@@ -75,13 +75,13 @@ The final report aggregates all rounds. Round JSON files preserve per-round trac
 Save a stable baseline:
 
 ```bash
-agentdoctor deep --rounds 3 --save-baseline --baseline-name stable-v1
+c2a deep --rounds 3 --save-baseline --baseline-name stable-v1
 ```
 
 Compare a future run:
 
 ```bash
-agentdoctor deep --rounds 3 --compare-baseline stable-v1
+c2a deep --rounds 3 --compare-baseline stable-v1
 ```
 
 Bare `--compare-baseline` compares with `latest`.
@@ -101,7 +101,7 @@ Baseline comparison can identify:
 Deep stores measured per-test durations in each round JSON and builds a `time_cost_summary` in the report JSON. For static planning before a run, use:
 
 ```bash
-agentdoctor cost-estimate --mode deep --budget balanced
+c2a cost-estimate --mode deep --budget balanced
 ```
 
 ## When to Use Deep

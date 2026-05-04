@@ -264,7 +264,7 @@ def detect_missing_information(
                 title="No baseline found",
                 description="Triage could not find .agentdoctor/baselines/latest.json or another baseline JSON file.",
                 why_it_matters="Baselines help detect regressions after future prompt/config changes.",
-                suggested_action="Run `agentdoctor deep --rounds 3 --save-baseline` after the first reliable diagnostic run.",
+                suggested_action="Run `c2a deep --rounds 3 --save-baseline` after the first reliable diagnostic run.",
                 related_failure_type="REGRESSION",
             )
         )

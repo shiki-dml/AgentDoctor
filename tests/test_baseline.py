@@ -46,7 +46,7 @@ def test_save_baseline_writes_baseline_snapshot_latest_hashes_and_copies() -> No
         report=_report([_case("document_summary_basic", True)], confidence=0.91),
         project_root=tmp_path,
         baseline_name="stable-v1",
-        command="agentdoctor deep --rounds 3 --save-baseline --baseline-name stable-v1",
+        command="c2a deep --rounds 3 --save-baseline --baseline-name stable-v1",
         agent_config_path="agent.yaml",
         report_dir="reports",
         now=NOW,
@@ -597,8 +597,8 @@ def _test_output_dir(prefix: str) -> Path:
 
     base = Path(
         os.environ.get(
-            "AGENTDOCTOR_TEST_ROOT",
-            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor-test-runs"),
+            "CONTRACT2AGENT_TEST_ROOT",
+            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent-test-runs"),
         )
     )
     root = base / "baseline"

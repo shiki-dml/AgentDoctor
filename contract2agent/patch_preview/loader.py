@@ -35,7 +35,7 @@ def load_findings(path: str | Path | None) -> LoadedFindings:
             source_run_id=None,
             warnings=[
                 f"Run/findings file not found: {source}",
-                "Run `agentdoctor quick` or `agentdoctor deep --rounds 3` first.",
+                "Run `c2a quick` or `c2a deep --rounds 3` first.",
             ],
         )
 

@@ -11,9 +11,9 @@ python -m pip install -e ".[dev,docs]"
 
 The current package metadata is:
 
-- distribution name: `agenttracedoctor`
+- distribution name: `contract2agent`
 - source package: `contract2agent`
-- CLI entry points: `agentdoctor`, `c2a`
+- CLI entry point: `c2a`
 
 ## Run Tests
 

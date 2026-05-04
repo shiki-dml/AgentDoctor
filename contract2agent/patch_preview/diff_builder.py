@@ -11,7 +11,7 @@ def build_unified_diff(
     project_root: Path,
     addition_lines: list[str],
     *,
-    heading: str = "AgentDoctor Patch Preview Guidance",
+    heading: str = "Contract2Agent Patch Preview Guidance",
 ) -> tuple[str, str]:
     previous = path.read_text(encoding="utf-8")
     new_text = append_guidance(previous, addition_lines, heading=heading)
@@ -31,7 +31,7 @@ def append_guidance(
     current_text: str,
     addition_lines: list[str],
     *,
-    heading: str = "AgentDoctor Patch Preview Guidance",
+    heading: str = "Contract2Agent Patch Preview Guidance",
 ) -> str:
     current = current_text.rstrip()
     if _looks_like_markdown_prompt(current_text):
@@ -39,7 +39,7 @@ def append_guidance(
         block.extend(f"- {line}" for line in addition_lines)
         return current + "\n".join(block) + "\n"
 
-    block = ["", "", "# AgentDoctor Patch Preview Guidance"]
+    block = ["", "", "# Contract2Agent Patch Preview Guidance"]
     block.extend(f"# - {line}" for line in addition_lines)
     return current + "\n".join(block) + "\n"
 

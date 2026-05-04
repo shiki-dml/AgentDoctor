@@ -2,21 +2,21 @@
 
 Patch preview is the human-reviewable diff layer before changing prompt/config files. It explains why a change is proposed, which finding triggered it, which files would change, what the diff is, the risk level, whether approval is required, expected effects, validation tags, and rollback guidance.
 
-In v0.1, `agentdoctor patch-preview` is preview-only. It writes reports and diffs but does not modify files.
+In v0.1, `c2a patch-preview` is preview-only. It writes reports and diffs but does not modify files.
 
 ## Command
 
 ```bash
-agentdoctor patch-preview --from-run reports/latest.json
+c2a patch-preview --from-run reports/latest.json
 ```
 
 Variants:
 
 ```bash
-agentdoctor patch-preview --from-run reports/latest.json --failure-type OUTPUT_SCHEMA_ERROR
-agentdoctor patch-preview --from-run reports/latest.json --output .agentdoctor/patches
-agentdoctor patch-preview --from-run reports/latest.json --format json
-agentdoctor patch-preview --apply patch_20260503_220000_001
+c2a patch-preview --from-run reports/latest.json --failure-type OUTPUT_SCHEMA_ERROR
+c2a patch-preview --from-run reports/latest.json --output .agentdoctor/patches
+c2a patch-preview --from-run reports/latest.json --format json
+c2a patch-preview --apply patch_20260503_220000_001
 ```
 
 `--apply` and `--allow-apply` are accepted for forward compatibility, but v0.1 refuses to apply changes and records that no files were modified.

@@ -33,7 +33,7 @@ def validation_tags_for_group(group: FindingGroup) -> list[str]:
 def validation_command(tags: list[str]) -> str:
     # The current CLI does not expose --focus or --compare-baseline yet. Keep
     # the command runnable and put the requested focus in validation_tags.
-    return "agentdoctor deep --rounds 2 --review on-fail"
+    return "c2a deep --rounds 2 --review on-fail"
 
 
 def expected_improvement_for_group(group: FindingGroup) -> list[str]:

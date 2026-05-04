@@ -1,6 +1,6 @@
 # Paper Reader Agent Example
 
-This example shows how an AgentDoctor-friendly agent configuration can describe a paper-reading workflow.
+This example shows how a Contract2Agent-friendly agent configuration can describe a paper-reading workflow.
 
 It is designed to exercise:
 
@@ -24,7 +24,7 @@ It is designed to exercise:
 Run:
 
 ```bash
-agentdoctor triage --agent examples/paper-reader-agent/agent.yaml --goal "paper reading agent"
+c2a triage --agent examples/paper-reader-agent/agent.yaml --goal "paper reading agent"
 ```
 
 Expected triage themes:
@@ -42,25 +42,25 @@ Expected triage themes:
 Fast smoke check:
 
 ```bash
-agentdoctor quick
+c2a quick
 ```
 
 Detailed diagnosis:
 
 ```bash
-agentdoctor deep --rounds 3 --review on-fail
+c2a deep --rounds 3 --review on-fail
 ```
 
 Save a baseline after a reliable run:
 
 ```bash
-agentdoctor deep --rounds 3 --save-baseline --baseline-name paper-reader-stable
+c2a deep --rounds 3 --save-baseline --baseline-name paper-reader-stable
 ```
 
 Preview patches after a diagnostic run:
 
 ```bash
-agentdoctor patch-preview --from-run reports/latest.json
+c2a patch-preview --from-run reports/latest.json
 ```
 
 ## Behaviors to Review

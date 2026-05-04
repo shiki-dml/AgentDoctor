@@ -1,6 +1,8 @@
 # Reports
 
-AgentDoctor writes local Markdown and JSON artifacts. Markdown reports are intended for human review. JSON reports are intended for automation, CI, and downstream tooling.
+Contract2Agent writes local Markdown and JSON artifacts. Markdown reports are intended for human review. JSON reports are intended for automation, CI, and downstream tooling.
+
+Some report families still write under the legacy `.agentdoctor/` runtime directory for backward compatibility.
 
 ## Diagnostic Reports
 
@@ -19,7 +21,7 @@ reports/patches/patch_001.diff
 
 Diagnostic Markdown reports include:
 
-- title: `AgentDoctor Quick Diagnosis`, `AgentDoctor Deep Diagnosis`, or `AgentDoctor Auto Report`
+- title: `Contract2Agent Quick Diagnosis`, `Contract2Agent Deep Diagnosis`, or `Contract2Agent Auto Report`
 - status
 - confidence
 - target confidence for auto

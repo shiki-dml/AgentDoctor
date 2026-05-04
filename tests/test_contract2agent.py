@@ -1009,8 +1009,8 @@ def test_c2a_check_all_diagnose_writes_regression_traces() -> None:
 def _test_output_dir(prefix: str) -> Path:
     root = Path(
         os.environ.get(
-            "AGENTDOCTOR_TEST_ROOT",
-            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor-test-runs"),
+            "CONTRACT2AGENT_TEST_ROOT",
+            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent-test-runs"),
         )
     )
     path = root / f"{prefix}_{uuid.uuid4().hex}"

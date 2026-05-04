@@ -86,10 +86,10 @@ def generate_auto_cost_plan(
             "stop_on_loop_risk",
         ],
         recommended_auto_command=(
-            "agentdoctor auto --target-confidence 0.85 "
+            "c2a auto --target-confidence 0.85 "
             f"--max-rounds {max_iterations} --max-patches {max_patch_attempts} --review on-fail"
             if auto_recommended
-            else "Run agentdoctor deep first; do not enable auto until readiness blockers clear."
+            else "Run c2a deep first; do not enable auto until readiness blockers clear."
         ),
     )
 

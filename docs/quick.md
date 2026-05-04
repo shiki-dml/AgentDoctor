@@ -7,16 +7,16 @@ Quick is incomplete by design. It is useful for development checks, smoke tests 
 ## Command
 
 ```bash
-agentdoctor quick
+c2a quick
 ```
 
 Variants:
 
 ```bash
-agentdoctor quick --contract ./agent_contract.yaml
-agentdoctor quick --out reports/quick
-agentdoctor quick --save-baseline --baseline-name quick-smoke
-agentdoctor quick --compare-baseline
+c2a quick --contract ./agent_contract.yaml
+c2a quick --out reports/quick
+c2a quick --save-baseline --baseline-name quick-smoke
+c2a quick --compare-baseline
 ```
 
 ## What Runs
@@ -60,7 +60,7 @@ The JSON report includes machine-readable `rounds`, `findings`, `taxonomy_summar
 ## Example Output
 
 ```text
-AgentDoctor Quick Diagnosis
+Contract2Agent Quick Diagnosis
 
 Status: NEEDS_REVIEW
 Diagnostic confidence: 0.72
@@ -89,11 +89,11 @@ Triage recommends quick when static risk is low and the agent type is known. If 
 Quick can save a baseline:
 
 ```bash
-agentdoctor quick --save-baseline --baseline-name quick-smoke
+c2a quick --save-baseline --baseline-name quick-smoke
 ```
 
 Use quick baselines only as smoke-test references. For regression decisions, prefer a reliable deep baseline:
 
 ```bash
-agentdoctor deep --rounds 3 --save-baseline --baseline-name stable-v1
+c2a deep --rounds 3 --save-baseline --baseline-name stable-v1
 ```

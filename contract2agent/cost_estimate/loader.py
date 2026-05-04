@@ -82,7 +82,7 @@ def load_cost_estimate_inputs(
             warnings.append(f"Could not read triage report: {exc}")
     else:
         triage_missing = True
-        warnings.append("No triage report found. Run agentdoctor triage first for a better estimate.")
+        warnings.append("No triage report found. Run c2a triage first for a better estimate.")
 
     project_root = _project_root(cwd, triage, project_root_override)
     eval_metadata = _load_eval_metadata(triage, project_root, warnings)

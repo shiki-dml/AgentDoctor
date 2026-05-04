@@ -44,7 +44,7 @@ def tmp_path() -> Path:
     return _test_output_dir("diagnostic_tmp")
 
 
-def test_agentdoctor_cli_quick_deep_auto_commands() -> None:
+def test_contract2agent_cli_quick_deep_auto_commands() -> None:
     root = Path(__file__).resolve().parents[1]
     output_dir = _test_output_dir("cli_modes")
 
@@ -63,7 +63,7 @@ def test_agentdoctor_cli_quick_deep_auto_commands() -> None:
         capture_output=True,
     )
     assert quick.returncode == 0, quick.stderr
-    assert "AgentDoctor Quick Diagnosis" in quick.stdout
+    assert "Contract2Agent Quick Diagnosis" in quick.stdout
 
     deep = subprocess.run(
         [
@@ -84,7 +84,7 @@ def test_agentdoctor_cli_quick_deep_auto_commands() -> None:
         capture_output=True,
     )
     assert deep.returncode == 0, deep.stderr
-    assert "AgentDoctor Deep Diagnosis" in deep.stdout
+    assert "Contract2Agent Deep Diagnosis" in deep.stdout
 
     repo_root = output_dir / "repo"
     repo_root.mkdir()
@@ -109,7 +109,7 @@ def test_agentdoctor_cli_quick_deep_auto_commands() -> None:
         capture_output=True,
     )
     assert auto.returncode == 0, auto.stderr
-    assert "AgentDoctor Auto Report" in auto.stdout
+    assert "Contract2Agent Auto Report" in auto.stdout
     assert "Warning 1" in auto.stdout
 
 
@@ -414,7 +414,7 @@ def test_auto_mode_refuses_unsafe_file_modifications() -> None:
         )
 
 
-def test_auto_patcher_rejects_agentdoctor_baseline_paths(tmp_path: Path) -> None:
+def test_auto_patcher_rejects_contract2agent_baseline_paths(tmp_path: Path) -> None:
     target = tmp_path / ".agentdoctor" / "baselines" / "baseline_1" / "eval_config.yaml"
     target.parent.mkdir(parents=True)
     target.write_text("baseline: original\n", encoding="utf-8")
@@ -446,7 +446,7 @@ def test_auto_patcher_missing_default_target_stays_in_root_allowlist(tmp_path: P
     history = patcher.apply(
         PatchProposal(
             file_path=target,
-            new_text="agentdoctor_repair_guidance: []\n",
+            new_text="contract2agent_repair_guidance: []\n",
             patch_summary="Create safe root eval config",
             reason_for_patch="Document missing target creation invariant",
         ),
@@ -478,7 +478,7 @@ def test_report_generation_includes_required_sections() -> None:
     data = json.loads((output_dir / "reports" / "latest.json").read_text(encoding="utf-8"))
 
     assert report.review_required
-    assert "# AgentDoctor Quick Diagnosis" in markdown
+    assert "# Contract2Agent Quick Diagnosis" in markdown
     assert "Diagnostic confidence is heuristic" in markdown
     assert "## Key Findings" in markdown
     assert "review_items" in data
@@ -584,8 +584,8 @@ def test_patch_rollback_restores_safe_config_file() -> None:
 def _test_output_dir(prefix: str) -> Path:
     root = Path(
         os.environ.get(
-            "AGENTDOCTOR_TEST_ROOT",
-            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor-test-runs"),
+            "CONTRACT2AGENT_TEST_ROOT",
+            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent-test-runs"),
         )
     )
     path = root / f"{prefix}_{uuid.uuid4().hex}"

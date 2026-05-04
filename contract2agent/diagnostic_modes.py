@@ -496,7 +496,7 @@ class SafePatcher:
         if target.suffix.lower() == ".md":
             current = target.read_text(encoding="utf-8") if target.exists() else ""
             addition = (
-                "\n\n## AgentDoctor Repair Guidance\n\n"
+                "\n\n## Contract2Agent Repair Guidance\n\n"
                 f"- {reason}\n"
                 f"- Failure types: {', '.join(item.value for item in preview.failure_types)}\n"
                 f"- Validation tags: {', '.join(preview.validation_tags)}\n"
@@ -510,7 +510,7 @@ class SafePatcher:
         return PatchProposal(
             file_path=target,
             new_text=new_text,
-            patch_summary="Add AgentDoctor repair guidance to a safe prompt/config file.",
+            patch_summary="Add Contract2Agent repair guidance to a safe prompt/config file.",
             reason_for_patch=reason,
             high_risk=strategy.risk_level == "high" or not strategy.auto_fix_allowed,
             patch_id=preview.patch_id,
@@ -833,7 +833,7 @@ def run_quick_diagnosis(
                 "Quick mode is a fast smoke diagnosis and should not be treated as "
                 "full certification."
             ),
-            suggested_action="Run agentdoctor deep --rounds 3 --review on-fail.",
+            suggested_action="Run c2a deep --rounds 3 --review on-fail.",
         )
     )
     review_required = True
@@ -1445,10 +1445,10 @@ def _recommended_deep_command(focus_tags: list[str]) -> str:
     focus = ",".join(focus_tags)
     if focus:
         return (
-            "`agentdoctor deep --rounds 3 --review on-fail --focus "
+            "`c2a deep --rounds 3 --review on-fail --focus "
             f"{focus}` is the recommended next diagnostic round."
         )
-    return "Run `agentdoctor deep --rounds 3 --review on-fail` before trusting this agent in production."
+    return "Run `c2a deep --rounds 3 --review on-fail` before trusting this agent in production."
 
 
 def is_safe_patch_target(path: str | Path, repo_root: str | Path) -> bool:
@@ -1513,10 +1513,10 @@ def write_diagnostic_report(
 
 def format_console_report(report: DiagnosticReport) -> str:
     title = {
-        "quick": "AgentDoctor Quick Diagnosis",
-        "deep": "AgentDoctor Deep Diagnosis",
-        "auto": "AgentDoctor Auto Report",
-    }.get(report.mode, "AgentDoctor Diagnosis")
+        "quick": "Contract2Agent Quick Diagnosis",
+        "deep": "Contract2Agent Deep Diagnosis",
+        "auto": "Contract2Agent Auto Report",
+    }.get(report.mode, "Contract2Agent Diagnosis")
     lines = [
         title,
         "",
@@ -1545,10 +1545,10 @@ def format_console_report(report: DiagnosticReport) -> str:
 
 def format_markdown_report(report: DiagnosticReport) -> str:
     title = {
-        "quick": "AgentDoctor Quick Diagnosis",
-        "deep": "AgentDoctor Deep Diagnosis",
-        "auto": "AgentDoctor Auto Report",
-    }.get(report.mode, "AgentDoctor Diagnosis")
+        "quick": "Contract2Agent Quick Diagnosis",
+        "deep": "Contract2Agent Deep Diagnosis",
+        "auto": "Contract2Agent Auto Report",
+    }.get(report.mode, "Contract2Agent Diagnosis")
     lines = [
         f"# {title}",
         "",
@@ -2158,14 +2158,14 @@ def _patch_reason_for_round(round_report: DiagnosticRound) -> str:
     for finding in round_report.findings:
         if finding.status == "WARN":
             return finding.description
-    return "Improve diagnostic behavior found by AgentDoctor."
+    return "Improve diagnostic behavior found by Contract2Agent."
 
 
 def _merge_yaml_repair_guidance(current: str, reason: str) -> str:
     if yaml is None:
         return (
             current.rstrip()
-            + "\nagentdoctor_repair_guidance:\n"
+            + "\ncontract2agent_repair_guidance:\n"
             + f"  - {json.dumps(reason)}\n"
         )
     data: dict[str, Any]
@@ -2174,17 +2174,17 @@ def _merge_yaml_repair_guidance(current: str, reason: str) -> str:
         data = loaded if isinstance(loaded, dict) else {"existing_value": loaded}
     else:
         data = {}
-    agentdoctor = data.setdefault("agentdoctor", {})
-    if not isinstance(agentdoctor, dict):
-        agentdoctor = {}
-        data["agentdoctor"] = agentdoctor
-    guidance = agentdoctor.setdefault("repair_guidance", [])
+    contract2agent = data.setdefault("contract2agent", {})
+    if not isinstance(contract2agent, dict):
+        contract2agent = {}
+        data["contract2agent"] = contract2agent
+    guidance = contract2agent.setdefault("repair_guidance", [])
     if not isinstance(guidance, list):
         guidance = []
-        agentdoctor["repair_guidance"] = guidance
+        contract2agent["repair_guidance"] = guidance
     if reason not in guidance:
         guidance.append(reason)
-    agentdoctor["warning"] = (
+    contract2agent["warning"] = (
         "Diagnostic confidence is heuristic; avoid overfitting to generated tests."
     )
     return yaml.safe_dump(data, sort_keys=False)

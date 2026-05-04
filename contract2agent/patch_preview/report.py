@@ -48,7 +48,7 @@ def write_patch_preview_reports(
 def format_terminal_summary(report: PatchPreviewReport) -> str:
     review_only = sum(1 for proposal in report.proposals if not proposal.diff)
     lines = [
-        "AgentDoctor Patch Preview",
+        "Contract2Agent Patch Preview",
         "",
         f"Proposals: {len(report.proposals)}",
         f"Review-only items: {review_only}",
@@ -59,7 +59,7 @@ def format_terminal_summary(report: PatchPreviewReport) -> str:
             [
                 "",
                 "No patch proposals generated.",
-                "Run `agentdoctor quick` or `agentdoctor deep --rounds 3` to collect findings.",
+                "Run `c2a quick` or `c2a deep --rounds 3` to collect findings.",
             ]
         )
     else:
@@ -87,7 +87,7 @@ def format_terminal_summary(report: PatchPreviewReport) -> str:
 
 def format_markdown_report(report: PatchPreviewReport) -> str:
     lines = [
-        "# AgentDoctor Patch Preview",
+        "# Contract2Agent Patch Preview",
         "",
         "## Summary",
         "",
@@ -149,7 +149,7 @@ def format_markdown_report(report: PatchPreviewReport) -> str:
 def format_single_patch_markdown(proposal: PatchProposal) -> str:
     return "\n".join(
         [
-            "# AgentDoctor Patch Proposal",
+            "# Contract2Agent Patch Proposal",
             "",
             *_proposal_lines(proposal),
         ]

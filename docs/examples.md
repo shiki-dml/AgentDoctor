@@ -4,11 +4,11 @@ The repository includes sample files that show the intended GitHub-facing workfl
 
 ## Example Dashboard
 
-Start with the [examples dashboard](https://github.com/shiki-dml/AgentDoctor/tree/main/examples).
+Start with `examples/README.md`.
 
 ## Paper Reader Agent
 
-The [paper reader agent example](https://github.com/shiki-dml/AgentDoctor/tree/main/examples/paper-reader-agent) demonstrates:
+The paper reader agent example in `examples/paper-reader-agent/README.md` demonstrates:
 
 - triage
 - document reading
@@ -19,27 +19,25 @@ The [paper reader agent example](https://github.com/shiki-dml/AgentDoctor/tree/m
 
 Files:
 
-- [agent.yaml](https://github.com/shiki-dml/AgentDoctor/blob/main/examples/paper-reader-agent/agent.yaml)
-- [expected-report.md](https://github.com/shiki-dml/AgentDoctor/blob/main/examples/paper-reader-agent/expected-report.md)
+- `examples/paper-reader-agent/agent.yaml`
+- `examples/paper-reader-agent/expected-report.md`
 
 ## Sample Reports
 
 Sample reports are examples, not actual run outputs:
 
-- [Quick report](https://github.com/shiki-dml/AgentDoctor/blob/main/examples/reports/quick-report.md)
-- [Deep report](https://github.com/shiki-dml/AgentDoctor/blob/main/examples/reports/deep-report.md)
-- [Auto report](https://github.com/shiki-dml/AgentDoctor/blob/main/examples/reports/auto-report.md)
+- Quick, deep, and auto report shapes are described in [Reports](reports.md).
 
 Use them to understand report shape before running the CLI locally.
 
 ## Run the Built-In Offline Demo
 
-AgentDoctor can also generate a deterministic demo project:
+Contract2Agent can also generate a deterministic demo project:
 
 ```bash
-agentdoctor demo --out demo_project
-agentdoctor counterexamples demo_project/agent_contract.yaml --out demo_project/traces/counterexamples
-agentdoctor check-all --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --diagnose
+c2a demo --out demo_project
+c2a counterexamples demo_project/agent_contract.yaml --out demo_project/traces/counterexamples
+c2a check-all --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --diagnose
 ```
 
 The generated demo writes reports under `demo_project/reports/`.

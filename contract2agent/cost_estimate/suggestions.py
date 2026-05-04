@@ -30,14 +30,14 @@ def generate_optimization_suggestions(
             "Run deep before auto",
             "Auto readiness or safety guardrails are not sufficient for bounded repair.",
             "Avoids patch and validation loops until failures are understood.",
-            "agentdoctor deep --rounds 3 --review on-fail",
+            "c2a deep --rounds 3 --review on-fail",
         )
     if not eval_metadata.exists:
         add(
             "Run quick because eval coverage is incomplete",
             "No eval metadata was available, so the test count estimate is rule-based.",
             "Keeps the first diagnosis bounded while metadata is improved.",
-            "agentdoctor quick",
+            "c2a quick",
         )
     if "LOOP_RISK" in failure_types:
         add(

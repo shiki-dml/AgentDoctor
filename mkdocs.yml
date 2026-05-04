@@ -1,7 +1,5 @@
-site_name: AgentDoctor
-site_description: A lightweight diagnostic toolkit for LLM agents.
-repo_name: shiki-dml/AgentDoctor
-repo_url: https://github.com/shiki-dml/AgentDoctor
+site_name: Contract2Agent
+site_description: Contract-driven diagnosis and repair suggestions for LLM agents.
 
 theme:
   name: material
@@ -15,6 +13,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Interactive Demo: demo.md
   - Playground: playground.md
   - Getting Started:
       - Overview: getting-started.md
@@ -40,6 +39,7 @@ nav:
 
 markdown_extensions:
   - admonition
+  - attr_list
   - tables
   - toc:
       permalink: true
@@ -47,7 +47,9 @@ markdown_extensions:
   - pymdownx.superfences
 
 extra_javascript:
-  - javascripts/agentdoctor-playground.js
+  - assets/js/contract2agent-demo.js
+  - javascripts/contract2agent-playground.js
 
 extra_css:
-  - stylesheets/agentdoctor-playground.css
+  - assets/css/contract2agent-demo.css
+  - stylesheets/contract2agent-playground.css

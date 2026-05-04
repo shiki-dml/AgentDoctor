@@ -7,18 +7,18 @@ Think of triage as the doctor asking questions before making a diagnosis. It doe
 ## Command
 
 ```bash
-agentdoctor triage --agent ./agent.yaml
+c2a triage --agent ./agent.yaml
 ```
 
 Useful variants:
 
 ```bash
-agentdoctor triage
-agentdoctor triage --goal "paper reading agent"
-agentdoctor triage --project-root .
-agentdoctor triage --allow-auto
-agentdoctor triage --include-cost
-agentdoctor triage --format json
+c2a triage
+c2a triage --goal "paper reading agent"
+c2a triage --project-root .
+c2a triage --allow-auto
+c2a triage --include-cost
+c2a triage --format json
 ```
 
 ## Inputs
@@ -30,7 +30,7 @@ Triage discovers common project files:
 - tools: `tool_descriptions.yaml`, `tools.yaml`, `workflow_config.yaml`
 - evals: `eval_config.yaml`, `evals/*.yaml`, `tests/evals/*.yaml`
 - baselines: `.agentdoctor/baselines/latest.json`
-- AgentDoctor config: `.agentdoctor/config.yaml`, `agentdoctor.yaml`
+- legacy local config: `.agentdoctor/config.yaml`, `agentdoctor.yaml`
 
 It excludes secrets, credentials, virtual environments, build outputs, and unreadable or oversized files.
 
@@ -43,7 +43,7 @@ The JSON report contains a `TriagePlan` with these major fields:
 | `triage_id` | Timestamped triage id. |
 | `created_at` | Creation timestamp. |
 | `project_root` | Scanned project root. |
-| `input_sources` | Found/missing/skipped agent, prompt, tool, eval, baseline, and AgentDoctor config sources. |
+| `input_sources` | Found/missing/skipped agent, prompt, tool, eval, baseline, and legacy local config sources. |
 | `agent_summary` | Agent name, description, model/provider, prompt files, config files, tool count, eval count. |
 | `detected_capabilities` | Detected tools, inputs, outputs, side effects, external dependencies. |
 | `agent_classification` | Agent type and classification confidence. |
@@ -118,7 +118,7 @@ Auto readiness requires clear patch boundaries, an agent config, prompt/config c
 ## Example Output
 
 ```text
-AgentDoctor Triage Plan
+Contract2Agent Triage Plan
 
 Agent: paper_reader_agent
 Agent type: research_agent
@@ -151,7 +151,7 @@ Suggested review policy:
 on-fail
 
 Recommended next command:
-agentdoctor deep --rounds 3 --review on-fail
+c2a deep --rounds 3 --review on-fail
 ```
 
 ## Reports

@@ -17,8 +17,8 @@ from contract2agent.cost_estimate.models import STATIC_ESTIMATE_NOTE, to_plain_d
 def tmp_path() -> Path:
     base = Path(
         os.environ.get(
-            "AGENTDOCTOR_TEST_ROOT",
-            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor-test-runs"),
+            "CONTRACT2AGENT_TEST_ROOT",
+            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent-test-runs"),
         )
     )
     root = base / "cost_estimate"
@@ -37,7 +37,7 @@ def test_estimated_diagnostic_cost_model_serializes_to_json(tmp_path: Path) -> N
     assert data["estimated_tool_call_range"]["total"] == [0, 0]
 
 
-def test_agentdoctor_cost_estimate_cli_command_exists(tmp_path: Path) -> None:
+def test_contract2agent_cost_estimate_cli_command_exists(tmp_path: Path) -> None:
     triage = _write_triage(tmp_path, risk_level="low", tools=[], recommended_mode="quick")
 
     completed = subprocess.run(
@@ -57,7 +57,7 @@ def test_agentdoctor_cost_estimate_cli_command_exists(tmp_path: Path) -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert "AgentDoctor Time Cost Estimate" in completed.stdout
+    assert "Contract2Agent Time Cost Estimate" in completed.stdout
     assert (tmp_path / ".agentdoctor" / "cost" / "latest.md").exists()
 
 
@@ -80,7 +80,7 @@ def test_triage_include_cost_writes_cost_report(tmp_path: Path) -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert "AgentDoctor Time Cost Estimate" in completed.stdout
+    assert "Contract2Agent Time Cost Estimate" in completed.stdout
     assert (tmp_path / ".agentdoctor" / "cost" / "latest.md").exists()
 
 
@@ -95,8 +95,8 @@ def test_missing_triage_does_not_crash(tmp_path: Path) -> None:
 
     assert estimate.confidence == "unknown"
     assert estimate.complexity_level == "unknown"
-    assert estimate.recommended_command == "agentdoctor triage --include-cost"
-    assert any("Run agentdoctor triage first" in warning for warning in estimate.warnings)
+    assert estimate.recommended_command == "c2a triage --include-cost"
+    assert any("Run c2a triage first" in warning for warning in estimate.warnings)
 
 
 def test_cost_estimate_skips_triage_paths_outside_project_root(tmp_path: Path) -> None:
@@ -158,7 +158,7 @@ def test_low_risk_quick_estimate(tmp_path: Path) -> None:
     assert estimate.complexity_level == "low"
     assert estimate.estimated_rounds == 1
     assert 3 <= estimate.estimated_test_count_range[0] <= estimate.estimated_test_count_range[1] <= 24
-    assert estimate.recommended_command == "agentdoctor quick"
+    assert estimate.recommended_command == "c2a quick"
 
 
 def test_medium_risk_deep_estimate(tmp_path: Path) -> None:
@@ -235,7 +235,7 @@ def test_auto_unsafe_recommends_deep_first(tmp_path: Path) -> None:
 
     assert estimate.auto_cost_plan is not None
     assert estimate.auto_cost_plan.auto_recommended is False
-    assert estimate.recommended_command.startswith("agentdoctor deep")
+    assert estimate.recommended_command.startswith("c2a deep")
     assert any("Auto is not recommended" in warning for warning in estimate.warnings)
 
 
@@ -482,7 +482,7 @@ def _write_triage(
             "recommended_rounds": rounds,
             "suggested_review_policy": "each-round" if risk_level == "high" else "on-fail",
         },
-        "recommended_next_command": f"agentdoctor {recommended_mode}",
+        "recommended_next_command": f"Contract2Agent {recommended_mode}",
     }
     path = root / ".agentdoctor" / "triage" / "latest.json"
     _write(path, json.dumps(data, indent=2))

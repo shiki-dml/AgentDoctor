@@ -3,13 +3,13 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agenttracedoctor"
+name = "contract2agent"
 version = "0.1.0"
-description = "Offline trace-based diagnosis and repair suggestions for LLM agents."
+description = "Contract-driven diagnosis and repair suggestions for LLM agents."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-  { name = "AgentTraceDoctor Contributors" }
+  { name = "Contract2Agent Contributors" }
 ]
 dependencies = [
   "typer>=0.9",
@@ -31,6 +31,7 @@ docs = [
 
 [project.scripts]
 c2a = "contract2agent.cli:main"
+# Legacy alias retained to avoid breaking existing local installs.
 agentdoctor = "contract2agent.cli:main"
 
 [tool.setuptools.packages.find]

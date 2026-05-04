@@ -21,8 +21,8 @@ NOW = datetime(2026, 5, 3, 21, 30, 12, tzinfo=timezone.utc)
 def tmp_path() -> Path:
     base = Path(
         os.environ.get(
-            "AGENTDOCTOR_TEST_ROOT",
-            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "agentdoctor-test-runs"),
+            "CONTRACT2AGENT_TEST_ROOT",
+            str(Path(__file__).resolve().parents[1] / ".tmp_pytest_base" / "contract2agent-test-runs"),
         )
     )
     root = base / "triage"
@@ -31,7 +31,7 @@ def tmp_path() -> Path:
     return path
 
 
-def test_agentdoctor_triage_cli_command_exists(tmp_path: Path) -> None:
+def test_contract2agent_triage_cli_command_exists(tmp_path: Path) -> None:
     _write_agent(tmp_path / "agent.yaml", tools=[])
 
     completed = subprocess.run(
@@ -49,7 +49,7 @@ def test_agentdoctor_triage_cli_command_exists(tmp_path: Path) -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert "AgentDoctor Triage Plan" in completed.stdout
+    assert "Contract2Agent Triage Plan" in completed.stdout
     assert (tmp_path / ".agentdoctor" / "triage" / "latest.md").exists()
 
 
@@ -103,7 +103,7 @@ def test_missing_config_does_not_crash(tmp_path: Path) -> None:
     assert plan.agent_classification.agent_type == "unknown"
     assert plan.risk_assessment.risk_level == "unknown"
     assert _has_missing(plan, "missing_agent_config")
-    assert plan.recommended_next_command == "agentdoctor triage --agent ./agent.yaml"
+    assert plan.recommended_next_command == "c2a triage --agent ./agent.yaml"
 
 
 def test_research_agent_classification(tmp_path: Path) -> None:

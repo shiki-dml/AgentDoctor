@@ -1726,7 +1726,7 @@ def format_baseline_saved_markdown(baseline: BaselineRecord, snapshot: AgentStat
             "",
             "## Next Steps",
             "",
-            f"Use `agentdoctor deep --rounds 3 --compare-baseline {baseline.baseline_name or baseline.baseline_id}` in future runs.",
+            f"Use `c2a deep --rounds 3 --compare-baseline {baseline.baseline_name or baseline.baseline_id}` in future runs.",
             "",
         ]
     )
@@ -2314,8 +2314,8 @@ def _recommended_next_command(comparable: str, rollback: RollbackRecommendation)
     if rollback.rollback_recommended:
         return "Review rollback candidates before running auto mode."
     if comparable in {"weak", "not_comparable"}:
-        return "agentdoctor deep --rounds 3 --save-baseline"
-    return "agentdoctor deep --rounds 3 --compare-baseline latest"
+        return "c2a deep --rounds 3 --save-baseline"
+    return "c2a deep --rounds 3 --compare-baseline latest"
 
 
 def _validation_tags_for_failure_types(failure_types: list[str]) -> list[str]:

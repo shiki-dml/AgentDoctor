@@ -20,7 +20,7 @@ This structure matters because auto repair, patch preview, baseline comparison, 
 
 ## Failure Types
 
-AgentDoctor v0.1 implements the requested taxonomy plus additional tool-argument, loop-risk, and scorer-uncertain categories used by the current code.
+Contract2Agent v0.1 implements the requested taxonomy plus additional tool-argument, loop-risk, and scorer-uncertain categories used by the current code.
 
 | Failure type | Meaning | Typical evidence | Likely cause | Suggested fix | Patch preview implication |
 |---|---|---|---|---|---|
@@ -39,7 +39,7 @@ AgentDoctor v0.1 implements the requested taxonomy plus additional tool-argument
 | `REGRESSION` | Current behavior is worse than baseline. | Baseline passed, current failed; confidence dropped. | Recent prompt/config/tool/eval change or auto patch degraded behavior. | Compare changed files and consider rollback. | Prefer rollback or baseline review before stacking new patches. |
 | `SAFETY_RISK` | Safety or permission boundary may be violated. | External write without approval, unsafe path, shell command, secret-like input. | Missing approval gates, forbidden action rules, or permission boundaries. | Add approval gates, safety rules, and safety tests. | Critical risk; never auto-applies; requires human review. |
 | `SCORER_UNCERTAIN` | The scorer/eval result is too uncertain to patch agent behavior. | Low scorer confidence, ambiguous rubric, judge disagreement. | Eval/scorer is unclear or lacks evidence. | Review eval/scorer before patching agent behavior. | Review-only; no agent patch by default. |
-| `UNKNOWN` | AgentDoctor lacks enough evidence to classify the failure. | Custom scorer failure with no known mapping, incomplete trace. | Instrumentation, scorer evidence, or taxonomy mapping is missing. | Improve traces, eval metadata, or failure evidence. | Review-only; no agent patch by default. |
+| `UNKNOWN` | Contract2Agent lacks enough evidence to classify the failure. | Custom scorer failure with no known mapping, incomplete trace. | Instrumentation, scorer evidence, or taxonomy mapping is missing. | Improve traces, eval metadata, or failure evidence. | Review-only; no agent patch by default. |
 
 ## Example: Tool Missing
 
