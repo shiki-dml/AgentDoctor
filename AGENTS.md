@@ -35,6 +35,48 @@ Prioritize Python core framework, schemas, deterministic scoring, eval packs, ex
 
 Do not prioritize GitHub Pages UI expansion until the core evaluation framework is stable.
 
+## File Reading Agent Evaluation Priority
+
+The first specialized agent adapter should be `file_reading_agent`.
+
+This adapter must go beyond profile-only classification. It should support a CLI-based local evaluation runner that can import corpora, build or load tasks, run a target agent, capture traces, grade outputs, compare against reference results, and produce actionable improvement reports.
+
+For file-reading agents, performance scores require observed runs. A profile-only assessment may produce readiness, risk, and recommended eval plans, but must not claim actual reading performance.
+
+The file-reading evaluation framework should distinguish:
+
+- declared file-reading capability
+- tool-surface inference
+- observed file-reading behavior
+- answer correctness
+- citation grounding
+- file selection quality
+- abstention behavior
+- forbidden-file safety
+- reference benchmark context
+- comparable reference-agent results
+- missing evidence
+
+Reference benchmarks, public papers, and curated datasets may be used to design tasks or provide contextual comparison, but they are not direct scores unless the same agent or comparable workflow was actually evaluated under documented conditions.
+
+Network import of public datasets or papers must be explicit and controlled. Prefer local import first. Any network-enabled import command must require an explicit `--allow-network` flag and must store source, license, provenance, and limitations metadata.
+
+GitHub Pages must remain a static viewer/demo. Long-running file-reading evaluations should run in the CLI, local scripts, or CI-generated artifacts, not in the browser.
+
+File-reading agent evaluation must include tests for:
+
+- corpus manifest creation
+- local file import
+- task loading
+- citation span verification
+- answer grading
+- unanswerable/abstention behavior
+- forbidden-file boundary
+- reference-result compatibility
+- dummy-agent CLI runs
+- report generation
+- no observed score without observed run
+
 ## Supported Agent Families
 
 The default framework should support:
@@ -53,6 +95,7 @@ Financial transaction evaluation is simulation-only. Do not implement real payme
 ## Preferred Skills
 
 Use `agent-eval-architect` for framework-level evaluation architecture.
+Use `file-reading-eval-architect` for file-reading corpora, tasks, runners, graders, comparisons, and reports.
 Use `research-grounded-eval` when collecting or structuring benchmark and research references.
 Use `smart-patcher` only for localized bug fixes and regression repairs.
 

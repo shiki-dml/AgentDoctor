@@ -1,0 +1,85 @@
+"""Specialized CLI-driven evaluation adapter for file-reading agents."""
+
+from contract2agent.evaluation.file_reading.compare import compare_with_references
+from contract2agent.evaluation.file_reading.corpus import import_local_corpus
+from contract2agent.evaluation.file_reading.graders import (
+    grade_run,
+    grade_task,
+    validate_target_output,
+)
+from contract2agent.evaluation.file_reading.references import (
+    curated_reference_sources,
+    import_local_reference_source,
+    load_reference_results,
+)
+from contract2agent.evaluation.file_reading.reports import (
+    render_profile_only_report,
+    render_run_report,
+    write_profile_only_report,
+    write_run_report,
+)
+from contract2agent.evaluation.file_reading.runner import run_file_reading_eval
+from contract2agent.evaluation.file_reading.schema import (
+    Citation,
+    ComparisonReport,
+    CorpusManifest,
+    DocumentRecord,
+    EvidenceSpan,
+    FileAccessTrace,
+    FileReadingAgentProfile,
+    FileReadingGrade,
+    FileReadingRun,
+    FileReadingScorecard,
+    FileReadingTask,
+    ReferenceResult,
+    ReferenceSource,
+    TargetAgentInput,
+    TargetAgentOutput,
+    from_dict,
+    to_dict,
+)
+from contract2agent.evaluation.file_reading.tasks import (
+    TASK_TYPES,
+    build_smoke_tasks,
+    load_tasks_jsonl,
+    validate_tasks,
+    write_tasks_jsonl,
+)
+
+__all__ = [
+    "TASK_TYPES",
+    "Citation",
+    "ComparisonReport",
+    "CorpusManifest",
+    "DocumentRecord",
+    "EvidenceSpan",
+    "FileAccessTrace",
+    "FileReadingAgentProfile",
+    "FileReadingGrade",
+    "FileReadingRun",
+    "FileReadingScorecard",
+    "FileReadingTask",
+    "ReferenceResult",
+    "ReferenceSource",
+    "TargetAgentInput",
+    "TargetAgentOutput",
+    "build_smoke_tasks",
+    "compare_with_references",
+    "curated_reference_sources",
+    "from_dict",
+    "grade_run",
+    "grade_task",
+    "import_local_corpus",
+    "import_local_reference_source",
+    "load_reference_results",
+    "load_tasks_jsonl",
+    "render_profile_only_report",
+    "render_run_report",
+    "run_file_reading_eval",
+    "to_dict",
+    "validate_target_output",
+    "validate_tasks",
+    "write_profile_only_report",
+    "write_run_report",
+    "write_tasks_jsonl",
+]

@@ -51,6 +51,11 @@ from contract2agent.evaluation import (
     load_benchmark_references,
     load_experiment_results,
 )
+from contract2agent.evaluation.file_reading.cli import (
+    add_file_eval_argparse,
+    register_typer_commands,
+    run_argparse_command,
+)
 from contract2agent.schema import load_contract, model_to_dict
 from contract2agent.triage import TriageOptions, run_triage
 from contract2agent.triage.report import (
@@ -1042,6 +1047,7 @@ def _escape_table_text(value: str) -> str:
 
 if _HAS_TYPER:
     app = typer.Typer(help="Offline trace diagnosis for LLM agent behavior.")
+    register_typer_commands(app, typer, console)
 
     @app.command()
     def new(
@@ -1635,6 +1641,7 @@ else:
 def _main_argparse() -> int:
     parser = argparse.ArgumentParser(prog="c2a")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    add_file_eval_argparse(subparsers)
 
     new_parser = subparsers.add_parser("new")
     new_parser.add_argument("requirement")
@@ -1956,6 +1963,8 @@ def _main_argparse() -> int:
             args.format,
             args.target_context,
         )
+    if args.command == "file-eval":
+        return run_argparse_command(args)
     parser.error(f"Unknown command: {args.command}")
     return 2
 

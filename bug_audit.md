@@ -1,5 +1,57 @@
 # Contract2Agent Bug Audit
 
+## File Reading Agent Evaluation Adapter
+
+### 1. Why profile-only classification is insufficient
+
+File-reading performance depends on observed behavior: selecting the right files, extracting the right spans, citing them correctly, abstaining when evidence is missing, and respecting forbidden-file boundaries. The new adapter keeps profile-only output as readiness/risk analysis and explicitly reports: "No observed performance score because no agent run was executed."
+
+### 2. CLI runner added
+
+Added `c2a file-eval` with local corpus import, reference listing/import skeleton, task validation, smoke task generation, sequential black-box target runs, grading, comparison, reporting, and profile-only readiness reports. The runner requires an explicit `--agent-command` with `{input_json}` and `{output_json}` placeholders, enforces `--time-budget-seconds` and `--max-tasks`, captures stdout/stderr, records trace metadata, and writes `run.json` / `run.jsonl`.
+
+### 3. Corpus, task, and reference schemas added
+
+Added JSON-serializable dataclasses for file-reading profiles, corpus manifests, document records, tasks, evidence spans, target inputs/outputs, citations, traces, runs, grades, scorecards, reference sources/results, and comparison reports under `contract2agent/evaluation/file_reading/`.
+
+### 4. Graders added
+
+Added deterministic graders for answer exact/F1 scoring, citation presence, citation span overlap, quote matching, supporting-file recall/precision, forbidden-file violations, unanswerable abstention, schema compliance, latency/timeout, trace completeness, and unsupported-claim heuristics.
+
+### 5. Reference comparison avoids fake benchmark claims
+
+Curated references for OpenAI eval methodology, QASPER, SQuAD, HotpotQA, DocVQA, and LongBench are stored as contextual metadata. Comparison checks task pack, scoring method, environment, and `comparable_conditions`; incompatible references are marked contextual only and no leaderboard-style ranking is produced.
+
+### 6. User-provided papers/files
+
+`c2a file-eval import-local --source-type paper --title ...` imports a user-provided file or paper into a local corpus and writes a `reference_source.json` with provenance, license, limitations, and no metrics. The import remains offline.
+
+### 7. Safety and path boundaries
+
+The local importer skips `.env`, credential/key-like files, `.git` internals, caches, virtualenvs, `node_modules`, `__pycache__`, browser-data-like directories, and unsupported binary/PDF files by default. Document records use sanitized reportable absolute paths. The runner does not use `shell=True`, does not delete user files, and does not use network access by default.
+
+### 8. Tests added
+
+Added `tests/test_file_reading_eval.py` covering schema serialization, manifest creation, unsafe-path skipping, document hashes/line counts, task JSONL loading/validation, citation quote checks, supporting-file scoring, forbidden-file scoring, abstention scoring, output schema validation, dummy-agent CLI runs, task budget enforcement, run/grade/report artifacts, profile-only no-score behavior, reference registry discipline, contextual-only incompatible comparisons, CLI help, and user paper import.
+
+### 9. Commands run
+
+| Command | Result | Summary |
+| --- | --- | --- |
+| `python -m pytest` | Failed, then passed | Initial run found a Windows command-splitting bug in the runner; after fixing it and adding `file-eval --help` coverage, 319 tests passed in 33.78s. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Syntax compilation succeeded after adding the adapter and tests. |
+| `python scripts\check_docs_links.py` | Passed | Checked 27 Markdown files; all relative links resolve. |
+| `python -m mkdocs build --strict` | Passed | Documentation built successfully on final runs. |
+| `python -m contract2agent.cli --help` | Blocked by tool sandbox | Direct shell invocation hit a sandbox setup/approval timeout; equivalent subprocess coverage is included in `python -m pytest`. |
+| `python -m contract2agent.cli file-eval --help` | Blocked by tool sandbox | Direct shell invocation hit a sandbox setup/approval timeout; equivalent subprocess coverage is included in `python -m pytest`. |
+
+### 10. Limitations and follow-ups
+
+- PDF extraction is not bundled; users should convert PDFs to text/Markdown or a future optional extra can add extraction.
+- Network dataset import is intentionally a controlled skeleton and requires `--allow-network`; the dependency-free core records metadata rather than downloading large datasets.
+- Grading is deterministic and lexical/span-based. Optional semantic or LLM rubric judging is a future extension and should be disabled by default.
+- Runs are sequential for now; parallel scheduling can be added once trace and artifact isolation requirements are stable.
+
 ## Agent Evaluation Generalization and Overfitting Audit
 
 ### Files inspected

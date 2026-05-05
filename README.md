@@ -58,6 +58,7 @@ Core Python modules live under `contract2agent/evaluation/`:
 - `scoring.py`: preliminary evidence-aware score dimensions.
 - `prediction.py`: cautious outcome estimates.
 - `reports.py` / `report.py`: Markdown and JSON report rendering.
+- `file_reading/`: specialized `file_reading_agent` adapter with local corpus import, task JSONL loading/generation, black-box CLI runs, deterministic graders, reference comparison, and Markdown/JSON reports.
 
 ## Supported Broad Agent Types
 
@@ -117,12 +118,40 @@ Static source metadata is local and contextual. References include:
 
 Benchmark references do not create direct scores. A user-entered agent receives benchmark-backed performance credit only if an actual comparable `ExperimentSummary` or imported trace is linked to that agent.
 
+## File Reading Agent Evaluation
+
+The first specialized adapter is `file_reading_agent`. Unlike profile-only classification, this subsystem can run local, long-running CLI evaluations against approved corpora and produce observed scores from artifacts.
+
+Core workflow:
+
+```bash
+c2a file-eval import-local --input ./docs --out .runs/file-corpus --manifest .runs/file-corpus/manifest.json
+c2a file-eval build-tasks --corpus .runs/file-corpus/manifest.json --mode smoke --max-tasks 20 --out .runs/file-tasks.jsonl
+c2a file-eval run \
+  --profile examples/agent_eval/file_reading_agent_profile.json \
+  --agent-command "python my_agent_adapter.py {input_json} {output_json}" \
+  --corpus .runs/file-corpus/manifest.json \
+  --tasks .runs/file-tasks.jsonl \
+  --time-budget-seconds 300 \
+  --max-tasks 20 \
+  --out .runs/file-reading-run
+c2a file-eval grade --run .runs/file-reading-run --tasks .runs/file-tasks.jsonl --out .runs/file-reading-run/grades.json
+c2a file-eval report --run .runs/file-reading-run --format md,json --out .runs/file-reading-report
+```
+
+`profile-only` reports are readiness/risk reports only and explicitly state: "No observed performance score because no agent run was executed." Observed scores require `file-eval run` artifacts.
+
+`import-local` supports user-provided files and papers with `--source-type paper --title ...`; imported reference material records provenance, license, and limitations metadata. `list-references` exposes contextual metadata for OpenAI eval methodology, QASPER, SQuAD, HotpotQA, DocVQA, and LongBench. Network import is disabled by default and `import-reference` requires `--allow-network`; the dependency-free core records metadata rather than downloading datasets.
+
+Reference comparisons check task pack, scoring method, environment, and comparable conditions before computing deltas. Incompatible benchmark or paper references are marked contextual only and are never turned into leaderboard-style direct scores.
+
 ## CLI Usage
 
 Existing local diagnosis commands remain available:
 
 ```bash
 c2a --help
+c2a file-eval --help
 c2a demo
 c2a check
 c2a check-all --diagnose
@@ -170,6 +199,7 @@ markdown = ReportRenderer().render_markdown(profile, evidence, scorecard, predic
 .
 |-- contract2agent/
 |   |-- evaluation/              # Generalized agent evaluation framework
+|   |   `-- file_reading/         # CLI-driven file-reading agent adapter
 |   |-- cost_estimate/
 |   |-- patch_preview/
 |   `-- triage/
@@ -203,7 +233,7 @@ python scripts/check_docs_links.py
 python -m mkdocs build --strict
 ```
 
-The test suite covers schema serialization, classification invariants, anti-overfitting, evidence-source handling, benchmark-reference discipline, report rendering, Golden tests, CLI smoke tests, docs integrity, GitHub Pages static tests, and the legacy Evaluation Lab.
+The test suite covers schema serialization, classification invariants, anti-overfitting, evidence-source handling, benchmark-reference discipline, file-reading corpus/task/run/grade/report behavior, dummy-agent CLI runs, report rendering, Golden tests, CLI smoke tests, docs integrity, GitHub Pages static tests, and the legacy Evaluation Lab.
 
 ## Limitations
 
@@ -211,6 +241,8 @@ The test suite covers schema serialization, classification invariants, anti-over
 - Declared capability is weak evidence.
 - Tool and task inference is not proof of performance.
 - Benchmark references are contextual unless actual experiment results exist.
+- File-reading performance scores require an observed `file-eval run`; profile-only reports do not claim observed performance.
+- File-reading reference comparisons are contextual unless task pack, scoring method, environment, and comparable conditions match.
 - Outcome predictions are estimates, not guarantees.
 - GitHub Pages remains static and does not run arbitrary agent experiments.
 - Financial transaction evaluation is simulated-only.

@@ -141,6 +141,30 @@ c2a eval-agent \
   --out reports/agent_eval.md
 ```
 
+File-reading specialized adapter CLI:
+
+```bash
+c2a file-eval --help
+c2a file-eval import-local --input ./docs --out .runs/file-corpus --manifest .runs/file-corpus/manifest.json
+c2a file-eval build-tasks --corpus .runs/file-corpus/manifest.json --mode smoke --max-tasks 20 --out .runs/file-tasks.jsonl
+c2a file-eval run \
+  --profile examples/agent_eval/file_reading_agent_profile.json \
+  --agent-command "python my_agent_adapter.py {input_json} {output_json}" \
+  --corpus .runs/file-corpus/manifest.json \
+  --tasks .runs/file-tasks.jsonl \
+  --time-budget-seconds 300 \
+  --max-tasks 20 \
+  --out .runs/file-reading-run
+c2a file-eval grade --run .runs/file-reading-run --tasks .runs/file-tasks.jsonl --out .runs/file-reading-run/grades.json
+c2a file-eval report --run .runs/file-reading-run --format md,json --out .runs/file-reading-report
+```
+
+The `file_reading_agent` adapter runs local CLI evaluations over approved corpora. It imports local files or user-provided papers, builds or loads JSONL tasks, runs a target agent with `{input_json}` and `{output_json}` placeholders, captures stdout/stderr and traces, grades observed outputs, and writes Markdown/JSON reports with recommendations.
+
+Profile-only mode is readiness/risk analysis only and states: "No observed performance score because no agent run was executed." Observed file-reading scores require an actual `file-eval run`.
+
+Reference metadata for OpenAI eval methodology, QASPER, SQuAD, HotpotQA, DocVQA, and LongBench is contextual. Benchmark or paper references do not become direct scores unless comparable observed results are imported. Network import is disabled by default and requires `--allow-network`.
+
 包身份：
 
 - Python distribution：`contract2agent`

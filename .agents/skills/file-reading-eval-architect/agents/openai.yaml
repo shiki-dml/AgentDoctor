@@ -1,0 +1,4 @@
+interface:
+  display_name: "File Reading Eval Architect"
+  short_description: "Design file-reading agent eval runners and graders."
+  default_prompt: "Use $file-reading-eval-architect to design a CLI-driven evaluation subsystem for file-reading agents."
