@@ -2,49 +2,50 @@
 
 <div class="ad-home">
   <section class="ad-hero">
-    <p class="ad-kicker">Offline trace diagnostics for LLM agents</p>
-    <h1>Diagnose agent failures from traces.</h1>
-    <p class="ad-hero__lead">Contract2Agent turns raw execution traces into clear explanations, rule coverage, repair suggestions, and regression cases.</p>
+    <p class="ad-kicker">Pre-runtime AI agent evaluation</p>
+    <h1>Classify agent capabilities before deployment.</h1>
+    <p class="ad-hero__lead">Contract2Agent turns agent descriptions, tools, permissions, sample tasks, traces, and source references into cautious preliminary evaluation reports.</p>
   </section>
 </div>
 
-[Try the Playground](playground/index.html){ .md-button .md-button--primary }
+[Try Agent Evaluation](agent-eval/index.html){ .md-button .md-button--primary }
+[Legacy Contract Playground](playground/index.html){ .md-button }
 [Read the Quickstart](getting-started.md){ .md-button }
-[View Diagnosis Categories](failure-taxonomy.md){ .md-button }
 
 ## Why Use It
 
-Agent failures are rarely just pass or fail. A trace can show that a reader tool
-returned `file_not_found`, a writer still ran, a forbidden search happened, or
-an eval rejected an output variant that the task should allow.
+Agent claims are not performance evidence. A profile can say it edits code,
+uses a browser, reads files, or handles transactions, but deployment decisions
+need a clearer record of what is declared, what is inferred from tools and
+tasks, what is actually observed, and what evidence is still missing.
 
-Contract2Agent keeps that evidence visible and turns it into a reviewable next
-step.
+Contract2Agent keeps those layers separate and turns them into a reviewable
+Markdown or JSON report.
 
 <div class="ad-feature-grid">
   <article class="ad-feature-card">
-    <strong>Trace Diagnosis</strong>
-    <span>Find the tool call, result, or output step that explains the failure.</span>
+    <strong>Capability Classification</strong>
+    <span>Infer broad agent families from tools, permissions, tasks, and constraints rather than names.</span>
   </article>
   <article class="ad-feature-card">
-    <strong>Strictness Detection</strong>
-    <span>Separate too-loose behavior rules from too-strict contracts or checkers.</span>
+    <strong>Evidence Separation</strong>
+    <span>Distinguish declared, inferred, observed, reference, and missing evidence.</span>
   </article>
   <article class="ad-feature-card">
-    <strong>Rule Coverage</strong>
-    <span>See which rules have positive or negative trace evidence.</span>
+    <strong>Eval Categories</strong>
+    <span>Select broad next-test categories without pretending to run specialized graders.</span>
   </article>
   <article class="ad-feature-card">
-    <strong>Patch Suggestions</strong>
-    <span>Review suggested contract, checker, prompt, or eval changes before editing.</span>
+    <strong>Preliminary Prediction</strong>
+    <span>Estimate likely outcome with confidence, risk flags, assumptions, and missing evidence.</span>
   </article>
   <article class="ad-feature-card">
-    <strong>Regression Traces</strong>
-    <span>Capture small traces that reproduce the behavior gap.</span>
+    <strong>Static Demo</strong>
+    <span>Use the GitHub Pages demo without a backend, API key, or live benchmark fetch.</span>
   </article>
   <article class="ad-feature-card">
-    <strong>Offline CLI</strong>
-    <span>Run local checks without adding a backend, analytics, or an LLM API call.</span>
+    <strong>Legacy Diagnosis</strong>
+    <span>Preserve the contract-review playground as a specialized static demo path.</span>
   </article>
 </div>
 
@@ -52,36 +53,22 @@ step.
 
 ```mermaid
 flowchart LR
-    A[Contract + trace] --> B[Check]
-    B --> C[Diagnosis]
-    C --> D[Suggested fix]
-    D --> E[Regression trace]
-```
-
-## Small Example
-
-```text
-ATD001 [error]
-Category: contract_too_loose
-Strictness: too_loose
-Affected part: error_handling
-
-Cause:
-pdf_reader returned file_not_found, but markdown_writer was still called.
-
-Suggested fix:
-Add a rule forbidding markdown_writer after pdf_reader returns file_not_found.
+    A[Agent profile] --> B[Capability signals]
+    B --> C[Agent type classification]
+    C --> D[Evidence resolution]
+    D --> E[Eval categories]
+    E --> F[Preliminary prediction]
 ```
 
 ## Start Here
 
-- New to the project: read [Getting Started](getting-started.md).
-- Want to try the diagnosis model quickly: open the [Playground](playground/index.html).
+- Want the new generalized path: open [Agent Evaluation](agent-eval/index.html).
+- Want the legacy contract demo: open the [Playground](playground/index.html).
 - Need exact commands and flags: use the [CLI Reference](cli.md).
-- Reviewing categories: see [Failure Taxonomy](failure-taxonomy.md).
+- Reviewing older trace diagnosis categories: see [Failure Taxonomy](failure-taxonomy.md).
 
 ## Current Scope
 
-Contract2Agent is lightweight and static-first. The playground is a browser-side
-preview, while full diagnosis, reports, patch previews, baselines, and
-regression trace writing run through the local CLI.
+Contract2Agent is lightweight and static-first. GitHub Pages demos are static
+reporting and reasoning surfaces only; they do not run arbitrary experiments,
+call LLM APIs, fetch live benchmark data, or execute financial transactions.

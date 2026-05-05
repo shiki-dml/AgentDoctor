@@ -206,8 +206,8 @@ SALES_FORCE_MAJEURE_CLAUSE_ONLY_FIXTURE = {
     "diagnosisDepth": "Detailed",
     "riskMode": "Evidence-first",
     "desiredOutcome": (
-        "Confirm Seller cannot rely on force majeure notice, mitigation, internal "
-        "staffing shortages, or ordinary vendor backlog to excuse late shipment."
+        "Determine whether Seller can rely on force majeure language despite "
+        "internal staffing shortages and ordinary raw-material/vendor backlog."
     ),
     "contractText": (
         "Seller must deliver conforming equipment by May 15. The agreement includes a "
@@ -219,11 +219,13 @@ SALES_FORCE_MAJEURE_CLAUSE_ONLY_FIXTURE = {
     ),
     "disputeDescription": (
         "Seller shipped the equipment on May 25 after internal staffing shortages and "
-        "an ordinary component backlog. "
+        "an ordinary raw-material/vendor backlog. "
         "Buyer says the shipment was late and asks whether it may reject or recover "
         "ordinary delay damages. No party claims force majeure. No force majeure notice "
         "was sent. There was no government order, no natural disaster, no port closure, "
-        "no strike, no war, no emergency closure, and no extraordinary external event."
+        "no strike, no war, no emergency closure, no widespread infrastructure outage, "
+        "no external uncontrollable event, no qualifying external event, and no "
+        "extraordinary external event."
     ),
     "claimantPosition": (
         "Buyer says the delay was a commercial supply problem and seeks late-shipment "
@@ -375,7 +377,7 @@ ALTERNATIVE_SUPPLIER_INVOICE_FIXTURE = {
         "Seller shipped components on August 12. Buyer bought substitute components "
         "from an alternate supplier to keep production running and seeks cover costs. "
         "There is no unpaid invoice, no disputed invoice, no billing dispute, no invoice "
-        "nonpayment, and no invoice dispute notice."
+        "nonpayment, no payment controversy, and no invoice dispute notice."
     ),
     "claimantPosition": "Buyer seeks the incremental substitute-purchase cost caused by late delivery.",
     "respondentPosition": "Seller disputes causation and reasonableness of the cover purchase.",
@@ -383,10 +385,115 @@ ALTERNATIVE_SUPPLIER_INVOICE_FIXTURE = {
         "Available:\n"
         "- August 1 shipment deadline\n"
         "- August 12 carrier record\n"
-        "- Alternative supplier invoice dated August 6 used as cover-cost evidence\n"
+        "- Alternative supplier invoice dated May 10 used as cover-cost evidence\n"
+        "- Supplier invoice used to calculate cover costs, not an invoice payment demand\n"
         "- Production schedule impact memo"
     ),
     "metadata": '{"remedy":"cover costs"}',
+}
+
+
+REAL_UNPAID_INVOICE_DISPUTE_FIXTURE = {
+    "contractType": "Service Agreement",
+    "disputeType": "Payment Delay",
+    "outputFormat": "Detailed",
+    "diagnosisDepth": "Detailed",
+    "riskMode": "Evidence-first",
+    "desiredOutcome": "Recover unpaid Invoice #1042 and resolve the disputed amount.",
+    "contractText": (
+        "Customer must pay undisputed invoices within 30 days after receipt. If Customer "
+        "disputes an invoice, Customer must give written invoice dispute notice identifying "
+        "the disputed amount and basis for dispute within 10 days after receiving the invoice."
+    ),
+    "disputeDescription": (
+        "Customer received Invoice #1042 on January 5 and did not pay by the February 4 "
+        "due date. Provider demanded payment on February 10. Customer disputed the invoice "
+        "amount in writing on February 12, and the parties disagree over whether the invoice "
+        "is owed and whether the disputed amount was preserved."
+    ),
+    "claimantPosition": (
+        "Provider claims Invoice #1042 remains unpaid and says Customer failed to pay the "
+        "undisputed amount by the due date."
+    ),
+    "respondentPosition": (
+        "Customer says the invoice amount is contested because several charges were improper "
+        "and payment was withheld because the invoice was disputed."
+    ),
+    "evidence": (
+        "Available:\n"
+        "- January 5 invoice receipt email\n"
+        "- February 10 provider payment demand\n\n"
+        "Missing or unclear:\n"
+        "- Invoice #1042 copy\n"
+        "- Payment records for Invoice #1042\n"
+        "- Customer written invoice dispute notice\n"
+        "- Calculation of disputed amount"
+    ),
+    "metadata": '{"invoice":"1042"}',
+}
+
+
+INVOICE_CLAUSE_ONLY_FIXTURE = {
+    "contractType": "Sales Contract",
+    "disputeType": "Late Delivery",
+    "outputFormat": "Detailed",
+    "diagnosisDepth": "Detailed",
+    "riskMode": "Balanced",
+    "desiredOutcome": "Assess late delivery remedies.",
+    "contractText": (
+        "Buyer must pay invoices within 30 days after accepted delivery. Any invoice dispute "
+        "notice must identify the disputed amount and basis for dispute within 10 days after "
+        "invoice receipt. Late payment charges may accrue on undisputed overdue amounts."
+    ),
+    "disputeDescription": (
+        "Seller delivered the goods late, and Buyer seeks delivery remedies. The facts "
+        "explicitly say no invoice dispute, no unpaid invoices, no late payment, no billing "
+        "dispute, and no payment controversy."
+    ),
+    "claimantPosition": "Buyer seeks damages for the late shipment only.",
+    "respondentPosition": "Seller says delivery was substantially timely and no payment issue is involved.",
+    "evidence": "Available:\n- Delivery receipt\n- Shipment log\n- Buyer delay notice",
+    "metadata": '{"issue":"late delivery"}',
+}
+
+
+COST_EVIDENCE_INVOICES_FIXTURE = {
+    "contractType": "Service Agreement",
+    "disputeType": "Damages/Liability",
+    "outputFormat": "Detailed",
+    "diagnosisDepth": "Detailed",
+    "riskMode": "Evidence-first",
+    "desiredOutcome": "Assess recoverability of repair, remediation, and legal-fee costs.",
+    "contractText": (
+        "The provider must remediate service failures and is liable for reasonable direct "
+        "repair, remediation, investigation, and legal costs caused by breach, subject to "
+        "the liability cap and damages exclusions."
+    ),
+    "disputeDescription": (
+        "Customer claims a service failure caused direct costs. Customer submits a repair "
+        "invoice dated May 10, a remediation vendor invoice dated May 12, and an outside "
+        "counsel invoice dated May 15 as evidence of damages and costs. No party disputes "
+        "payment of those invoices as between the contracting parties, and there is no "
+        "invoice dispute, no unpaid invoice, no billing dispute, and no invoice nonpayment."
+    ),
+    "claimantPosition": (
+        "Customer seeks reimbursement of repair costs, remediation costs, investigation "
+        "costs, and legal fees."
+    ),
+    "respondentPosition": (
+        "Provider disputes causation and whether the invoices prove reasonable damages, "
+        "but does not claim an invoice-payment controversy."
+    ),
+    "evidence": (
+        "Available:\n"
+        "- Repair invoice dated May 10\n"
+        "- Remediation vendor invoice dated May 12\n"
+        "- Outside counsel invoice dated May 15\n"
+        "- Cost summary spreadsheet\n\n"
+        "Missing or unclear:\n"
+        "- Final damages calculation"
+    ),
+    "metadata": '{"remedy":"cost reimbursement"}',
 }
 
 
@@ -1032,10 +1139,16 @@ def test_playground_force_majeure_clause_only_stays_clause_signal() -> None:
 
     assert any("force majeure" in signal.lower() for signal in diagnosis["clause_signals"])
     assert "force majeure" not in diagnosis["active_issue_tags"]
+    assert "force majeure" not in diagnosis["issue_tags"]
     assert "Force Majeure" not in diagnosis["dispute_type"]
     assert "force majeure" not in exported["active_issue_tags"]
+    assert "force majeure" not in exported["issue_tags"]
     assert exported["issue_tags"] == diagnosis["active_issue_tags"]
     assert "force majeure" not in _markdown_list_items(markdown, "Active Issue Tags")
+    assert exported["structured_diagnosis_preview"]["detected"]["active_issue_tags"] == diagnosis["active_issue_tags"]
+    assert test_case["expected_outputs"]["must_include_issues"] == [
+        tag for tag in diagnosis["active_issue_tags"] if tag != "unclear"
+    ]
     assert "force majeure" not in test_case["expected_outputs"]["must_include_issues"]
     assert "force_majeure" not in test_case["case_name"]
     assert "force majeure" not in "\n".join(diagnosis["risk"]["rationale"]).lower()
@@ -1050,9 +1163,19 @@ def test_playground_force_majeure_clause_only_stays_clause_signal() -> None:
     for forbidden in (
         "qualifies as force majeure",
         "invoked external event",
+        "external event qualification",
+        "government order",
+        "natural disaster",
+        "port closure",
+        "strike",
+        "war",
         "force majeure notice was timely",
         "force majeure notice delivery",
+        "force majeure notice proof",
+        "external event proof",
         "commercially reasonable mitigation",
+        "infrastructure outage",
+        "emergency closure",
     ):
         assert forbidden not in clause_only_text
 
@@ -1060,6 +1183,7 @@ def test_playground_force_majeure_clause_only_stays_clause_signal() -> None:
 def test_playground_positive_force_majeure_still_activates() -> None:
     output = _run_playground_diagnosis(POSITIVE_FORCE_MAJEURE_DELIVERY_FIXTURE)
     diagnosis = output["diagnosis"]
+    test_case = output["test_case"]
 
     assert any("force majeure" in signal.lower() for signal in diagnosis["clause_signals"])
     assert "force majeure" in diagnosis["active_issue_tags"]
@@ -1067,6 +1191,65 @@ def test_playground_positive_force_majeure_still_activates() -> None:
     assert any("qualifies as a force majeure event" in issue for issue in diagnosis["key_issues"])
     assert any("force majeure notice" in step.lower() for step in diagnosis["suggested_next_steps"])
     assert any("mitigation" in step.lower() for step in diagnosis["suggested_next_steps"])
+    assert "force majeure" in test_case["expected_outputs"]["must_include_issues"]
+    assert "force_majeure" in test_case["case_name"]
+
+
+def test_playground_force_majeure_blockers_win_over_desired_outcome_wording() -> None:
+    fixture = dict(SALES_FORCE_MAJEURE_CLAUSE_ONLY_FIXTURE)
+    fixture["desiredOutcome"] = "Decide whether Seller can rely on force majeure language."
+    fixture["disputeDescription"] = (
+        "Seller delivered late. No force majeure notice was sent, and there was "
+        "no qualifying external event, no government order, no natural disaster, "
+        "no port closure, no strike, no war, no emergency closure, no widespread "
+        "infrastructure outage, and no extraordinary external event."
+    )
+    fixture["respondentPosition"] = (
+        "Seller points to ordinary vendor backlog and internal resource constraints, "
+        "but does not invoke force majeure."
+    )
+
+    output = _run_playground_diagnosis(fixture)
+    diagnosis = output["diagnosis"]
+    surface_text = json.dumps(
+        {
+            "active_issue_tags": diagnosis["active_issue_tags"],
+            "dispute_type": diagnosis["dispute_type"],
+            "suggested_next_steps": diagnosis["suggested_next_steps"],
+            "risk": diagnosis["risk"],
+            "must_include_issues": output["test_case"]["expected_outputs"]["must_include_issues"],
+            "case_name": output["test_case"]["case_name"],
+        }
+    ).lower()
+
+    assert any("force majeure" in signal.lower() for signal in diagnosis["clause_signals"])
+    assert "force majeure clause mentioned but not fact-triggered" in diagnosis["clause_signals"]
+    assert "force majeure" not in surface_text
+    assert "force_majeure" not in output["test_case"]["case_name"]
+
+
+def test_playground_internal_staffing_and_vendor_backlog_are_not_force_majeure() -> None:
+    fixture = dict(SALES_FORCE_MAJEURE_CLAUSE_ONLY_FIXTURE)
+    fixture["desiredOutcome"] = "Assess late delivery remedies."
+    fixture["disputeDescription"] = (
+        "Seller delivered late because of internal staffing shortage, internal "
+        "resource constraints, and ordinary supplier backlog. The delay was an "
+        "internal delay only and a normal supply delay."
+    )
+    fixture["respondentPosition"] = (
+        "Seller argues ordinary business difficulty and provider staffing issues "
+        "made performance harder, but no external event prevented shipment."
+    )
+
+    diagnosis = _run_playground_diagnosis(fixture)["diagnosis"]
+    next_steps = "\n".join(diagnosis["suggested_next_steps"]).lower()
+    risk = "\n".join(diagnosis["risk"]["rationale"]).lower()
+
+    assert any("force majeure" in signal.lower() for signal in diagnosis["clause_signals"])
+    assert "force majeure" not in diagnosis["active_issue_tags"]
+    assert "force majeure notice" not in next_steps
+    assert "mitigation" not in next_steps
+    assert "force majeure" not in risk
 
 
 def test_playground_confidentiality_and_indemnity_clause_only_stay_clause_signals() -> None:
@@ -1128,21 +1311,151 @@ def test_playground_liability_limitation_active_when_damages_are_disputed() -> N
     assert any("liability cap" in issue.lower() or "cap limits recovery" in issue.lower() for issue in diagnosis["key_issues"])
 
 
+def _assert_no_active_invoice_dispute(output: dict) -> None:
+    diagnosis = output["diagnosis"]
+    exported = json.loads(output["json"])
+    markdown = output["markdown"]
+    test_case = output["test_case"]
+    active_section = markdown.split("## Active Issue Tags", 1)[1].split(
+        "## Key Issues", 1
+    )[0]
+    active_text = "\n".join(
+        diagnosis["active_issue_tags"]
+        + diagnosis.get("issue_tags", [])
+        + exported["active_issue_tags"]
+        + exported.get("issue_tags", [])
+        + _markdown_list_items(markdown, "Active Issue Tags")
+        + test_case["expected_outputs"]["must_include_issues"]
+    ).lower()
+    generated_text = json.dumps(
+        {
+            "key_issues": diagnosis["key_issues"],
+            "evidence_gaps": diagnosis["evidence_gaps"],
+            "suggested_next_steps": diagnosis["suggested_next_steps"],
+            "timeline_facts": diagnosis["timeline_facts"],
+            "risk": diagnosis["risk"],
+        }
+    ).lower()
+
+    expected_issues = [tag for tag in diagnosis["active_issue_tags"] if tag != "unclear"]
+    assert diagnosis["issue_tags"] == diagnosis["active_issue_tags"]
+    assert exported["active_issue_tags"] == diagnosis["active_issue_tags"]
+    assert exported["issue_tags"] == diagnosis["active_issue_tags"]
+    assert exported["structured_diagnosis_preview"]["detected"]["active_issue_tags"] == diagnosis["active_issue_tags"]
+    assert test_case["expected_outputs"]["must_include_issues"] == expected_issues
+    assert "invoice dispute" not in active_text
+    assert "invoice dispute" not in diagnosis["dispute_type"].lower()
+    assert "invoice_dispute" not in test_case["case_name"]
+    assert "invoice dispute" not in active_section.lower()
+    for forbidden in (
+        "invoice dispute notice",
+        "customer written invoice dispute",
+        "unpaid invoices",
+        "billing dispute",
+        "payment demand",
+    ):
+        assert forbidden not in generated_text
+
+
 def test_playground_alternative_supplier_invoice_is_not_invoice_dispute() -> None:
+    output = _run_playground_diagnosis(ALTERNATIVE_SUPPLIER_INVOICE_FIXTURE)
+    diagnosis = output["diagnosis"]
+
+    _assert_no_active_invoice_dispute(output)
+    combined_timeline = "\n".join(diagnosis["timeline_facts"]).lower()
+    assert "invoice dispute deadline" not in combined_timeline
+    assert "unpaid invoice date" not in combined_timeline
+    assert "billing dispute date" not in combined_timeline
+    assert "may 10" in combined_timeline
+    assert "cover-cost evidence invoice" in combined_timeline
+
+
+def test_playground_real_unpaid_invoice_dispute_still_activates() -> None:
+    output = _run_playground_diagnosis(REAL_UNPAID_INVOICE_DISPUTE_FIXTURE)
+    diagnosis = output["diagnosis"]
+    test_case = output["test_case"]
+    key_issue_text = "\n".join(diagnosis["key_issues"]).lower()
+    evidence_gap_text = "\n".join(diagnosis["evidence_gaps"]).lower()
+    next_step_text = "\n".join(diagnosis["suggested_next_steps"]).lower()
+
+    assert "payment" in diagnosis["active_issue_tags"]
+    assert "invoice dispute" in diagnosis["active_issue_tags"]
+    assert "Payment/Invoice Dispute" in diagnosis["dispute_type"]
+    assert "invoice dispute" in test_case["expected_outputs"]["must_include_issues"]
+    assert "invoice_dispute" in test_case["case_name"]
+    assert "disputed amount" in key_issue_text
+    assert "invoice #1042" in evidence_gap_text
+    assert "payment records" in evidence_gap_text
+    assert "customer written invoice dispute notice" in evidence_gap_text
+    assert "invoice receipt" in next_step_text
+    assert "invoice dispute notices" in next_step_text
+    assert "disputed amounts" in next_step_text
+
+
+def test_playground_invoice_clause_only_does_not_activate() -> None:
+    output = _run_playground_diagnosis(INVOICE_CLAUSE_ONLY_FIXTURE)
+    diagnosis = output["diagnosis"]
+
+    assert any("payment" in signal.lower() for signal in diagnosis["clause_signals"])
+    assert any("invoice" in signal.lower() for signal in diagnosis["clause_signals"])
+    _assert_no_active_invoice_dispute(output)
+
+
+def test_playground_cost_evidence_invoices_are_not_invoice_disputes() -> None:
+    output = _run_playground_diagnosis(COST_EVIDENCE_INVOICES_FIXTURE)
+    diagnosis = output["diagnosis"]
+    timeline_text = "\n".join(diagnosis["timeline_facts"]).lower()
+
+    _assert_no_active_invoice_dispute(output)
+    assert "may 10: repair-cost evidence invoice" in timeline_text
+    assert "may 12: remediation-cost evidence invoice" in timeline_text
+    assert "may 15: legal-fee evidence invoice" in timeline_text
+    assert "invoice dispute date" not in timeline_text
+    assert "billing dispute date" not in timeline_text
+
+
+def test_playground_invoice_dispute_state_does_not_leak_to_cover_invoice_case() -> None:
+    positive, cover_invoice = _run_playground_diagnoses_sequentially(
+        [REAL_UNPAID_INVOICE_DISPUTE_FIXTURE, ALTERNATIVE_SUPPLIER_INVOICE_FIXTURE]
+    )
+
+    assert "invoice dispute" in positive["active_issue_tags"]
+    assert "invoice dispute" not in cover_invoice["active_issue_tags"]
+    assert cover_invoice["issue_tags"] == cover_invoice["active_issue_tags"]
+    cover_invoice_text = json.dumps(
+        {
+            "key_issues": cover_invoice["key_issues"],
+            "evidence_gaps": cover_invoice["evidence_gaps"],
+            "suggested_next_steps": cover_invoice["suggested_next_steps"],
+            "risk": cover_invoice["risk"],
+        }
+    ).lower()
+    for leaked in (
+        "invoice dispute notice",
+        "customer written invoice dispute",
+        "unpaid invoices",
+        "billing dispute",
+        "payment demand",
+    ):
+        assert leaked not in cover_invoice_text
+
+
+def test_playground_invoice_dispute_export_consistency_for_cover_invoice() -> None:
     output = _run_playground_diagnosis(ALTERNATIVE_SUPPLIER_INVOICE_FIXTURE)
     diagnosis = output["diagnosis"]
     exported = json.loads(output["json"])
     markdown = output["markdown"]
+    test_case = output["test_case"]
 
-    assert "invoice dispute" not in diagnosis["active_issue_tags"]
-    assert "Payment/Invoice Dispute" not in diagnosis["dispute_type"]
-    assert "invoice dispute" not in output["test_case"]["expected_outputs"]["must_include_issues"]
-    assert "invoice dispute" not in exported["active_issue_tags"]
-    assert "invoice dispute" not in _markdown_list_items(markdown, "Active Issue Tags")
-    combined_gaps = "\n".join(diagnosis["evidence_gaps"]).lower()
-    combined_timeline = "\n".join(diagnosis["timeline_facts"]).lower()
-    assert "customer written invoice dispute notice" not in combined_gaps
-    assert "invoice dispute deadline" not in combined_timeline
+    assert diagnosis["active_issue_tags"] == exported["active_issue_tags"]
+    assert exported["issue_tags"] == diagnosis["active_issue_tags"]
+    assert exported["structured_diagnosis_preview"]["detected"]["active_issue_tags"] == diagnosis["active_issue_tags"]
+    assert "invoice dispute" not in "\n".join(diagnosis["active_issue_tags"]).lower()
+    assert "invoice dispute" not in "\n".join(exported["active_issue_tags"]).lower()
+    assert "invoice dispute" not in "\n".join(exported["issue_tags"]).lower()
+    assert "invoice dispute" not in "\n".join(_markdown_list_items(markdown, "Active Issue Tags")).lower()
+    assert "invoice dispute" not in test_case["expected_outputs"]["must_include_issues"]
+    assert "invoice_dispute" not in test_case["case_name"]
 
 
 def test_playground_clause_active_separation_survives_sequential_runs() -> None:
@@ -2228,6 +2541,13 @@ def test_mkdocs_nav_preserves_github_pages_playground_route() -> None:
     assert (ROOT / "docs" / "playground" / "index.html").exists()
 
 
+def test_mkdocs_nav_includes_agent_eval_route() -> None:
+    mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+
+    assert "Agent Evaluation: agent-eval/index.html" in mkdocs
+    assert (ROOT / "docs" / "agent-eval" / "index.html").exists()
+
+
 def test_github_pages_javascript_syntax_or_static_fallback() -> None:
     app_js_path = ROOT / "docs" / "assets" / "app.js"
     node = shutil.which("node")
@@ -2250,6 +2570,155 @@ def test_github_pages_javascript_syntax_or_static_fallback() -> None:
         "function renderEvaluationPanel",
     ):
         assert required in app_js
+
+
+def test_agent_eval_static_demo_files_exist_and_parse() -> None:
+    html_path = ROOT / "docs" / "agent-eval" / "index.html"
+    js_path = ROOT / "docs" / "assets" / "agent-eval.js"
+    css_path = ROOT / "docs" / "assets" / "agent-eval.css"
+
+    assert html_path.exists()
+    assert js_path.exists()
+    assert css_path.exists()
+
+    node = shutil.which("node")
+    if node:
+        completed = subprocess.run(
+            [node, "--check", str(js_path)],
+            text=True,
+            capture_output=True,
+        )
+        assert completed.returncode == 0, completed.stderr
+
+
+def test_agent_eval_demo_is_static_and_has_required_inputs_outputs() -> None:
+    html = (ROOT / "docs" / "agent-eval" / "index.html").read_text(encoding="utf-8")
+    js = (ROOT / "docs" / "assets" / "agent-eval.js").read_text(encoding="utf-8")
+    combined = html + "\n" + js
+
+    for required in (
+        "agent-description",
+        "sample-profile",
+        "load-sample-profile",
+        "declared-capabilities",
+        "tool-names",
+        "tool-permissions",
+        "can-read-files",
+        "can-write-files",
+        "can-run-code",
+        "can-use-browser",
+        "can-use-network",
+        "can-execute-transactions",
+        "can-modify-external-state",
+        "requires-human-approval",
+        "sample-tasks",
+        "policy-constraints",
+        "experiment-summary",
+        "Classified agent type(s)",
+        "Matched signals",
+        "Evidence basis",
+        "Missing evidence",
+        "Outcome prediction",
+        "Prediction confidence",
+        "Data/source references used",
+        "Recommended next evals",
+        "JSON Export",
+        "Markdown Export",
+        "sample_profiles.json",
+        "vague_unknown_agent",
+        "coding_file_reading_hybrid",
+        "browser_navigation_agent",
+        "simulated_financial_transaction_agent",
+        "contract_review_agent",
+    ):
+        assert required in combined
+
+    forbidden_runtime = ("api.openai.com", "XMLHttpRequest", "WebSocket", "eval(")
+    for forbidden in forbidden_runtime:
+        assert forbidden not in combined
+    assert "API key" not in combined
+
+
+def test_agent_eval_static_source_reference_json_exists_and_is_contextual() -> None:
+    source_path = ROOT / "docs" / "data" / "agent_eval" / "source_references.json"
+    category_path = ROOT / "docs" / "data" / "agent_eval" / "eval_categories.json"
+
+    sources = json.loads(source_path.read_text(encoding="utf-8"))["sources"]
+    categories = json.loads(category_path.read_text(encoding="utf-8"))["eval_categories"]
+
+    source_ids = {source["source_id"] for source in sources}
+    assert {
+        "openai_agent_evals_methodology",
+        "swe_bench_reference",
+        "webarena_reference",
+    }.issubset(source_ids)
+    assert all(source["reliability"] <= 0.2 for source in sources)
+    assert any(category["category_id"] == "profile_completion" for category in categories)
+
+
+def test_agent_eval_static_sample_profiles_cover_requested_cases() -> None:
+    sample_path = ROOT / "docs" / "data" / "agent_eval" / "sample_profiles.json"
+
+    profiles = json.loads(sample_path.read_text(encoding="utf-8"))["profiles"]
+    profiles_by_id = {profile["profile_id"]: profile for profile in profiles}
+
+    assert set(profiles_by_id) == {
+        "vague_unknown_agent",
+        "coding_file_reading_hybrid",
+        "browser_navigation_agent",
+        "simulated_financial_transaction_agent",
+        "contract_review_agent",
+    }
+
+    required_keys = {
+        "label",
+        "description",
+        "declared_capabilities",
+        "tools",
+        "tool_permissions",
+        "sample_tasks",
+        "policy_constraints",
+        "experiment_summary",
+        "can_read_files",
+        "can_write_files",
+        "can_run_code",
+        "can_use_browser",
+        "can_use_network",
+        "can_execute_transactions",
+        "can_modify_external_state",
+        "requires_human_approval",
+        "autonomy_level",
+    }
+    for profile in profiles:
+        assert required_keys.issubset(profile)
+
+    vague = profiles_by_id["vague_unknown_agent"]
+    assert vague["tools"] == ""
+    assert vague["sample_tasks"] == ""
+    assert vague["autonomy_level"] == "unknown"
+
+    hybrid = profiles_by_id["coding_file_reading_hybrid"]
+    assert hybrid["can_read_files"] is True
+    assert hybrid["can_write_files"] is True
+    assert hybrid["can_run_code"] is True
+    assert "cite" in hybrid["declared_capabilities"]
+
+    browser = profiles_by_id["browser_navigation_agent"]
+    assert browser["can_use_browser"] is True
+    assert browser["can_use_network"] is True
+    assert browser["requires_human_approval"] is True
+    assert "approval" in browser["policy_constraints"].lower()
+
+    finance = profiles_by_id["simulated_financial_transaction_agent"]
+    assert finance["can_execute_transactions"] is True
+    assert finance["can_modify_external_state"] is False
+    assert finance["requires_human_approval"] is True
+    assert "simulation only" in finance["policy_constraints"].lower()
+
+    contract = profiles_by_id["contract_review_agent"]
+    assert contract["can_read_files"] is True
+    assert "contract_parser" in contract["tools"]
+    assert "evidence gaps" in contract["declared_capabilities"]
 
 
 def test_static_sample_cases_are_valid_and_complete() -> None:

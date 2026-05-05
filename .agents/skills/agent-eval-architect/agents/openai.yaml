@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Eval Architect"
+  short_description: "Design evidence-driven agent evaluation frameworks."
+  default_prompt: "Use $agent-eval-architect to design an evidence-driven evaluation framework for an AI agent system."

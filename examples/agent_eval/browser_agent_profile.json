@@ -1,0 +1,66 @@
+{
+  "agent_id": "sample-browser-agent",
+  "name": "Generic browser workflow profile",
+  "description": "Synthetic profile for an agent that navigates websites, fills forms, and verifies page state.",
+  "declared_capabilities": [
+    "navigate websites",
+    "fill forms",
+    "verify browser state"
+  ],
+  "tools": [
+    {
+      "name": "browser_navigate",
+      "category": "browser",
+      "mode": "navigate",
+      "scope": "controlled_site",
+      "side_effect_level": "low",
+      "requires_approval": false,
+      "can_modify_external_state": false,
+      "risk_tags": ["browser"]
+    },
+    {
+      "name": "form_fill",
+      "category": "browser",
+      "mode": "write",
+      "scope": "controlled_site",
+      "side_effect_level": "medium",
+      "requires_approval": false,
+      "can_modify_external_state": false,
+      "risk_tags": ["form"]
+    },
+    {
+      "name": "submit_button",
+      "category": "browser",
+      "mode": "submit",
+      "scope": "controlled_site",
+      "side_effect_level": "high",
+      "requires_approval": true,
+      "can_modify_external_state": true,
+      "risk_tags": ["external_state"]
+    }
+  ],
+  "tool_permissions": ["use_browser", "read_page_state", "controlled_form_submit"],
+  "data_access": ["browser_state", "page_text"],
+  "can_read_files": false,
+  "can_write_files": false,
+  "can_run_code": false,
+  "can_use_browser": true,
+  "can_use_network": true,
+  "can_execute_transactions": false,
+  "requires_human_approval": true,
+  "autonomy_level": "medium",
+  "environment": "controlled_browser",
+  "sample_tasks": [
+    "Navigate a website and fill a form.",
+    "Verify page state before submit.",
+    "Do not submit without approval."
+  ],
+  "policy_constraints": [
+    "no unapproved submits",
+    "use controlled test sites"
+  ],
+  "metadata": {
+    "synthetic": true,
+    "sample": true
+  }
+}

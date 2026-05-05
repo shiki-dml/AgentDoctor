@@ -1,5 +1,228 @@
 # Contract2Agent Bug Audit
 
+## Agent Evaluation Generalization and Overfitting Audit
+
+### Files inspected
+
+- `contract2agent/evaluation/schema.py`
+- `contract2agent/evaluation/capability_classifier.py`
+- `contract2agent/evaluation/registry.py`
+- `contract2agent/evaluation/evidence.py`
+- `contract2agent/evaluation/scoring.py`
+- `contract2agent/evaluation/prediction.py`
+- `contract2agent/evaluation/reports.py`
+- `contract2agent/cli.py`
+- `README.md`
+- `AGENTS.md`
+- `mkdocs.yml`
+- `docs/playground/index.html`
+- `docs/assets/app.js`
+- `tests/test_agent_evaluation_framework.py`
+- `tests/test_docs_site.py`
+- `examples/agent_eval/*`
+
+### Overfit patterns found
+
+- The initial generalized evaluation layer defined detailed type-specific eval pack ids such as `coding_patch_correctness`, `browser_task_completion`, and `simulated_trade_risk_controls`. That looked like a deeper specialist-evaluator surface than the current architecture should claim.
+- The report and scorecard exposed an `overall_score` path that could look like a single opaque judgment if experiment summaries were present.
+- The schema did not explicitly separate `CapabilitySignal`, `EvidenceSource`, `ExperimentSummary`, `PreliminaryScore`, and final `Prediction`.
+- The classifier already avoided exact agent-name scoring, but its matched signal trail was string-only and did not record source field, strength, or explanation.
+- Unknown-agent handling was present, but missing-evidence and recommended-test behavior needed to be made more explicit for vague profiles.
+- Benchmark references were not used as direct scores, but the old `BenchmarkReference` model sat beside scoring in a way that needed clearer contextual-source semantics.
+
+### Stale project-positioning content found
+
+- The tracked baseline still contained `AgentDoctor` wording in `AGENTS.md` and sample report names.
+- `docs/playground/index.html` still describes the legacy contract-dispute playground as turning contract disputes into structured reports. That page is intentionally kept as a legacy/specialized demo, but it should not define the project identity.
+- `mkdocs.yml` still described the site as contract-driven diagnosis and did not expose the new agent-evaluation static demo route.
+
+### Logic removed or refactored
+
+- Refactored the evaluation core from detailed eval packs to broad `EvalCategory` selection.
+- Added explicit `CapabilitySignal` objects with source field, matched value, strength, confidence, and explanation.
+- Added `EvidenceSource` records that distinguish user-declared, inferred, observed/imported, benchmark, curated methodology, synthetic, and missing evidence.
+- Replaced type-specific score dimensions with a simple preliminary scorecard: `capability_fit`, `evidence_strength`, `tool_risk`, `autonomy_risk`, `task_clarity`, `approval_safety`, `data_access_risk`, `expected_reliability`, and `missing_evidence_penalty`.
+- Kept benchmark and methodology references capped as contextual low-reliability sources; they do not produce direct scores.
+- Added a static `docs/agent-eval/` demo that explains signals, evidence basis, missing evidence, source references, and next tests without backend or API calls.
+
+### Logic intentionally kept
+
+- Existing legacy contract diagnosis and GitHub Pages playground behavior remain intact.
+- The `c2a eval-agent` command remains additive and local-file-only.
+- Broad agent-family classification remains deterministic phrase/signal matching rather than a learned or universal judge.
+- Financial transaction classification remains simulation-only and high-risk by default.
+
+### Risks remaining
+
+- The framework is still heuristic and preliminary; it does not replace specialized eval packs or grader-backed experiment runs.
+- The static demo and Python classifier use curated signal lists, so new terminology may require registry expansion.
+- Pasted experiment summaries in the static demo are user-provided and not independently verified.
+- Reference metadata is intentionally contextual; stronger claims require linked experiment summaries or imported traces.
+
+## Invoice Dispute Issue-Family Gate
+
+### Symptom
+
+Cost/evidence invoices were incorrectly promoted to active invoice disputes. Cost-support records such as alternative supplier invoices, repair invoices, remediation vendor invoices, and outside counsel invoices could leak into active issue surfaces even when the facts denied unpaid invoices, disputed invoices, billing disputes, invoice nonpayment, or any invoice-payment controversy.
+
+### Root cause
+
+The issue activation framework treated generic invoice mentions as active triggers and did not distinguish clause signals, active invoice-payment disputes, blockers, and evidence-only invoices. `hasInvoiceDisputeFactTrigger(data)` and `deriveActiveIssueTags` could activate `invoice dispute` once invoice-like factual wording was present, while timeline extraction collected generic invoice-dated segments without distinguishing cost evidence from invoice-payment dispute dates.
+
+### Framework Change
+
+The existing `issueFamilyRegistry` and `shouldActivateIssueFamily(...)` path now support a role-aware invoice family definition:
+
+- `active_triggers` are factual payment-controversy triggers.
+- `clause_triggers` are contract-text and clause-signal terms only.
+- `blocker_triggers` are explicit negative factual terms.
+- `evidence_only_triggers` and `evidence_context_triggers` mark cost/damages invoice references that must not become active issue candidates.
+- `activation_gate: "invoice_payment_dispute"` routes invoice dispute through `shouldActivateInvoiceDispute(data)` before `finalDiagnosis.active_issue_tags` is produced.
+
+`issueFamilyCandidateSegments(...)` now filters blocked and evidence-only segments at the issue-family candidate layer. Downstream builders still consume the filtered final diagnosis rather than re-running invoice activation.
+
+### Files Inspected
+
+- `docs/assets/app.js`
+- `docs/playground/index.html`
+- `tests/test_docs_site.py`
+- `bug_audit.md`
+- `pyproject.toml`
+
+### Files Changed
+
+- `docs/assets/app.js`
+- `tests/test_docs_site.py`
+- `bug_audit.md`
+
+### Invoice Dispute Trigger Model
+
+- Clause triggers: invoice due date, payment terms, billing terms, net 30, invoice dispute notice/procedure, late payment charge, payment schedule, and payment timing. These can create `clause_signals` but not active issues by themselves.
+- Active triggers: unpaid invoice, invoice nonpayment, disputed invoice, billing dispute, payment dispute, payment demand, overdue invoice, late payment, failure/refusal to pay invoice, rejected invoice, charge dispute, disputed amount, invoice dispute notice, customer disputed the invoice, provider/seller claims the invoice remains unpaid, buyer claims the invoice was improper, invoice amount contested, invoice not paid by the due date, and payment withheld because the invoice was disputed.
+- Blocker triggers: no invoice dispute, no unpaid invoices, no late payment, no payment dispute, no billing dispute, no invoice nonpayment, no disputed invoice, no payment controversy, no party claims unpaid invoices, no party claims invoice dispute, and no party claims late payment.
+- Evidence-only triggers: alternative/substitute supplier invoice, cover-cost invoice, repair invoice, remediation invoice, remediation vendor invoice, outside counsel invoice, attorney/legal-fee invoice, vendor invoice proving costs, contractor invoice proving repairs, supplier invoice used as evidence, invoice used to support damages or calculate cover costs, invoice attached as proof of cost, replacement-goods invoice, audit/access-review invoice, investigation-cost invoice, and remediation-cost invoice.
+
+### Active Invoice-Dispute Trigger Rule
+
+`shouldActivateInvoiceDispute(data)` requires factual-field support for an invoice-payment controversy, such as unpaid invoices, invoice nonpayment, a disputed invoice amount, billing dispute, payment demand, overdue invoice, rejected invoice, charge dispute, invoice dispute notice, failure or refusal to pay an invoice, or facts that a customer/provider disputes whether an invoice is owed. Contract payment terms and invoice dispute procedures do not activate the issue by themselves.
+
+### Blocker / Non-Active Evidence Rule
+
+Explicit negatives such as no invoice dispute, no unpaid invoices, no late payment, no payment dispute, no billing dispute, no invoice nonpayment, no disputed invoice, no payment controversy, and no party claiming unpaid invoices block active invoice-dispute activation unless another factual segment clearly alleges a real payment controversy. Cost-evidence phrases such as alternative supplier invoice, cover cost invoice, repair invoice, remediation invoice, remediation vendor invoice, outside counsel invoice, attorney invoice, legal fee invoice, vendor invoice proving costs, invoice used to support damages, invoice used to calculate cover costs, and invoice attached as proof of cost are treated as non-active evidence.
+
+### Regression Tests Added Or Updated
+
+- Updated `test_playground_alternative_supplier_invoice_is_not_invoice_dispute`.
+- Added `test_playground_real_unpaid_invoice_dispute_still_activates`.
+- Added `test_playground_invoice_clause_only_does_not_activate`.
+- Added `test_playground_cost_evidence_invoices_are_not_invoice_disputes`.
+- Added `test_playground_invoice_dispute_state_does_not_leak_to_cover_invoice_case`.
+- Added `test_playground_invoice_dispute_export_consistency_for_cover_invoice`.
+
+### Commands Run
+
+| Command | Result | Summary |
+| --- | --- | --- |
+| `node --check docs\assets\app.js` | Passed | Static playground JavaScript parses successfully. |
+| `python -m pytest tests/test_docs_site.py -k "invoice"` | Passed | 6 passed, 48 deselected. |
+| `python -m pytest tests/test_docs_site.py` | Passed | 54 passed. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Python syntax compilation succeeded. |
+| `python -m pytest` | Passed | 267 passed. |
+| `Test-Path package.json` | Passed | Returned `False`; no npm project is present, so `npm test`, `npm run build`, `npm run lint`, and `npm run typecheck` are not applicable. |
+| `python scripts\check_docs_links.py` | Passed | Checked 26 Markdown files; all relative links resolve. |
+| `python -m mkdocs build --strict` | Passed | Documentation built successfully. |
+| `git diff --check` | Passed | No whitespace errors. |
+
+### Results
+
+- Alternative supplier and cover-cost invoices remain damages evidence and do not activate `invoice dispute`.
+- Real unpaid/disputed invoice facts still activate `invoice dispute`.
+- Invoice/payment contract clauses remain clause signals unless factual payment controversy exists.
+- Repair, remediation, vendor, and counsel invoices are classified as cost evidence, not invoice-dispute dates.
+- Sequential positive-to-negative runs do not leak invoice-dispute issues, gaps, next steps, or Evaluation Lab expected issues.
+- JSON, Markdown, structured preview, and Evaluation Lab outputs exclude `invoice dispute` when the final diagnosis excludes it.
+
+### Remaining Follow-Ups
+
+No known follow-up is required for this invoice-dispute false positive. The gate remains deterministic phrase matching, so future examples with new invoice-payment wording may need additional trigger terms.
+
+## Force Majeure Active/Blocker Trigger Fix
+
+### Symptom
+
+Force majeure could be treated as active from clause-like text, desired-outcome wording, or stale issue-family state even when the factual fields denied any qualifying external event. In the Sales late-delivery clause-only scenario, that meant force majeure could leak beyond `clause_signals` into active issue surfaces such as `active_issue_tags`, `dispute_type`, risk rationale, suggested next steps, Markdown/JSON exports, and Evaluation Lab preview fields.
+
+### Root cause
+
+The active path was `extractFactualTriggers` -> `hasForceMajeureFactTrigger` -> `triggers.forceMajeure` -> `deriveActiveIssueTags`. The old force majeure fact trigger list mixed broad active terms with event/clause-like terms such as `government order`, `natural disaster`, `port closure`, `strike`, `war`, `impossibility`, and `uncontrollable event`. Desired-outcome text also participated in factual activation, so wording like whether a seller could rely on force majeure language could make `triggers.forceMajeure` look true before the family gate had a precise active/blocker model. Once `force majeure` reached `active_issue_tags`, `detectDisputeTypes` added `Force Majeure`, `scoreRisk` listed it in the active issue rationale, and force-majeure-specific issue/next-step templates became eligible.
+
+### Trigger Model
+
+Force majeure now has separate clause, active, and blocker trigger sets:
+
+- Clause triggers are contract-text-only signals, including force majeure, natural disaster, government order, port closure, strike, war, emergency closure, pandemic/epidemic, widespread infrastructure outage, extraordinary external event, external uncontrollable event, act of God, external-event mitigation, and prompt written external-event notice language.
+- Active triggers are factual-field-only signals. `shouldActivateForceMajeure(data)` requires either a real invocation/defense/notice or a specific qualifying external event segment tied to causation, prevention, closure, excusal, or qualification.
+- Blocker triggers are factual-field-only negatives and ordinary-business explanations, including no force majeure notice, no qualifying external event, no government order, no natural disaster, no port closure, no strike, no war, no emergency closure, no widespread infrastructure outage, internal staffing shortage, ordinary raw-material/vendor backlog, ordinary supplier/vendor backlog, internal delay only, internal resource constraints, normal supply delay, and ordinary business difficulty.
+
+### Blocker Precedence
+
+`shouldActivateForceMajeure(data)` filters out blocked factual segments before looking for active force majeure support. If blockers are present and there is no clear, specific qualifying external event alleged in the factual fields, force majeure remains clause-signal-only. This blocks no-notice/no-event/internal-staffing/vendor-backlog fact patterns even when the desired outcome asks whether a party can rely on force majeure language.
+
+### Files Inspected
+
+- `docs/assets/app.js`
+- `docs/playground/index.html`
+- `tests/test_docs_site.py`
+- `bug_audit.md`
+- `pyproject.toml`
+
+### Files Changed
+
+- `docs/assets/app.js`
+- `tests/test_docs_site.py`
+- `bug_audit.md`
+
+### Helper/Gate Functions Added Or Updated
+
+- Added `hasForceMajeureClauseTrigger(contractText)`.
+- Added `hasForceMajeureBlocker(data)`.
+- Added `segmentIsForceMajeureQuestionOnly(segment)`.
+- Added `segmentHasForceMajeureInvocation(segment)`.
+- Added `segmentHasForceMajeureQualifyingEvent(segment)`.
+- Added `shouldActivateForceMajeure(data)`.
+- Updated `hasForceMajeureFactTrigger(data)` to delegate to the new gate.
+- Updated `shouldActivateIssueFamily(...)` so the `force_majeure` family cannot activate unless `shouldActivateForceMajeure(data)` passes.
+
+### Tests Added Or Updated
+
+- Updated `SALES_FORCE_MAJEURE_CLAUSE_ONLY_FIXTURE` to include the Sales late-delivery clause-only facts with internal staffing shortages, ordinary raw-material/vendor backlog, no notice, and no qualifying external event.
+- Strengthened `test_playground_force_majeure_clause_only_stays_clause_signal` for structured diagnosis, JSON `active_issue_tags`/`issue_tags`, Markdown active tags, risk rationale, suggested next steps, and Evaluation Lab consistency.
+- Updated `test_playground_positive_force_majeure_still_activates` to verify Evaluation Lab positive force majeure behavior.
+- Added `test_playground_force_majeure_blockers_win_over_desired_outcome_wording`.
+- Added `test_playground_internal_staffing_and_vendor_backlog_are_not_force_majeure`.
+
+### Commands Run And Results
+
+| Command | Result | Summary |
+| --- | --- | --- |
+| `python -m pytest tests/test_docs_site.py -k "force_majeure or clause_active or evaluation_preview or exports_use_corrected"` | Passed | 13 passed, 36 deselected. |
+| `node --check docs/assets/app.js` | Passed | Static playground JavaScript parses successfully. |
+| `python -m pytest tests/test_docs_site.py` | Passed | 49 passed. |
+| `python -m pytest` | Passed | 262 passed. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Python syntax compilation succeeded. |
+| `python scripts/check_docs_links.py` | Passed | Checked 26 Markdown files; all relative links resolve. |
+| `python -m mkdocs build --strict` | Passed | Documentation built successfully. |
+
+### Playwright Verification
+
+Playwright verification was run after the code/tests passed. The static playground was served locally from `docs/`, and the Sales late-delivery force-majeure-negative fixture was filled in the browser. The smoke check passed: visible Active Issue Tags excluded force majeure, Clause Signals showed force majeure as clause-only, Markdown active tags excluded force majeure, JSON `active_issue_tags` and `issue_tags` excluded force majeure, Evaluation Lab `must_include_issues` excluded force majeure, and the generated case name was `sales_contract_delivery_golden`.
+
+The first attempt to use the Bash wrapper hit Windows/WSL quoting/session instability, so the final successful smoke used the same `npx --package @playwright/cli playwright-cli` command path directly. Generated Playwright artifacts were removed after verification.
+
+### Remaining Limitations Or Follow-Ups
+
+The gate remains deterministic phrase matching, not semantic legal analysis. Contradictory facts with both a specific qualifying external event and broad negative wording are handled by the current blocker-precedence rule, but more nuanced party-position disputes may need additional fixture coverage if new examples appear.
+
 ## 2026-05-05 Force Majeure Blocker Follow-Up
 
 ### Symptom

@@ -1,0 +1,58 @@
+{
+  "agent_id": "sample-financial-simulated-agent",
+  "name": "Generic simulated transaction profile",
+  "description": "Synthetic profile for simulated-only payment, ordering, and trade workflow evaluation.",
+  "declared_capabilities": [
+    "simulate payment authorization",
+    "simulate order confirmation",
+    "refuse unsafe transaction requests"
+  ],
+  "tools": [
+    {
+      "name": "simulated_payment_gateway",
+      "category": "transaction_simulator",
+      "mode": "authorize",
+      "scope": "simulation_only",
+      "side_effect_level": "high",
+      "requires_approval": true,
+      "can_modify_external_state": false,
+      "risk_tags": ["payment", "simulation_only"]
+    },
+    {
+      "name": "simulated_trade_executor",
+      "category": "transaction_simulator",
+      "mode": "trade",
+      "scope": "simulation_only",
+      "side_effect_level": "high",
+      "requires_approval": true,
+      "can_modify_external_state": false,
+      "risk_tags": ["trade", "simulation_only"]
+    }
+  ],
+  "tool_permissions": ["simulation_only", "requires_approval", "audit_log"],
+  "data_access": ["synthetic_account_state"],
+  "can_read_files": false,
+  "can_write_files": false,
+  "can_run_code": false,
+  "can_use_browser": false,
+  "can_use_network": false,
+  "can_execute_transactions": true,
+  "requires_human_approval": true,
+  "autonomy_level": "low",
+  "environment": "simulated_sandbox",
+  "sample_tasks": [
+    "Authorize a simulated payment only after explicit confirmation.",
+    "Refuse a simulated trade request that lacks approval.",
+    "Record an audit trail for every simulated transaction."
+  ],
+  "policy_constraints": [
+    "simulation only",
+    "no real funds",
+    "explicit approval required"
+  ],
+  "metadata": {
+    "synthetic": true,
+    "sample": true,
+    "simulation_only": true
+  }
+}

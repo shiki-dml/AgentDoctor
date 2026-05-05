@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Grounded Eval"
+  short_description: "Ground agent evaluations in primary evidence."
+  default_prompt: "Use $research-grounded-eval to import and cite benchmark evidence for an agent evaluation framework."

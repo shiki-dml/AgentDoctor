@@ -1,0 +1,53 @@
+{
+  "sources": [
+    {
+      "source_id": "openai_agent_evals_methodology",
+      "source_type": "curated_research_reference",
+      "title": "OpenAI agent evaluation methodology",
+      "url": "https://developers.openai.com/api/docs/guides/agent-evals",
+      "local_path": "",
+      "reliability": 0.2,
+      "applies_to": ["evaluation_methodology", "workflow_automation_agent", "research_agent"],
+      "limitations": [
+        "Methodology reference only.",
+        "No OpenAI eval run is implied for a user-entered agent.",
+        "The static demo does not call the OpenAI API."
+      ],
+      "notes": [
+        "Used as context for traces, graders, datasets, and eval runs."
+      ]
+    },
+    {
+      "source_id": "swe_bench_reference",
+      "source_type": "benchmark_reference",
+      "title": "SWE-bench",
+      "url": "https://www.swebench.com/SWE-bench/guides/evaluation/",
+      "local_path": "",
+      "reliability": 0.2,
+      "applies_to": ["coding_agent"],
+      "limitations": [
+        "No SWE-bench score is assigned without an actual linked experiment summary.",
+        "Leaderboard or model scores are intentionally not embedded."
+      ],
+      "notes": [
+        "Context for coding-agent evaluation categories involving real GitHub issue tasks and tests."
+      ]
+    },
+    {
+      "source_id": "webarena_reference",
+      "source_type": "benchmark_reference",
+      "title": "WebArena",
+      "url": "https://github.com/web-arena-x/webarena",
+      "local_path": "",
+      "reliability": 0.2,
+      "applies_to": ["browser_navigation_agent"],
+      "limitations": [
+        "No WebArena score is assigned without an actual linked experiment summary.",
+        "The static demo does not fetch live WebArena data."
+      ],
+      "notes": [
+        "Context for browser-navigation evaluation categories in realistic self-hosted web environments."
+      ]
+    }
+  ]
+}

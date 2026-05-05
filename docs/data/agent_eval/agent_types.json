@@ -1,0 +1,58 @@
+{
+  "agent_types": [
+    {
+      "type_id": "coding_agent",
+      "label": "Coding Agent",
+      "description": "Reads, edits, or tests repository code and prepares patch-style changes.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "file_reading_agent",
+      "label": "File Reading Agent",
+      "description": "Reads provided files and answers with grounded evidence or citations.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "browser_navigation_agent",
+      "label": "Browser Navigation Agent",
+      "description": "Navigates websites, inspects browser state, and may fill or submit forms.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "contract_review_agent",
+      "label": "Contract Review Agent",
+      "description": "Reviews contracts, rules, obligations, clauses, and fact/evidence gaps.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "research_agent",
+      "label": "Research Agent",
+      "description": "Finds, evaluates, and synthesizes sources with uncertainty handling.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "workflow_automation_agent",
+      "label": "Workflow Automation Agent",
+      "description": "Coordinates multi-step tool workflows, routing, handoff, and state.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "financial_transaction_agent_simulated",
+      "label": "Financial Transaction Agent (Simulated)",
+      "description": "Handles simulated-only payment, ordering, trading, or transfer workflows.",
+      "simulation_only": true
+    },
+    {
+      "type_id": "general_tool_use_agent",
+      "label": "General Tool-Use Agent",
+      "description": "Uses tools but does not fit a more specific broad family from supplied evidence.",
+      "simulation_only": false
+    },
+    {
+      "type_id": "unknown_agent",
+      "label": "Unknown Agent",
+      "description": "Fallback when supplied evidence is too sparse for a concrete family.",
+      "simulation_only": false
+    }
+  ]
+}

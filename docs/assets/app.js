@@ -116,31 +116,293 @@
     evidence: ["email", "invoice", "receipt", "log", "message", "signed", "proof"]
   };
 
-  const forceMajeureFactTriggers = [
-    "force majeure notice",
+  const forceMajeureClauseTriggers = [
+    "force majeure",
+    "natural disaster",
+    "government order",
+    "government orders",
+    "port closure",
+    "port closures",
+    "strike",
+    "strikes",
+    "war",
+    "emergency closure",
+    "emergency closures",
+    "pandemic",
+    "epidemic",
+    "widespread infrastructure outage",
+    "widespread infrastructure outages",
+    "extraordinary external event",
+    "extraordinary external events",
+    "external uncontrollable event",
+    "external uncontrollable events",
+    "act of god",
+    "acts of god",
+    "mitigation after external event",
+    "prompt written notice for external event"
+  ];
+
+  const forceMajeureQualifyingEventTriggers = [
+    "government order",
+    "government orders",
+    "government emergency order",
+    "government emergency orders",
+    "government closure",
+    "natural disaster",
+    "natural disasters",
+    "port closure",
+    "port closures",
+    "strike",
+    "strikes",
+    "war",
+    "emergency closure",
+    "emergency closures",
+    "pandemic",
+    "epidemic",
+    "widespread infrastructure outage",
+    "widespread infrastructure outages",
+    "extraordinary external event",
+    "extraordinary external events",
+    "external uncontrollable event",
+    "external uncontrollable events",
+    "act of god",
+    "acts of god"
+  ];
+
+  const forceMajeureInvocationTriggers = [
+    "party invokes force majeure",
+    "party invoked force majeure",
+    "party claims force majeure",
+    "party claimed force majeure",
     "invokes force majeure",
     "invoked force majeure",
     "claims force majeure",
     "claimed force majeure",
-    "force majeure event",
+    "asserts force majeure",
+    "asserted force majeure",
+    "force majeure defense",
+    "force majeure notice",
+    "affected party gave prompt written force majeure notice",
+    "delay excused by force majeure",
+    "performance excused by force majeure",
+    "performance excused by external event",
     "force majeure prevented",
-    "excused by force majeure",
-    "government order",
-    "government action",
-    "natural disaster",
-    "port closure",
-    "emergency closure",
-    "extraordinary external event",
-    "pandemic",
-    "war",
-    "strike",
-    "impossibility",
-    "external disruption",
-    "uncontrollable event",
-    "third-party outage",
-    "third party outage",
-    "performance excused",
-    "prevented performance"
+    "force majeure event",
+    "dispute over whether the external event qualifies as force majeure",
+    "qualifies as force majeure",
+    "qualifies as a force majeure event"
+  ];
+
+  const forceMajeureFactTriggers = forceMajeureInvocationTriggers.concat(
+    forceMajeureQualifyingEventTriggers,
+    [
+      "nonperformance caused by government order",
+      "delay caused by natural disaster",
+      "delay caused by port closure",
+      "delay caused by strike",
+      "delay caused by war",
+      "delay caused by emergency closure",
+      "delay caused by pandemic",
+      "delay caused by epidemic",
+      "delay caused by widespread infrastructure outage",
+      "extraordinary external event prevented performance",
+      "party mitigated a qualifying external event"
+    ]
+  );
+
+  const forceMajeureBlockerTriggers = [
+    "no force majeure",
+    "no force majeure notice",
+    "no force majeure event",
+    "no government order",
+    "no natural disaster",
+    "no port closure",
+    "no strike",
+    "no war",
+    "no emergency closure",
+    "no widespread infrastructure outage",
+    "no extraordinary external event",
+    "no external uncontrollable event",
+    "no qualifying external event",
+    "no external event",
+    "no party invokes force majeure",
+    "no party claims force majeure",
+    "no party claims government order",
+    "no party claims natural disaster",
+    "neither party invokes force majeure",
+    "neither party claims force majeure",
+    "force majeure appears only",
+    "internal staffing shortage",
+    "internal staffing shortages",
+    "ordinary staffing shortage",
+    "ordinary raw-material vendor backlog",
+    "ordinary raw material vendor backlog",
+    "ordinary raw-material/vendor backlog",
+    "ordinary raw material/vendor backlog",
+    "ordinary vendor backlog",
+    "ordinary supplier backlog",
+    "ordinary component backlog",
+    "internal delay only",
+    "internal resource constraint",
+    "internal resource constraints",
+    "provider staffing issue",
+    "provider staffing issues",
+    "seller staffing issue",
+    "seller staffing issues",
+    "normal supply delay",
+    "ordinary business difficulty"
+  ];
+
+  const invoiceDisputeActiveTriggers = [
+    "unpaid invoice",
+    "unpaid invoices",
+    "invoice nonpayment",
+    "invoice non-payment",
+    "non-payment of invoice",
+    "nonpayment of invoice",
+    "disputed invoice",
+    "disputed invoices",
+    "billing dispute",
+    "charge dispute",
+    "payment demand",
+    "provider demanded payment",
+    "provider demands payment",
+    "overdue invoice",
+    "overdue invoices",
+    "failure to pay invoice",
+    "failed to pay invoice",
+    "customer did not pay invoice",
+    "customer did not pay by the due date",
+    "customer refused to pay invoice",
+    "refused to pay invoice",
+    "rejected invoice",
+    "invoice rejection",
+    "disputed amount",
+    "invoice dispute notice",
+    "written invoice dispute",
+    "customer disputed the invoice",
+    "customer disputes the invoice",
+    "provider claims invoice remains unpaid",
+    "invoice remains unpaid",
+    "invoices remain unpaid",
+    "seller claims buyer failed to pay",
+    "supplier claims buyer failed to pay",
+    "buyer claims invoice was improper",
+    "buyer disputes invoice amount",
+    "invoice amount is contested",
+    "invoice was not paid by the due date",
+    "invoice was not paid by due date",
+    "invoice was not paid",
+    "payment withheld because invoice was disputed",
+    "outstanding invoice",
+    "outstanding invoices",
+    "overage fees disputed"
+  ];
+
+  const invoiceDisputePaymentControversyTerms = [
+    "payment dispute",
+    "payment demand",
+    "late payment",
+    "unpaid",
+    "nonpayment",
+    "non-payment",
+    "did not pay",
+    "failed to pay",
+    "failure to pay",
+    "refused to pay",
+    "overdue",
+    "withheld payment",
+    "payment withheld",
+    "not paid",
+    "owed",
+    "remains unpaid",
+    "contested",
+    "improper",
+    "rejected",
+    "disputed"
+  ];
+
+  const invoiceDisputeBlockerTriggers = [
+    "no invoice dispute",
+    "not an invoice dispute",
+    "no unpaid invoice",
+    "no unpaid invoices",
+    "no late payment",
+    "no payment dispute",
+    "no billing dispute",
+    "no invoice nonpayment",
+    "no invoice non-payment",
+    "no disputed invoice",
+    "no disputed invoices",
+    "no payment controversy",
+    "no party claims unpaid invoices",
+    "no party claims invoice dispute",
+    "no party claims late payment",
+    "no invoice payment demand",
+    "not an invoice payment demand",
+    "not a payment demand",
+    "not an unpaid invoice",
+    "not a billing dispute",
+    "not a payment controversy"
+  ];
+
+  const invoiceCostEvidenceTriggers = [
+    "alternative supplier invoice",
+    "alternate supplier invoice",
+    "substitute supplier invoice",
+    "cover cost invoice",
+    "cover-cost invoice",
+    "repair invoice",
+    "remediation invoice",
+    "remediation vendor invoice",
+    "outside counsel invoice",
+    "attorney invoice",
+    "legal fee invoice",
+    "legal-fee invoice",
+    "vendor invoice proving costs",
+    "contractor invoice proving repairs",
+    "supplier invoice used as evidence",
+    "invoice used to prove cover costs",
+    "invoice used as cover-cost evidence",
+    "invoice used to support damages",
+    "invoice used to calculate cover costs",
+    "invoice attached as proof of cost",
+    "invoice for replacement goods",
+    "invoice for audit",
+    "invoice for access review",
+    "invoice for investigation costs",
+    "invoice for remediation costs"
+  ];
+
+  const invoiceCostEvidenceContextTerms = [
+    "alternative supplier",
+    "alternate supplier",
+    "substitute supplier",
+    "cover cost",
+    "cover costs",
+    "cover-cost",
+    "repair",
+    "repairs",
+    "remediation",
+    "outside counsel",
+    "counsel",
+    "attorney",
+    "legal fee",
+    "legal fees",
+    "vendor",
+    "contractor",
+    "supplier",
+    "replacement goods",
+    "investigation costs",
+    "audit",
+    "access review",
+    "forensic",
+    "damages",
+    "cost evidence",
+    "proof of cost",
+    "prove costs",
+    "support damages",
+    "calculate cover costs"
   ];
 
   const issueFamilyRegistry = {
@@ -172,32 +434,29 @@
       blocker_terms: ["unpaid invoice", "unpaid invoices", "overdue invoice", "overdue invoices", "non-payment", "nonpayment", "payment", "invoice", "invoices"]
     },
     invoice_dispute: {
-      active_triggers: [
+      id: "invoice_dispute",
+      label: "invoice dispute",
+      activation_gate: "invoice_payment_dispute",
+      active_triggers: invoiceDisputeActiveTriggers,
+      clause_triggers: [
+        "invoice due date",
+        "payment terms",
+        "billing terms",
+        "net 30",
         "invoice dispute notice",
-        "written invoice dispute",
-        "disputed invoice",
-        "disputed invoices",
-        "disputed amount",
-        "dispute the invoice",
+        "invoice dispute procedure",
+        "late payment charge",
+        "payment schedule",
+        "payment timing",
         "disputes an invoice",
-        "invoice was disputed",
-        "invoices were disputed",
-        "charge dispute",
-        "billing dispute",
-        "payment demand",
-        "failure to pay invoice",
-        "invoice rejection"
+        "disputed amount",
+        "basis for dispute"
       ],
-      clause_triggers: ["disputes an invoice", "disputed amount", "basis for dispute"],
-      negative_triggers: [
-        "no invoice dispute",
-        "not an invoice dispute",
-        "no disputed invoice",
-        "no disputed invoices",
-        "no unpaid invoice",
-        "no billing dispute"
-      ],
-      blocker_terms: ["invoice dispute", "disputed invoice", "disputed invoices", "charge dispute", "invoice", "invoices"]
+      blocker_triggers: invoiceDisputeBlockerTriggers,
+      negative_triggers: invoiceDisputeBlockerTriggers,
+      evidence_only_triggers: invoiceCostEvidenceTriggers,
+      evidence_context_triggers: invoiceCostEvidenceContextTerms,
+      blocker_terms: invoiceDisputeBlockerTriggers.concat(invoiceDisputeActiveTriggers, invoiceCostEvidenceTriggers, ["invoice", "invoices", "billing", "payment controversy"])
     },
     refund: {
       active_triggers: [
@@ -324,30 +583,9 @@
     },
     force_majeure: {
       active_triggers: forceMajeureFactTriggers,
-      clause_triggers: ["force majeure", "government order", "natural disaster", "port closure", "strike", "war", "emergency closure", "extraordinary external event", "external uncontrollable event"],
-      negative_triggers: [
-        "no force majeure",
-        "no force majeure notice",
-        "no government order",
-        "no natural disaster",
-        "no port closure",
-        "no strike",
-        "no war",
-        "no emergency closure",
-        "no extraordinary external event",
-        "no external uncontrollable event",
-        "no external event",
-        "no party invokes force majeure",
-        "no party claims force majeure",
-        "no party claims government order",
-        "no party claims natural disaster",
-        "force majeure appears only",
-        "internal staffing shortage only",
-        "ordinary vendor backlog only",
-        "ordinary raw-material backlog only",
-        "ordinary raw material backlog only"
-      ],
-      blocker_terms: ["force majeure", "government order", "natural disaster", "port closure", "strike", "war", "emergency closure", "extraordinary external event", "external uncontrollable event", "external event"]
+      clause_triggers: forceMajeureClauseTriggers,
+      negative_triggers: forceMajeureBlockerTriggers,
+      blocker_terms: forceMajeureBlockerTriggers.concat(forceMajeureQualifyingEventTriggers, ["force majeure", "external event"])
     },
     confidentiality: {
       active_triggers: [
@@ -597,9 +835,14 @@
 
   function registryEntry(family) {
     return issueFamilyRegistry[family] || {
+      id: family,
+      label: family,
       active_triggers: [],
       clause_triggers: [],
+      blocker_triggers: [],
       negative_triggers: [],
+      evidence_only_triggers: [],
+      evidence_context_triggers: [],
       blocker_terms: []
     };
   }
@@ -610,6 +853,10 @@
       (entry.blocker_terms || [])
         .concat(entry.active_triggers || [])
         .concat(entry.clause_triggers || [])
+        .concat(entry.blocker_triggers || [])
+        .concat(entry.negative_triggers || [])
+        .concat(entry.evidence_only_triggers || [])
+        .concat(entry.evidence_context_triggers || [])
     );
   }
 
@@ -617,6 +864,9 @@
     const lower = normalize(segment);
     const entry = registryEntry(family);
     const familyTerms = familyBlockerTerms(family);
+    const blockers = uniqueValues(
+      (entry.blocker_triggers || []).concat(entry.negative_triggers || [])
+    );
     const genericDenial = hasAny(lower, [
       "no party claims",
       "no party seeks",
@@ -630,22 +880,23 @@
       "does not seek",
       "does not invoke",
       "not invoked",
+      "not an",
       "not a"
     ]);
     return (
-      hasAny(lower, entry.negative_triggers || []) ||
+      hasAny(lower, blockers) ||
+      segmentIsEvidenceOnlyForFamily(lower, family) ||
       (genericDenial && hasAny(lower, familyTerms))
     );
   }
 
+  function issueFamilyCandidateSegments(text, family) {
+    return splitSegments(text).filter((segment) => !segmentBlocksFamily(segment, family));
+  }
+
   function hasIssueFactTrigger(data, family, extraTriggers) {
     const triggers = (extraTriggers || []).concat(registryEntry(family).active_triggers || []);
-    return splitSegments(activeTriggerText(data)).some((segment) => {
-      if (segmentBlocksFamily(segment, family)) {
-        return false;
-      }
-      return hasAny(segment, triggers);
-    });
+    return issueFamilyCandidateSegments(activeTriggerText(data), family).some((segment) => hasAny(segment, triggers));
   }
 
   function familyBlocked(data, family, positiveTrigger) {
@@ -659,12 +910,145 @@
     return splitSegments(activeTriggerText(data)).some((segment) => segmentBlocksFamily(segment, family));
   }
 
-  function shouldActivateIssueFamily(data, family, clauseSignals, activeTrigger, clausePhrases, options) {
-    const config = options || {};
-    if (family === "force_majeure" && hasFamilyBlocker(data, family)) {
+  function hasForceMajeureClauseTrigger(contractText) {
+    return hasAny(contractText, forceMajeureClauseTriggers);
+  }
+
+  function hasForceMajeureBlocker(data) {
+    return hasFamilyBlocker(data, "force_majeure");
+  }
+
+  function segmentHasInvoiceCostEvidence(segment) {
+    const entry = registryEntry("invoice_dispute");
+    return (
+      hasAny(segment, entry.evidence_only_triggers || []) ||
+      (hasAny(segment, ["invoice", "invoices"]) && hasAny(segment, entry.evidence_context_triggers || []))
+    );
+  }
+
+  function segmentHasInvoicePaymentControversy(segment) {
+    return (
+      hasAny(segment, invoiceDisputeActiveTriggers) ||
+      hasAny(segment, ["billing dispute", "charge dispute"]) ||
+      (
+        hasAny(segment, ["invoice", "invoices", "billing", "charge", "disputed amount", "overage fees"]) &&
+        hasAny(segment, invoiceDisputePaymentControversyTerms)
+      )
+    );
+  }
+
+  function segmentHasInvoiceDisputeActiveTrigger(segment) {
+    if (segmentHasInvoiceCostEvidence(segment) && !segmentHasInvoicePaymentControversy(segment)) {
       return false;
     }
-    if (!activeTrigger || familyBlocked(data, family, activeTrigger)) {
+    return segmentHasInvoicePaymentControversy(segment);
+  }
+
+  function segmentIsEvidenceOnlyForFamily(segment, family) {
+    const lower = normalize(segment);
+    const entry = registryEntry(family);
+
+    if (family === "invoice_dispute") {
+      return segmentHasInvoiceCostEvidence(lower) && !segmentHasInvoicePaymentControversy(lower);
+    }
+    return hasAny(lower, entry.evidence_only_triggers || []);
+  }
+
+  function hasInvoiceDisputeExplicitBlocker(data) {
+    const entry = registryEntry("invoice_dispute");
+    return splitSegments(activeTriggerText(data)).some((segment) =>
+      hasAny(segment, entry.blocker_triggers || entry.negative_triggers || [])
+    );
+  }
+
+  function hasInvoiceDisputeActiveSegment(text) {
+    return issueFamilyCandidateSegments(text, "invoice_dispute").some(segmentHasInvoiceDisputeActiveTrigger);
+  }
+
+  function shouldActivateInvoiceDispute(data) {
+    if (hasInvoiceDisputeExplicitBlocker(data)) {
+      return hasInvoiceDisputeActiveSegment(nonDesiredActiveTriggerText(data));
+    }
+    return hasInvoiceDisputeActiveSegment(activeTriggerText(data));
+  }
+
+  function segmentIsForceMajeureQuestionOnly(segment) {
+    return hasAny(segment, [
+      "assess force majeure",
+      "whether seller can rely on force majeure",
+      "whether provider can rely on force majeure",
+      "whether party can rely on force majeure",
+      "can rely on force majeure language",
+      "cannot rely on force majeure",
+      "rely on force majeure language"
+    ]);
+  }
+
+  function segmentHasForceMajeureInvocation(segment) {
+    if (segmentIsForceMajeureQuestionOnly(segment)) {
+      return false;
+    }
+    return hasAny(segment, forceMajeureInvocationTriggers);
+  }
+
+  function segmentHasForceMajeureQualifyingEvent(segment) {
+    if (!hasAny(segment, forceMajeureQualifyingEventTriggers)) {
+      return false;
+    }
+    return hasAny(segment, [
+      "because",
+      "caused",
+      "caused by",
+      "closed",
+      "closing",
+      "issued",
+      "prevented",
+      "prevents",
+      "prevent timely performance",
+      "prevented performance",
+      "prevented shipment",
+      "blocked",
+      "halted",
+      "excused",
+      "qualifies",
+      "qualifying",
+      "made performance impossible",
+      "performance excused",
+      "nonperformance"
+    ]);
+  }
+
+  function shouldActivateForceMajeure(data) {
+    const positiveSegments = splitSegments(activeTriggerText(data)).filter(
+      (segment) => !segmentBlocksFamily(segment, "force_majeure")
+    );
+    const hasSpecificQualifyingEvent = positiveSegments.some(segmentHasForceMajeureQualifyingEvent);
+    const hasInvocation = positiveSegments.some(segmentHasForceMajeureInvocation);
+
+    if (!hasSpecificQualifyingEvent && hasForceMajeureBlocker(data)) {
+      return false;
+    }
+    return hasSpecificQualifyingEvent || hasInvocation;
+  }
+
+  function customIssueFamilyGateAllows(data, family) {
+    const gate = registryEntry(family).activation_gate;
+
+    if (gate === "invoice_payment_dispute") {
+      return shouldActivateInvoiceDispute(data);
+    }
+    if (family === "force_majeure" && !shouldActivateForceMajeure(data)) {
+      return false;
+    }
+    return true;
+  }
+
+  function shouldActivateIssueFamily(data, family, clauseSignals, activeTrigger, clausePhrases, options) {
+    const config = options || {};
+    if (!activeTrigger || !customIssueFamilyGateAllows(data, family)) {
+      return false;
+    }
+    if (familyBlocked(data, family, activeTrigger)) {
       return false;
     }
     if (config.requireClause === false) {
@@ -733,6 +1117,24 @@
       "claimantPosition",
       "respondentPosition",
       "evidence",
+      "missingEvidence",
+      "missingUnclearEvidence",
+      "partyPositions",
+      "requestedRemedies",
+      "metadata"
+    ]);
+  }
+
+  function nonDesiredActiveTriggerText(data) {
+    return collectCaseText(data, [
+      "disputeDescription",
+      "claimantPosition",
+      "respondentPosition",
+      "evidence",
+      "missingEvidence",
+      "missingUnclearEvidence",
+      "partyPositions",
+      "requestedRemedies",
       "metadata"
     ]);
   }
@@ -926,11 +1328,53 @@
     }
     splitSegments(source).forEach((segment) => {
       const lower = normalize(segment);
-      if (lower.includes("invoice") && !hasAny(segment, ["notice", "suspend", "termination", "terminated"])) {
+      if (lower.includes("invoice") && !segmentHasInvoiceCostEvidence(segment) && !hasAny(segment, ["notice", "suspend", "termination", "terminated"])) {
         extractDates(segment).forEach((date) => addUnique(direct, date));
       }
     });
     return direct;
+  }
+
+  function invoiceCostEvidenceLabel(segment) {
+    if (hasAny(segment, ["alternative supplier", "alternate supplier", "substitute supplier", "cover cost", "cover costs", "cover-cost", "replacement goods"])) {
+      return "cover-cost evidence";
+    }
+    if (hasAny(segment, ["repair", "repairs", "contractor"])) {
+      return "repair-cost evidence";
+    }
+    if (hasAny(segment, ["remediation", "forensic"])) {
+      return "remediation-cost evidence";
+    }
+    if (hasAny(segment, ["outside counsel", "counsel", "attorney", "legal fee", "legal fees"])) {
+      return "legal-fee evidence";
+    }
+    if (hasAny(segment, ["vendor", "supplier"])) {
+      return "vendor cost evidence";
+    }
+    if (hasAny(segment, ["investigation", "audit", "access review"])) {
+      return "investigation-cost evidence";
+    }
+    return "cost evidence";
+  }
+
+  function extractInvoiceCostEvidenceTimeline(data) {
+    const source = collectCaseText(data, [
+      "disputeDescription",
+      "claimantPosition",
+      "respondentPosition",
+      "evidence",
+      "metadata"
+    ]);
+    const timeline = [];
+    splitSegments(source).forEach((segment) => {
+      if (!segmentHasInvoiceCostEvidence(segment)) {
+        return;
+      }
+      extractDates(segment).forEach((date) => {
+        addUnique(timeline, `${date}: ${invoiceCostEvidenceLabel(segment)} invoice.`);
+      });
+    });
+    return timeline;
   }
 
   function extractNoticeDates(data) {
@@ -1191,20 +1635,7 @@
   }
 
   function hasForceMajeureFactTrigger(data) {
-    const facts = activeTriggerText(data);
-    const longTriggers = forceMajeureFactTriggers
-      .filter((trigger) => !["war", "strike"].includes(trigger))
-      .concat([
-        "external uncontrollable event",
-        "export restriction",
-        "port closure"
-      ]);
-    return splitSegments(facts).some((segment) => {
-      if (segmentBlocksFamily(segment, "force_majeure")) {
-        return false;
-      }
-      return hasAny(segment, longTriggers) || /\b(?:war|strike)\b/i.test(segment);
-    });
+    return shouldActivateForceMajeure(data);
   }
 
   function hasConfidentialityClause(contractText) {
@@ -1219,13 +1650,7 @@
   }
 
   function hasInvoiceDisputeFactTrigger(data) {
-    return hasIssueFactTrigger(data, "invoice_dispute", [
-      "overage fees disputed",
-      "invoice nonpayment",
-      "invoice non-payment",
-      "non-payment of invoice",
-      "nonpayment of invoice"
-    ]);
+    return shouldActivateInvoiceDispute(data);
   }
 
   function hasPaymentFactTrigger(data) {
@@ -1633,7 +2058,7 @@
         addUnique(signals, "defense control / settlement consent");
       }
     }
-    if (hasAny(contractText, ["force majeure"])) {
+    if (hasForceMajeureClauseTrigger(contractText)) {
       addUnique(
         signals,
         hasForceMajeureFactTrigger(data)
@@ -1641,7 +2066,7 @@
           : "force majeure clause mentioned but not fact-triggered"
       );
     }
-    if (hasAny(contractText, ["government order", "government orders", "emergency closure", "emergency closures", "natural disaster", "strike", "war"])) {
+    if (hasAny(contractText, ["government order", "government orders", "emergency closure", "emergency closures", "natural disaster", "port closure", "port closures", "strike", "strikes", "war", "pandemic", "epidemic", "widespread infrastructure outage"])) {
       addUnique(signals, "government orders / emergency closures");
     }
     if (hasAny(contractText, ["commercially reasonable mitigation", "commercially reasonable efforts", "mitigation", "mitigate"])) {
@@ -1719,7 +2144,7 @@
     if (activate("payment", triggers.payment, ["payment", "invoice"])) {
       addUnique(tags, "payment");
     }
-    if (activate("invoice_dispute", triggers.invoiceDispute, ["disputed invoice", "payment", "invoice"])) {
+    if (activate("invoice_dispute", triggers.invoiceDispute, ["disputed invoice", "payment", "invoice"], { requireClause: false })) {
       addUnique(tags, "invoice dispute");
     }
     if (activate("refund", triggers.refund, ["refund", "prepaid", "non-refundable"])) {
@@ -2014,6 +2439,7 @@
     const facts = factText(data);
     const contractText = data.contractText || "";
     const invoiceDates = extractInvoiceDates(data);
+    const invoiceCostEvidenceTimeline = extractInvoiceCostEvidenceTimeline(data);
     const noticeDates = extractNoticeDates(data);
     const actionDates = extractActionDates(data);
     const servicePeriods = extractServicePeriods(data);
@@ -2088,6 +2514,9 @@
     }
     if (hasTag(activeIssueTags, "invoice dispute") && disputeDeadline) {
       addUnique(timeline, `Invoice dispute deadline signal: written dispute notice due within ${disputeDeadline} of invoice receipt or discovery.`);
+    }
+    if (!hasTag(activeIssueTags, "invoice dispute")) {
+      invoiceCostEvidenceTimeline.forEach((entry) => addUnique(timeline, entry));
     }
     if (confidentialityIpIssue) {
       if (confidentialityTimeline.disclosureDate) {

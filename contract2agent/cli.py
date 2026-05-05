@@ -43,6 +43,14 @@ from contract2agent.capabilities import (
     write_capability_report,
 )
 from contract2agent.cost_estimate import CostEstimateOptions, run_cost_estimate
+from contract2agent.evaluation import (
+    ReportRenderer,
+    default_benchmark_references,
+    evaluate_agent_profile,
+    load_agent_profile,
+    load_benchmark_references,
+    load_experiment_results,
+)
 from contract2agent.schema import load_contract, model_to_dict
 from contract2agent.triage import TriageOptions, run_triage
 from contract2agent.triage.report import (
@@ -182,6 +190,56 @@ def _cmd_capabilities(
     if generate_tests is not None:
         write_capability_eval_cases(report, generate_tests)
         console.print(f"Wrote suggested capability eval cases to {generate_tests}")
+
+
+def _cmd_eval_agent(
+    profile: Path,
+    results: Path | None = None,
+    benchmarks: Path | None = None,
+    out: Path | None = None,
+    output_format: str = "markdown",
+    target_context: str = "general target workflow",
+) -> int:
+    if (error := _validate_choice(output_format, "--format", ("markdown", "json"))) is not None:
+        return error
+
+    agent_profile = load_agent_profile(profile)
+    experiment_results = load_experiment_results(results) if results is not None else []
+    benchmark_references = (
+        load_benchmark_references(benchmarks)
+        if benchmarks is not None
+        else default_benchmark_references()
+    )
+    evidence, scorecard, prediction = evaluate_agent_profile(
+        agent_profile,
+        experiment_results=experiment_results,
+        benchmark_references=benchmark_references,
+        target_context=target_context,
+    )
+
+    renderer = ReportRenderer()
+    normalized = output_format.casefold()
+    if normalized == "json":
+        rendered = json.dumps(
+            renderer.to_dict(agent_profile, evidence, scorecard, prediction),
+            indent=2,
+            sort_keys=True,
+        )
+    else:
+        rendered = renderer.render_markdown(
+            agent_profile,
+            evidence,
+            scorecard,
+            prediction,
+        )
+
+    if out is not None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(rendered.rstrip() + "\n", encoding="utf-8")
+        console.print(f"Wrote agent evaluation report to {out}")
+    else:
+        console.print(rendered.rstrip())
+    return 0
 
 
 def _cmd_triage(
@@ -1523,6 +1581,51 @@ if _HAS_TYPER:
     ) -> None:
         _cmd_capabilities(contract, eval_report, out, generate_tests)
 
+    @app.command(name="eval-agent")
+    def eval_agent(
+        profile: Path = typer.Option(
+            ...,
+            "--profile",
+            help="Path to an AgentProfile JSON file.",
+        ),
+        results: Path | None = typer.Option(
+            None,
+            "--results",
+            help="Optional ExperimentResult JSON file.",
+        ),
+        benchmarks: Path | None = typer.Option(
+            None,
+            "--benchmarks",
+            help="Optional BenchmarkReference JSON file. Defaults to the local registry.",
+        ),
+        out: Path | None = typer.Option(
+            None,
+            "--out",
+            "-o",
+            help="Optional report output path.",
+        ),
+        eval_format: str = typer.Option(
+            "markdown",
+            "--format",
+            help="Report format: markdown or json.",
+        ),
+        target_context: str = typer.Option(
+            "general target workflow",
+            "--target-context",
+            help="Short context for the cautious outcome prediction.",
+        ),
+    ) -> None:
+        raise typer.Exit(
+            _cmd_eval_agent(
+                profile,
+                results,
+                benchmarks,
+                out,
+                eval_format,
+                target_context,
+            )
+        )
+
 else:
 
     def app() -> None:
@@ -1698,6 +1801,21 @@ def _main_argparse() -> int:
     capabilities_parser.add_argument("--out", "-o", type=Path)
     capabilities_parser.add_argument("--generate-tests", type=Path)
 
+    eval_agent_parser = subparsers.add_parser("eval-agent")
+    eval_agent_parser.add_argument("--profile", required=True, type=Path)
+    eval_agent_parser.add_argument("--results", type=Path)
+    eval_agent_parser.add_argument("--benchmarks", type=Path)
+    eval_agent_parser.add_argument("--out", "-o", type=Path)
+    eval_agent_parser.add_argument(
+        "--format",
+        choices=("markdown", "json"),
+        default="markdown",
+    )
+    eval_agent_parser.add_argument(
+        "--target-context",
+        default="general target workflow",
+    )
+
     args = parser.parse_args()
     if args.command == "new":
         _cmd_new(args.requirement, args.out)
@@ -1829,6 +1947,15 @@ def _main_argparse() -> int:
             args.generate_tests,
         )
         return 0
+    if args.command == "eval-agent":
+        return _cmd_eval_agent(
+            args.profile,
+            args.results,
+            args.benchmarks,
+            args.out,
+            args.format,
+            args.target_context,
+        )
     parser.error(f"Unknown command: {args.command}")
     return 2
 

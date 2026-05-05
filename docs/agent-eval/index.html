@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contract2Agent Agent Evaluation Demo</title>
+    <link rel="stylesheet" href="../assets/agent-eval.css">
+  </head>
+  <body class="agent-eval-page">
+    <main class="ae-shell">
+      <header class="ae-header">
+        <h1>Agent Evaluation Demo</h1>
+        <p>
+          Enter an agent profile to get a preliminary, evidence-aware report. This static page classifies broad agent types and recommends eval categories; it does not run live experiments, call APIs, or assign benchmark scores.
+        </p>
+      </header>
+
+      <section class="ae-layout">
+        <form id="agent-eval-form" class="ae-panel ae-form">
+          <h2>Agent Profile</h2>
+
+          <div class="ae-field">
+            <label for="sample-profile">Sample profile</label>
+            <div class="ae-inline-action">
+              <select id="sample-profile" name="sample-profile">
+                <option value="coding_file_reading_hybrid">Coding / file-reading hybrid</option>
+                <option value="vague_unknown_agent">Vague unknown agent</option>
+                <option value="browser_navigation_agent">Browser-navigation agent</option>
+                <option value="simulated_financial_transaction_agent">Simulated financial transaction agent</option>
+                <option value="contract_review_agent">Contract-review agent</option>
+              </select>
+              <button class="ae-button secondary" type="button" id="load-sample-profile">Load sample</button>
+            </div>
+          </div>
+
+          <div class="ae-grid">
+            <div class="ae-field">
+              <label for="agent-name">Agent name</label>
+              <input id="agent-name" name="agent-name" autocomplete="off" value="Demo agent">
+            </div>
+            <div class="ae-field">
+              <label for="autonomy-level">Autonomy level</label>
+              <select id="autonomy-level" name="autonomy-level">
+                <option value="unknown">Unknown</option>
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ae-field">
+            <label for="agent-description">Agent description</label>
+            <textarea id="agent-description" name="agent-description">Edits local repository files, runs tests, and reports patch evidence.</textarea>
+          </div>
+
+          <div class="ae-field">
+            <label for="declared-capabilities">Declared capabilities</label>
+            <textarea id="declared-capabilities" name="declared-capabilities">edit code, run tests, summarize diffs</textarea>
+          </div>
+
+          <div class="ae-field">
+            <label for="tool-names">Tools / tool names</label>
+            <textarea id="tool-names" name="tool-names">file_reader, code_editor, shell, test_runner</textarea>
+          </div>
+
+          <div class="ae-field">
+            <label for="tool-permissions">Tool permissions</label>
+            <textarea id="tool-permissions" name="tool-permissions">read_workspace, write_workspace, run_tests</textarea>
+          </div>
+
+          <div class="ae-checks" aria-label="Permission flags">
+            <label><input type="checkbox" id="can-read-files" checked> Can read files</label>
+            <label><input type="checkbox" id="can-write-files" checked> Can write files</label>
+            <label><input type="checkbox" id="can-run-code" checked> Can run code</label>
+            <label><input type="checkbox" id="can-use-browser"> Can use browser</label>
+            <label><input type="checkbox" id="can-use-network"> Can use network</label>
+            <label><input type="checkbox" id="can-execute-transactions"> Can execute transactions</label>
+            <label><input type="checkbox" id="can-modify-external-state"> Can modify external state</label>
+            <label><input type="checkbox" id="requires-human-approval" checked> Requires human approval</label>
+          </div>
+
+          <div class="ae-field">
+            <label for="sample-tasks">Sample tasks</label>
+            <textarea id="sample-tasks" name="sample-tasks">Fix failing tests with a minimal patch. Run tests before reporting success.</textarea>
+          </div>
+
+          <div class="ae-field">
+            <label for="policy-constraints">Policy constraints</label>
+            <textarea id="policy-constraints" name="policy-constraints">Stay inside workspace. Do not run destructive commands.</textarea>
+          </div>
+
+          <div class="ae-field">
+            <label for="experiment-summary">Optional pasted experiment summary</label>
+            <textarea id="experiment-summary" name="experiment-summary" placeholder="Paste a short trace/result summary or JSON summary."></textarea>
+          </div>
+
+          <div class="ae-actions">
+            <button class="ae-button" type="submit">Generate report</button>
+          </div>
+        </form>
+
+        <section class="ae-panel ae-results" aria-live="polite">
+          <h2>Preliminary Report</h2>
+          <div id="agent-eval-output"></div>
+
+          <div class="ae-section">
+            <h3>JSON Export</h3>
+            <textarea id="json-export" class="ae-export" readonly></textarea>
+          </div>
+
+          <div class="ae-section">
+            <h3>Markdown Export</h3>
+            <textarea id="markdown-export" class="ae-export" readonly></textarea>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="../assets/agent-eval.js"></script>
+  </body>
+</html>

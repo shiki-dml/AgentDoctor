@@ -1,0 +1,24 @@
+{
+  "agent_id": "sample-unknown-agent",
+  "name": "Sparse agent profile",
+  "description": "Synthetic sparse profile with no concrete tool or task evidence.",
+  "declared_capabilities": [],
+  "tools": [],
+  "tool_permissions": [],
+  "data_access": [],
+  "can_read_files": false,
+  "can_write_files": false,
+  "can_run_code": false,
+  "can_use_browser": false,
+  "can_use_network": false,
+  "can_execute_transactions": false,
+  "requires_human_approval": false,
+  "autonomy_level": "unknown",
+  "environment": "unspecified",
+  "sample_tasks": [],
+  "policy_constraints": [],
+  "metadata": {
+    "synthetic": true,
+    "sample": true
+  }
+}

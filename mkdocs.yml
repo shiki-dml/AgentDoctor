@@ -1,5 +1,5 @@
 site_name: Contract2Agent
-site_description: Contract-driven diagnosis and repair suggestions for LLM agents.
+site_description: Pre-runtime evaluation, capability classification, and cautious outcome prediction for AI agents.
 
 theme:
   name: material
@@ -13,6 +13,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Agent Evaluation: agent-eval/index.html
   - Interactive Demo: demo.md
   - Playground: playground/index.html
   - Getting Started:

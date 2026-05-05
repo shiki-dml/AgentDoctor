@@ -1,0 +1,67 @@
+{
+  "agent_id": "sample-coding-agent",
+  "name": "Generic repository repair profile",
+  "description": "Synthetic profile for an agent that edits repository files, runs tests, and proposes patch-style changes.",
+  "declared_capabilities": [
+    "inspect repository",
+    "edit code",
+    "run tests",
+    "summarize patch risk"
+  ],
+  "tools": [
+    {
+      "name": "file_reader",
+      "category": "filesystem",
+      "mode": "read",
+      "scope": "workspace",
+      "side_effect_level": "none",
+      "requires_approval": false,
+      "can_modify_external_state": false,
+      "risk_tags": []
+    },
+    {
+      "name": "code_editor",
+      "category": "filesystem",
+      "mode": "write",
+      "scope": "workspace",
+      "side_effect_level": "medium",
+      "requires_approval": false,
+      "can_modify_external_state": false,
+      "risk_tags": ["file_write"]
+    },
+    {
+      "name": "shell",
+      "category": "execution",
+      "mode": "command",
+      "scope": "workspace",
+      "side_effect_level": "medium",
+      "requires_approval": true,
+      "can_modify_external_state": false,
+      "risk_tags": ["command_execution"]
+    }
+  ],
+  "tool_permissions": ["read_workspace", "write_workspace", "run_tests"],
+  "data_access": ["repository_files", "test_output"],
+  "can_read_files": true,
+  "can_write_files": true,
+  "can_run_code": true,
+  "can_use_browser": false,
+  "can_use_network": false,
+  "can_execute_transactions": false,
+  "requires_human_approval": true,
+  "autonomy_level": "medium",
+  "environment": "local_workspace",
+  "sample_tasks": [
+    "Fix failing tests with a minimal diff.",
+    "Inspect a failing build log and update the repository patch."
+  ],
+  "policy_constraints": [
+    "stay inside the workspace",
+    "do not run destructive commands",
+    "do not claim tests passed unless test output exists"
+  ],
+  "metadata": {
+    "synthetic": true,
+    "sample": true
+  }
+}

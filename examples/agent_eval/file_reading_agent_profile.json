@@ -1,0 +1,55 @@
+{
+  "agent_id": "sample-file-reading-agent",
+  "name": "Generic file evidence profile",
+  "description": "Synthetic profile for an agent that reads local documents and answers with source-grounded citations.",
+  "declared_capabilities": [
+    "read files",
+    "summarize documents",
+    "cite sources"
+  ],
+  "tools": [
+    {
+      "name": "file_reader",
+      "category": "filesystem",
+      "mode": "read",
+      "scope": "workspace",
+      "side_effect_level": "none",
+      "requires_approval": false,
+      "can_modify_external_state": false,
+      "risk_tags": []
+    },
+    {
+      "name": "citation_checker",
+      "category": "validation",
+      "mode": "read",
+      "scope": "provided_sources",
+      "side_effect_level": "none",
+      "requires_approval": false,
+      "can_modify_external_state": false,
+      "risk_tags": ["citation"]
+    }
+  ],
+  "tool_permissions": ["read_workspace"],
+  "data_access": ["provided_files"],
+  "can_read_files": true,
+  "can_write_files": false,
+  "can_run_code": false,
+  "can_use_browser": false,
+  "can_use_network": false,
+  "can_execute_transactions": false,
+  "requires_human_approval": false,
+  "autonomy_level": "low",
+  "environment": "local_workspace",
+  "sample_tasks": [
+    "Answer from files and cite source lines.",
+    "Explain what evidence is missing when a file is unavailable."
+  ],
+  "policy_constraints": [
+    "do not use unprovided files",
+    "flag missing files instead of guessing"
+  ],
+  "metadata": {
+    "synthetic": true,
+    "sample": true
+  }
+}

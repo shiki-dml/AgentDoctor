@@ -1,161 +1,141 @@
 # Contract2Agent
 
-Turn contract disputes into structured diagnostic reports and agent-ready workflows.
+Pre-runtime AI agent evaluation and outcome prediction for agent profiles, tool surfaces, permissions, sample tasks, and available evidence.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab)](https://www.python.org/)
 [![pytest](https://img.shields.io/badge/tests-pytest-0f8f86)](#testing)
-[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-2454d6)](https://shiki-dml.github.io/Contract2Agent/playground/)
+[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-2454d6)](https://shiki-dml.github.io/Contract2Agent/agent-eval/)
 [![CLI: c2a](https://img.shields.io/badge/CLI-c2a-15202b)](#cli-usage)
-[![Status: Experimental](https://img.shields.io/badge/status-experimental-b45309)](#roadmap)
+[![Status: Experimental](https://img.shields.io/badge/status-experimental-b45309)](#limitations)
 
-**Contract2Agent** is a developer-oriented contract dispute diagnosis and structured workflow tool. It helps transform contract text, dispute facts, party positions, evidence, and configuration into reviewable outputs: dispute summaries, key issues, clause signals, evidence gaps, risk signals, suggested next steps, and Markdown/JSON-style reports.
+**Start here:** [Project Purpose](#project-purpose) | [Evaluation-First Design](#evaluation-first-design) | [Static Demo](#static-demo) | [CLI Usage](#cli-usage) | [Testing](#testing)
 
-**Start here:** [Open Web Demo](https://shiki-dml.github.io/Contract2Agent/playground/) | [Quickstart](#cli-quickstart) | [CLI Usage](#cli-usage) | [Examples](#concrete-example-service-payment-dispute) | [Testing](#testing) | [GitHub Pages Setup](#github-pages-setup)
+## Project Purpose
 
-## Try the GitHub Pages Demo
+Contract2Agent answers a narrow pre-runtime question:
 
-The fastest way to experience Contract2Agent is the public GitHub Pages demo:
+> Given an agent description, tool surface, permissions, sample tasks, and available evidence, what broad type of agent is it, what capabilities appear supported, what risks are visible, what evidence exists, and what cautious outcome can be predicted before deployment or iteration?
 
-**[https://shiki-dml.github.io/Contract2Agent/playground/](https://shiki-dml.github.io/Contract2Agent/playground/)**
+It is not a universal arbitrary-agent judge. It does not say an agent is good because of its name, branding, or self-description. It classifies broad agent types, selects applicable eval categories, records missing evidence, and explains why confidence is low or high.
 
-The public demo is deployed from `docs/playground/index.html` through GitHub Pages.
+## Evaluation-First Design
 
-For local preview, open this file directly from your cloned repository:
+Blind agent judgment is unsafe because declared capability is cheap and performance evidence is expensive. Contract2Agent separates:
 
-```text
-docs/playground/index.html
-```
+Evaluation-first design keeps those evidence levels separate instead of collapsing them into a blind label.
 
-The static demo is served directly from `docs/`. It lets users enter contract text, dispute facts, claimant and respondent positions, evidence, desired outcome, and configuration such as contract type, dispute type, output format, diagnosis depth, and risk mode.
+- `Declared capability`: what the description or user says.
+- `Inferred capability`: what tools, permissions, sample tasks, and policy constraints imply.
+- `Observed evidence`: experiment summaries, traces, logs, tests, or imported results linked to the agent.
+- `Reference evidence`: benchmark or methodology references used to design eval categories.
+- `Prediction`: a cautious estimate based on evidence strength, type fit, risk, and missing evidence.
+- `Missing evidence`: what must be collected before a stronger claim is justified.
 
-After analysis, the page shows structured diagnosis results: a dispute summary, detected contract/dispute type, key issues, relevant clauses or clause signals, a claimant/respondent matrix, evidence gaps, risk signal, suggested next steps, a Markdown-style report preview, JSON-style output, and an Evaluation Lab with a generated test-case preview.
+The framework reports preliminary score dimensions such as capability fit, evidence strength, tool risk, autonomy risk, task clarity, approval safety, data-access risk, expected reliability, and missing-evidence penalty. It avoids one opaque score.
 
-## Preview
-
-![Contract2Agent preview](docs/assets/contract2agent-preview.svg)
-
-## Why Contract2Agent?
-
-Contract disputes are messy because obligations, facts, deadlines, notices, positions, and evidence are scattered across contract language, emails, invoices, logs, messages, and local assumptions. Contract2Agent gives developers a deterministic way to organize that material into a structured diagnostic format that can be inspected, exported, tested, and used in agent workflows.
-
-It is not trying to be a legal decision maker. It is a workflow layer for making the problem clearer: what is being claimed, what clauses might matter, what evidence is present, what is missing, and what the next structured review step should be.
-
-## What The GitHub Pages Demo Does
-
-### Capture Inputs
-
-The demo accepts the core material that usually defines a contract dispute: contract text, dispute description, claimant position, respondent position, evidence, desired outcome, contract type, dispute type, diagnosis depth, risk mode, output preference, and optional metadata.
-
-### Diagnose The Dispute
-
-Browser-side deterministic rules look for signals such as payment, invoice, refund, delivery, milestone, acceptance, termination, written notice, cure period, liability, damages, force majeure, confidentiality, uptime, SLA, suspension, and evidence terms.
-
-### Surface Clause Signals
-
-The output highlights likely clause families such as payment timing, disputed-invoice language, acceptance criteria, delivery deadlines, cure periods, suspension rights, SLA credits, limitation terms, and remedy language.
-
-### Identify Evidence Gaps
-
-The demo calls out missing records such as signed agreements, invoice dates, payment records, written notices, cure-period timelines, delivery confirmations, acceptance criteria, damages calculations, and respondent objection records.
-
-### Export Structured Output
-
-Results can be copied as Markdown, JSON-style output, or a test-case-like JSON preview, making the demo useful for report drafts, fixtures, product demos, and agent workflow experiments. The page includes Copy Markdown, Copy JSON, and Copy Test Case JSON actions.
-
-## Evaluation-first design
-
-Contract2Agent is built around reproducible diagnosis rather than one-off narrative output.
-
-- `python -m pytest` protects Python behavior, schemas, checker logic, reports, CLI commands, docs links, and the GitHub Pages static site.
-- Golden tests protect stable diagnosis fields such as category, strictness, affected agent part, cause substrings, suggested patch type, and regression trace shape.
-- CLI smoke tests protect real commands such as `c2a demo`, `c2a check-all --diagnose`, `c2a diagnose`, and `c2a why`.
-- Report rendering tests protect Markdown reports and JSON-serializable structured output.
-- GitHub Pages static tests protect `docs/playground/index.html`, relative assets, no-backend behavior, copy actions, privacy/disclaimer text, and the Evaluation Lab.
-
-The web Evaluation Lab shows how structured inputs become quality signals: Input Completeness, Evidence Coverage, Detected Issues, Clause Signals, Risk Signal, export readiness, and a Generated Test Case Preview. It mirrors the repository testing mindset, but it does not run pytest in the browser.
-
-## Concrete Example: Service Payment Dispute
-
-**Contract clause**
-
-> "The client must pay all undisputed invoices within 30 days. The provider may suspend service after written notice and a 10-day cure period."
-
-**Dispute**
-
-> "The client has not paid two invoices. The provider suspended access after sending one email notice. The client argues the invoices were disputed."
-
-**Example output**
-
-- Key issue: whether invoices were undisputed
-- Relevant clause: payment and cure period
-- Evidence gap: proof of written notice date and dispute notice
-- Risk signal: medium / unclear
-- Suggested next step: build a timeline of invoice, dispute, notice, cure period, and suspension dates
-
-```json
-{
-  "case_type": "service_payment_dispute",
-  "risk_signal": "medium",
-  "key_issues": ["invoice dispute status", "notice and cure period", "suspension timing"],
-  "evidence_gaps": ["date of written notice", "proof invoices were undisputed"],
-  "suggested_next_steps": ["build payment timeline", "attach invoice and notice evidence"]
-}
-```
-
-## Workflow
+## Architecture
 
 ```mermaid
 flowchart LR
-    A[Contract Text] --> D[Contract2Agent]
-    B[Dispute Facts] --> D
-    C[Party Positions] --> D
-    E[Evidence + Config] --> D
-    D --> F[Dispute Summary]
-    D --> G[Issue Diagnosis]
-    D --> H[Evidence Gaps]
-    D --> I[Risk Signals]
-    D --> J[Markdown / JSON Output]
-    D --> K[Agent-ready Structured Workflow]
+    A[AgentInput] --> B[AgentProfile normalization]
+    B --> C[Capability signal extraction]
+    C --> D[Agent type classification]
+    D --> E[Evidence source resolution]
+    E --> F[Eval category selection]
+    F --> G[Preliminary scoring]
+    G --> H[Outcome prediction]
+    H --> I[Explainable Markdown / JSON report]
 ```
 
-## CLI Quickstart
+Core Python modules live under `contract2agent/evaluation/`:
 
-The GitHub Pages demo is for fast visual exploration. The `c2a` CLI is for local, reproducible, testable diagnosis workflows and report generation.
+- `schema.py`: JSON-serializable dataclasses for profiles, tools, signals, evidence, scores, predictions, and reports.
+- `capability_classifier.py` / `classifier.py`: broad multi-label type classification from non-name signals.
+- `registry.py`: broad agent type and eval category registries.
+- `evidence.py`: local evidence and source-reference resolution.
+- `scoring.py`: preliminary evidence-aware score dimensions.
+- `prediction.py`: cautious outcome estimates.
+- `reports.py` / `report.py`: Markdown and JSON report rendering.
 
-```bash
-git clone <repo-url>
-cd <repo-name>
-python -m pip install -e ".[dev]"
-```
+## Supported Broad Agent Types
 
-Create and diagnose the built-in local demo project:
+- `coding_agent`
+- `file_reading_agent`
+- `browser_navigation_agent`
+- `contract_review_agent`
+- `research_agent`
+- `workflow_automation_agent`
+- `financial_transaction_agent_simulated`
+- `general_tool_use_agent`
+- `unknown_agent`
 
-```bash
-c2a demo --out demo_project
-c2a counterexamples demo_project/agent_contract.yaml --out demo_project/traces/counterexamples
-c2a check-all --contract demo_project/agent_contract.yaml --traces demo_project/traces/counterexamples --diagnose
-```
+Financial transaction agents are simulation-only. Contract2Agent does not support real payment, trade, ordering, transfer, or external financial execution.
+
+## Static Demo
+
+The GitHub Pages agent evaluation demo is static and browser-only:
+
+- Local page: [docs/agent-eval/index.html](docs/agent-eval/index.html)
+- Public route: `https://shiki-dml.github.io/Contract2Agent/agent-eval/`
+- Assets: [docs/assets/agent-eval.js](docs/assets/agent-eval.js), [docs/assets/agent-eval.css](docs/assets/agent-eval.css)
+- Static data: [docs/data/agent_eval/source_references.json](docs/data/agent_eval/source_references.json)
+
+The demo lets users enter:
+
+- agent name and description
+- declared capabilities
+- tools and tool permissions
+- file, code, browser, network, transaction, and external-state flags
+- autonomy and approval settings
+- sample tasks and policy constraints
+- optional pasted experiment summary
+
+It returns classified agent type(s), inferred capabilities, matched signals, risk flags, applicable eval categories, preliminary scorecard, outcome prediction, evidence basis, source references, missing evidence, recommended next tests, JSON export, and Markdown export.
+
+The demo does not run real experiments, call APIs, use API keys, execute code, submit forms, fetch live benchmark data, or perform real financial actions.
+
+## Legacy Contract Playground
+
+The original static contract-dispute playground remains available at [docs/playground/index.html](docs/playground/index.html). It is now best understood as a legacy specialized demo and future `contract_review_agent` eval-pack example, not the main project identity.
+
+The legacy Evaluation Lab still demonstrates deterministic browser-side report generation, Copy Markdown, Copy JSON, and Copy Test Case JSON behavior. Existing Golden tests and GitHub Pages static tests preserve this route.
+
+Preview:
+
+![Contract2Agent preview](docs/assets/contract2agent-preview.svg)
+
+## Evidence And Sources
+
+Static source metadata is local and contextual. References include:
+
+- OpenAI agent evaluation methodology for traces, graders, datasets, and eval runs.
+- SWE-bench as a coding-agent evaluation reference for real GitHub issue tasks and failing-to-passing test signals.
+- WebArena as a browser-agent evaluation reference for realistic self-hostable web tasks.
+
+Benchmark references do not create direct scores. A user-entered agent receives benchmark-backed performance credit only if an actual comparable `ExperimentSummary` or imported trace is linked to that agent.
 
 ## CLI Usage
 
-These commands exist in the current package entry point:
+Existing local diagnosis commands remain available:
 
 ```bash
 c2a --help
-c2a diagnose --help
-c2a check-all --diagnose
-c2a why --help
 c2a demo
 c2a check
-c2a check-all
+c2a check-all --diagnose
+c2a diagnose --help
+c2a why --help
+c2a capabilities
 ```
 
-Useful report-oriented commands:
+Agent evaluation command:
 
 ```bash
-c2a diagnose --contract ./agent_contract.yaml --traces ./traces --out ./reports/diagnosis.md
-c2a why --contract ./agent_contract.yaml --trace ./traces/example.json --out ./reports/why.md
-c2a check --contract ./agent_contract.yaml --trace ./traces/example.json
+c2a eval-agent \
+  --profile examples/agent_eval/coding_agent_profile.json \
+  --results examples/agent_eval/sample_experiment_results.json \
+  --benchmarks examples/agent_eval/benchmark_references.json \
+  --out reports/agent_eval.md
 ```
 
 Package identity:
@@ -164,59 +144,54 @@ Package identity:
 - Python import package: `contract2agent`
 - CLI: `c2a`
 
+## Python Usage
+
+```python
+from contract2agent.evaluation import (
+    ReportRenderer,
+    evaluate_agent_profile,
+    load_agent_profile,
+    load_experiment_results,
+)
+
+profile = load_agent_profile("examples/agent_eval/coding_agent_profile.json")
+results = load_experiment_results("examples/agent_eval/sample_experiment_results.json")
+evidence, scorecard, prediction = evaluate_agent_profile(profile, results)
+
+markdown = ReportRenderer().render_markdown(profile, evidence, scorecard, prediction)
+```
+
 ## Project Layout
 
 ```text
 .
-|-- contract2agent/        # Python package
-|-- docs/                  # GitHub Pages site and MkDocs documentation
-|   |-- playground/        # Static Pages demo entry point
-|   |-- assets/            # CSS, JS, and SVG preview asset
-|   |-- examples/          # Static demo sample cases
-|   `-- audits/            # Preserved audit notes
-|-- examples/              # Repository examples
-|-- scripts/               # Maintenance scripts
-|-- tests/                 # pytest test suite
-|-- pyproject.toml         # Packaging and optional extras
+|-- contract2agent/
+|   |-- evaluation/              # Generalized agent evaluation framework
+|   |-- cost_estimate/
+|   |-- patch_preview/
+|   `-- triage/
+|-- docs/
+|   |-- agent-eval/              # Static generalized agent evaluation demo
+|   |-- data/agent_eval/         # Static source/category/profile metadata
+|   `-- playground/              # Legacy contract-review playground
+|-- examples/agent_eval/         # Small sample profiles, summaries, sources
+|-- scripts/
+|-- tests/
+|-- pyproject.toml
 `-- README.md
 ```
 
-## GitHub Pages Setup
-
-The public site lives in `docs/` and is designed to deploy without npm, a backend, API keys, paid services, or a build step.
-
-1. Open the repository settings on GitHub.
-2. Go to **Pages**.
-3. Set **Source** to **Deploy from a branch**.
-4. Set **Branch** to `main`.
-5. Set **Folder** to `/docs`.
-6. Save and wait for GitHub Pages to publish.
-7. Open **[https://shiki-dml.github.io/Contract2Agent/playground/](https://shiki-dml.github.io/Contract2Agent/playground/)**.
-8. Set the repository **Website** field to the GitHub Pages URL so the demo is visible from the repository sidebar.
-
-GitHub Pages readiness checklist:
-
-- `docs/playground/index.html` exists and is the demo entry page.
-- CSS, JavaScript, image, and example references use relative paths.
-- `docs/assets/styles.css`, `docs/assets/app.js`, and `docs/assets/contract2agent-preview.svg` exist when referenced.
-- No backend, build step, API key, LLM API, or dev server is required.
-- GitHub Pages source should be set to the target branch and `/docs`.
-- Repository Website should point to `https://shiki-dml.github.io/Contract2Agent/playground/`.
-
 ## Testing
 
-Install development dependencies and run the test suite:
+Install development dependencies and run:
 
 ```bash
 python -m pip install -e ".[dev]"
 python -m pytest
+python -m compileall -q contract2agent tests scripts
 ```
 
-The test suite includes schema tests, deterministic diagnosis logic tests, golden fixture checks, rule coverage checks, Markdown report rendering tests, CLI smoke tests, packaging/dev dependency checks, README/docs integrity checks, and GitHub Pages static tests.
-
-Golden fixtures live under `tests/fixtures/golden/`. They intentionally compare compact expected fields and substrings instead of brittle full-report snapshots.
-
-For documentation checks:
+When documentation dependencies are installed:
 
 ```bash
 python -m pip install -e ".[docs]"
@@ -224,31 +199,36 @@ python scripts/check_docs_links.py
 python -m mkdocs build --strict
 ```
 
-## Disclaimer
+The test suite covers schema serialization, classification invariants, anti-overfitting, evidence-source handling, benchmark-reference discipline, report rendering, Golden tests, CLI smoke tests, docs integrity, GitHub Pages static tests, and the legacy Evaluation Lab.
 
-Contract2Agent is a developer tool and structured analysis demo. It is not legal advice. The GitHub Pages demo output is preliminary and should be reviewed by qualified professionals before legal decisions are made.
+## Limitations
+
+- Contract2Agent performs preliminary evaluation, not deep category-specific grading.
+- Declared capability is weak evidence.
+- Tool and task inference is not proof of performance.
+- Benchmark references are contextual unless actual experiment results exist.
+- Outcome predictions are estimates, not guarantees.
+- GitHub Pages remains static and does not run arbitrary agent experiments.
+- Financial transaction evaluation is simulated-only.
 
 ## Roadmap
 
-- Richer GitHub Pages playground interactions
-- More dispute templates and sample cases
-- Better clause detection and evidence-gap heuristics
-- Improved structured diagnosis schema
-- Markdown and JSON export polish
-- More static report previews
-- GitHub Pages documentation refinements
-- More golden tests
-- CLI polish
+- Add richer observed trace import and validation.
+- Expand broad eval categories into specialized eval packs only after the core schema stabilizes.
+- Add deterministic graders for selected categories.
+- Keep source references local and contextual.
+- Preserve legacy contract-review functionality as a specialized adapter path.
+
+## Disclaimer
+
+Contract2Agent is an experimental developer framework for structured agent evaluation and diagnosis. It is not legal advice, financial advice, or a guarantee of agent behavior. Reports should be reviewed by qualified humans before deployment or operational decisions.
 
 ## Contributing
 
-Pull requests should keep the project deterministic, lightweight, and easy to run locally.
-
 - Run `python -m pytest` before opening PRs.
 - Keep behavior deterministic and testable.
-- Avoid unnecessary external APIs and paid services.
-- Keep the GitHub Pages site static, lightweight, and deployable from `docs/`.
-- Keep docs and CLI behavior aligned.
+- Do not fabricate benchmark or experiment evidence.
+- Keep GitHub Pages static and backend-free.
 - Do not commit caches, virtual environments, generated reports, runtime data, or local junk.
 
 ## License

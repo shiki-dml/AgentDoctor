@@ -1,0 +1,76 @@
+{
+  "eval_categories": [
+    {
+      "category_id": "coding_change_safety",
+      "label": "Coding Change Safety",
+      "applicable_agent_types": ["coding_agent"],
+      "what_it_tests": ["patch relevance", "test evidence", "command discipline"],
+      "required_evidence": ["patch artifact", "test/build output", "command trace"],
+      "known_benchmark_references": ["swe_bench_reference"],
+      "limitations": ["This category is not a SWE-bench runner."]
+    },
+    {
+      "category_id": "document_grounding",
+      "label": "Document Grounding",
+      "applicable_agent_types": ["file_reading_agent", "contract_review_agent"],
+      "what_it_tests": ["answer grounding", "missing-file behavior", "source boundary discipline"],
+      "required_evidence": ["source document", "answer-to-source trace"],
+      "known_benchmark_references": [],
+      "limitations": ["Grounding quality requires observed answer/source artifacts."]
+    },
+    {
+      "category_id": "browser_task_flow",
+      "label": "Browser Task Flow",
+      "applicable_agent_types": ["browser_navigation_agent"],
+      "what_it_tests": ["navigation intent", "page-state verification", "form interaction boundaries"],
+      "required_evidence": ["controlled browser trace", "state validation artifact"],
+      "known_benchmark_references": ["webarena_reference"],
+      "limitations": ["This category does not run WebArena or assign benchmark scores."]
+    },
+    {
+      "category_id": "research_source_quality",
+      "label": "Research Source Quality",
+      "applicable_agent_types": ["research_agent"],
+      "what_it_tests": ["source selection", "freshness awareness", "conflicting evidence handling"],
+      "required_evidence": ["source list", "citation trace", "timestamped claims"],
+      "known_benchmark_references": ["openai_agent_evals_methodology"],
+      "limitations": ["This category does not fetch or grade live web results."]
+    },
+    {
+      "category_id": "simulated_transaction_safety",
+      "label": "Simulated Transaction Safety",
+      "applicable_agent_types": ["financial_transaction_agent_simulated"],
+      "what_it_tests": ["authorization", "confirmation", "auditability", "unsafe request refusal"],
+      "required_evidence": ["simulation-only tool surface", "approval trace", "audit log"],
+      "known_benchmark_references": [],
+      "limitations": ["Financial transaction evaluation is simulation-only."]
+    },
+    {
+      "category_id": "tool_and_permission_safety",
+      "label": "Tool And Permission Safety",
+      "applicable_agent_types": ["coding_agent", "file_reading_agent", "general_tool_use_agent"],
+      "what_it_tests": ["permission boundaries", "private data access", "tool selection rationale"],
+      "required_evidence": ["tool inventory", "permission model", "negative boundary tests"],
+      "known_benchmark_references": [],
+      "limitations": ["Permission safety does not prove task competence."]
+    },
+    {
+      "category_id": "trace_and_state_observability",
+      "label": "Trace And State Observability",
+      "applicable_agent_types": ["coding_agent", "browser_navigation_agent", "contract_review_agent", "research_agent", "workflow_automation_agent", "financial_transaction_agent_simulated", "general_tool_use_agent"],
+      "what_it_tests": ["trace availability", "artifact capture", "state transition evidence"],
+      "required_evidence": ["trace summary", "artifacts", "verdict or grader notes"],
+      "known_benchmark_references": ["openai_agent_evals_methodology"],
+      "limitations": ["Trace availability improves confidence but does not by itself prove correctness."]
+    },
+    {
+      "category_id": "profile_completion",
+      "label": "Profile Completion",
+      "applicable_agent_types": ["unknown_agent"],
+      "what_it_tests": ["tool inventory completeness", "permission clarity", "sample task specificity"],
+      "required_evidence": ["agent description", "tools", "sample tasks", "constraints"],
+      "known_benchmark_references": [],
+      "limitations": ["No performance score is available for sparse profiles."]
+    }
+  ]
+}
