@@ -1070,7 +1070,7 @@
     return {
       waterIntrusionDate: findDateInSegment(facts, ["discovered water intrusion", "water intrusion", "roof leak", "leak after heavy rain"], "first"),
       tenantNoticeDate:
-        findDateInSegment(facts, ["sent an email", "email to the landlord", "reporting water intrusion", "tenant sent", "september 4 notice"], "first") ||
+        findDateInSegment(facts, ["sent an email", "email to the landlord", "reporting water intrusion", "tenant sent", "repair notice", "maintenance notice", "tenant notice"], "first") ||
         findDateInSegment(facts, ["notice"], "first"),
       landlordResponseDate: findDateInSegment(facts, ["landlord responded", "said it would inspect", "response email"], "first"),
       contractorInspectionDate: findDateInSegment(facts, ["roof contractor inspected", "contractor inspected", "inspection report", "contractor inspection"], "first"),
@@ -1792,6 +1792,10 @@
     return tags.length ? tags : ["unclear"];
   }
 
+  function limitStepsForDepth(data, steps) {
+    return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+  }
+
   function extractExplicitEvidenceGaps(evidenceText) {
     const gaps = [];
     const lines = String(evidenceText || "").split(/\r?\n/);
@@ -1852,11 +1856,18 @@
     const leaseIssue = hasLeaseActiveIssue(activeIssueTags);
 
     if (leaseIssue) {
+      const leaseTimeline = extractLeaseTimeline(data);
+      const tenantNoticeLabel = leaseTimeline.tenantNoticeDate ? `${leaseTimeline.tenantNoticeDate} notice` : "tenant notice";
+      const tenantEmailLabel = leaseTimeline.tenantNoticeDate ? `${leaseTimeline.tenantNoticeDate} email` : "tenant email notice";
+      const repairCureLabel = leaseTimeline.repairCurePeriod ? durationRequirementLabel(leaseTimeline.repairCurePeriod) : "repair";
+      const depositDeductionLabel = leaseTimeline.depositDeduction ? `${leaseTimeline.depositDeduction} deduction` : "security deposit deduction";
+      const depositStatementPeriod = leaseTimeline.depositStatementPeriod ? durationSentence(leaseTimeline.depositStatementPeriod) : "the contractual period";
+
       if ((hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period")) && !hasGap(gaps, ["certified mail"])) {
-        addUnique(gaps, "Proof that the September 4 notice was sent by certified mail");
+        addUnique(gaps, `Proof that the ${tenantNoticeLabel} was sent by certified mail`);
       }
       if ((hasTag(activeIssueTags, "notice") || hasTag(activeIssueTags, "cure period")) && !hasGap(gaps, ["lease schedule notice", "exact lease schedule"])) {
-        addUnique(gaps, "Whether the September 4 email was sent to the exact lease schedule notice email address");
+        addUnique(gaps, `Whether the ${tenantEmailLabel} was sent to the exact lease schedule notice email address`);
       }
       if (hasTag(activeIssueTags, "rent abatement") && !hasGap(gaps, ["materially interfered", "material interference"])) {
         addUnique(gaps, "Whether the roof leak materially interfered with the tenant's use of the premises");
@@ -1865,7 +1876,7 @@
         addUnique(gaps, "Affected square footage or affected showroom area");
       }
       if (hasTag(activeIssueTags, "cure period") && !hasGap(gaps, ["cure calculation", "cure deadline", "deemed receipt"])) {
-        addUnique(gaps, "10-business-day cure deadline calculation from valid or deemed receipt");
+        addUnique(gaps, `${repairCureLabel} cure deadline calculation from valid or deemed receipt`);
       }
       if (hasTag(activeIssueTags, "repair obligation") && !hasGap(gaps, ["began commercially reasonable repairs", "repair timing", "within 10 business days"])) {
         addUnique(gaps, "Whether the landlord began commercially reasonable repairs within 10 business days after valid receipt");
@@ -1874,7 +1885,7 @@
         addUnique(gaps, "Whether the flooring and repainting damage was caused by roof leak or tenant misuse");
       }
       if (hasTag(activeIssueTags, "security deposit") && !hasGap(gaps, ["ordinary wear and tear", "beyond ordinary wear"])) {
-        addUnique(gaps, "Whether the $8,500 deduction was limited to damage beyond ordinary wear and tear");
+        addUnique(gaps, `Whether the ${depositDeductionLabel} was limited to damage beyond ordinary wear and tear`);
       }
       if (hasTag(activeIssueTags, "rent abatement") && !hasGap(gaps, ["rent abatement", "affected period"])) {
         addUnique(gaps, "Calculation of rent abatement for the affected area and affected period");
@@ -1883,7 +1894,7 @@
         addUnique(gaps, "Evidence supporting display-fixture damages");
       }
       if (hasTag(activeIssueTags, "security deposit") && !hasGap(gaps, ["itemized deposit statement timing", "statement timing", "within 30 days"])) {
-        addUnique(gaps, "Proof of itemized deposit statement timing within 30 days after surrender");
+        addUnique(gaps, `Proof of itemized deposit statement timing within ${depositStatementPeriod} after surrender`);
       }
       return gaps.length ? uniqueValues(gaps) : ["No obvious evidence gap detected from the current text"];
     }
@@ -2016,7 +2027,10 @@
         addUnique(timeline, `${leaseTimeline.landlordResponseDate}: landlord responded and said it would inspect.`);
       }
       if (leaseTimeline.contractorInspectionDate) {
-        addUnique(timeline, `${leaseTimeline.contractorInspectionDate}: roof contractor inspected and found deteriorated roof flashing.`);
+        const inspectionDetail = hasAny(facts + " " + data.evidence, ["deteriorated roof flashing"])
+          ? " and found deteriorated roof flashing"
+          : "";
+        addUnique(timeline, `${leaseTimeline.contractorInspectionDate}: roof contractor inspected${inspectionDetail}.`);
       }
       if (leaseTimeline.rentWithholdingPeriod) {
         const withheldAmount = leaseTimeline.rentWithholdingPercent ? `${leaseTimeline.rentWithholdingPercent} of` : "part of";
@@ -2524,7 +2538,7 @@
       addUnique(steps, "Review itemized deposit statement timing and sufficiency.");
       addUnique(steps, `Review consequential/lost-profit damages exclusions and ${leaseTimeline.liabilityCapPeriod ? `${leaseTimeline.liabilityCapPeriod} of base rent` : "contractual"} liability cap.`);
       addUnique(steps, "Evaluate recoverability of display-fixture damages.");
-      return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+      return limitStepsForDepth(data, steps);
     }
 
     if (confidentialityIpIssue) {
@@ -2558,7 +2572,7 @@
       if (data.desiredOutcome) {
         addUnique(steps, `Frame the next report around the desired outcome: ${data.desiredOutcome}`);
       }
-      return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+      return limitStepsForDepth(data, steps);
     }
 
     if (hasTag(tags, "force majeure") && hasTag(tags, "delivery")) {
@@ -2587,7 +2601,7 @@
       if (data.desiredOutcome) {
         addUnique(steps, `Frame the next report around the desired outcome: ${data.desiredOutcome}`);
       }
-      return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+      return limitStepsForDepth(data, steps);
     }
 
     if (refundAcceptanceIssue) {
@@ -2614,7 +2628,7 @@
       if (data.desiredOutcome) {
         addUnique(steps, `Frame the next report around the desired outcome: ${data.desiredOutcome}`);
       }
-      return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+      return limitStepsForDepth(data, steps);
     }
 
     if (hasTag(tags, "notice") || hasTag(tags, "cure period") || hasTag(tags, "suspension") || hasTag(tags, "termination")) {
@@ -2645,7 +2659,7 @@
       addUnique(steps, `Frame the next report around the desired outcome: ${data.desiredOutcome}`);
     }
 
-    return data.diagnosisDepth === "Quick" ? steps.slice(0, 6) : steps;
+    return limitStepsForDepth(data, steps);
   }
 
   function isCriticalEvidenceGap(gap) {
@@ -3092,8 +3106,8 @@
       inputCompleteness >= 50 && detectedIssueCount > 0 && clauseSignalCount > 0
         ? "Ready"
         : "Needs more input";
-    const markdownReady = latestMarkdown ? "Ready" : "Pending";
-    const jsonReady = latestJson ? "Ready" : "Pending";
+    const markdownReady = diagnosis ? "Ready" : "Pending";
+    const jsonReady = diagnosis ? "Ready" : "Pending";
     const suggestedGoldenCase = caseNameFor(input, diagnosis);
 
     return {
@@ -3111,8 +3125,8 @@
         inputCompleteness >= 50 ? "input_fixture_shape" : "input_fixture_needs_more_fields",
         clauseSignalCount > 0 ? "clause_signal_detected" : "clause_signal_missing",
         detectedIssueCount > 0 ? "expected_issue_detected" : "expected_issue_unclear",
-        latestMarkdown ? "markdown_export_ready" : "markdown_export_pending",
-        latestJson ? "json_export_ready" : "json_export_pending"
+        markdownReady === "Ready" ? "markdown_export_ready" : "markdown_export_pending",
+        jsonReady === "Ready" ? "json_export_ready" : "json_export_pending"
       ]
     };
   }
@@ -3230,6 +3244,7 @@
   }
 
   function render(diagnosis, input) {
+    const currentInput = input || collectInput();
     latestDiagnosis = diagnosis;
     latestMarkdown = markdownReport(diagnosis);
     latestJson = JSON.stringify(
@@ -3240,8 +3255,8 @@
       null,
       2
     );
-    const metrics = computeEvaluationMetrics(input || collectInput(), diagnosis);
-    const testCase = buildTestCasePreview(input || collectInput(), diagnosis, metrics);
+    const metrics = computeEvaluationMetrics(currentInput, diagnosis);
+    const testCase = buildTestCasePreview(currentInput, diagnosis, metrics);
 
     riskBadge.className = `risk-badge risk-${diagnosis.risk_signal}`;
     riskBadge.textContent = diagnosis.risk_signal;

@@ -1,5 +1,127 @@
 # Contract2Agent Bug Audit
 
+## 2026-05-05 Playground Deterministic Diagnosis Bug Catalog and Verification
+
+### Scope
+
+- Area: static GitHub Pages playground diagnosis in `docs/assets/app.js`.
+- Goal: keep clause signals separate from active issue tags, block denied force majeure facts, preserve lease-specific active issues, prevent stale template contamination, and keep UI, Markdown, JSON, and Evaluation Lab preview aligned with the final filtered diagnosis.
+- Non-goals respected: no backend, no browser runtime network calls, no route/styling/navigation/sample-loading/copy-button/export-button changes, no external API dependencies, and no global deletion of issue families.
+
+### Structured bug catalog
+
+#### PG-DIAG-001: force majeure false positive
+
+- Symptom: a contract containing a force majeure clause could produce an active `force majeure` issue even when facts denied government orders, natural disasters, strikes, war, or other external uncontrollable events.
+- Root cause: clause terms and factual invocation terms were previously too easy to conflate.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: force majeure remains a clause signal unless non-blocked facts invoke an external event; blocker triggers run before active issue generation.
+- Tests: `test_playground_force_majeure_clause_signal_is_not_active_issue`, `test_playground_late_delivery_blocks_denied_force_majeure_issue`, and positive force-majeure tests.
+
+#### PG-DIAG-002: clause signal vs active issue separation
+
+- Symptom: clause-only concepts such as indemnity, confidentiality, force majeure, SLA, refund, or liquidated damages could leak into active issue tags and downstream previews.
+- Root cause: issue-family detection mixed contract clause terms, dropdown/default categories, and fact terms.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: active triggers, clause triggers, negative triggers, and blocker terms are evaluated separately; `issue_tags` mirrors final filtered `active_issue_tags`.
+- Tests: static playground structured-output, export, refund, confidentiality/IP, force-majeure, and lease tests.
+
+#### PG-DIAG-003: missing lease active issues
+
+- Symptom: the lease repair / notice / rent abatement / security deposit fixture could miss repair obligation, rent abatement, rent withholding/payment default, security deposit, tenant-caused damage, property damage causation, damages, and liability limitation.
+- Root cause: the issue-family registry lacked lease-specific active and clause gates.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: lease maintenance, rent abatement, rent withholding, security deposit, tenant damage, and property-damage causation families are detected through lease-specific fact and clause signals.
+- Tests: `test_playground_lease_repair_abatement_filters_false_issue_families`.
+
+#### PG-DIAG-004: stale key issue and next-step template contamination
+
+- Symptom: unrelated SaaS, SLA, invoice, refund, force majeure, indemnity, confidentiality, IP, liquidated-damages, cover-cost, and lost-revenue boilerplate could appear in lease output.
+- Root cause: generic output builders ran after broad tags had been activated or when no scoped family branch existed.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: lease, force-majeure, refund/termination/acceptance, and confidentiality/IP branches return scoped key issues, evidence gaps, next steps, and risk rationale from final active tags.
+- Tests: lease key issue, next-step/export, refund, confidentiality/IP, positive force-majeure, and cross-contamination tests.
+
+#### PG-DIAG-005: timeline role classification
+
+- Symptom: timeline output could fall back to generic notice/deemed-receipt text instead of classifying dated facts by role.
+- Root cause: generic notice extraction did not know lease, refund, force majeure, and confidentiality/IP roles.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: timeline extractors classify dates as tenant notice, landlord response, contractor inspection, rent withholding, repair completion, move-out/surrender, force-majeure order/notice, refund milestones, and confidentiality/IP events.
+- Tests: lease, refund, positive force majeure, and confidentiality/IP timeline assertions.
+
+#### PG-DIAG-006: Evaluation Lab preview contamination
+
+- Symptom: generated test-case previews could be named or populated from stale/default/unfiltered state.
+- Root cause: previews needed to derive `case_name` and `must_include_issues` from the final filtered diagnosis; export readiness also referenced module-level latest export strings.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: preview expected issues use `diagnosis.active_issue_tags`; case naming uses filtered tags; export readiness now derives from the current diagnosis object rather than `latestMarkdown`/`latestJson`.
+- Tests: lease, confidentiality/IP, export consistency, and cross-contamination preview assertions.
+
+#### PG-DIAG-007: Markdown/JSON export consistency
+
+- Symptom: Markdown, JSON, UI diagnosis, and Evaluation Lab preview could diverge if one path used stale or unfiltered fields.
+- Root cause: legacy aliases and preview state needed to point at the final diagnosis object.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: `active_issue_tags`, legacy `issue_tags`, key issues, clause signals, evidence gaps, timeline facts, risk rationale, and suggested next steps are copied from the final filtered diagnosis for export paths.
+- Tests: SaaS, late-delivery force-majeure-negative, positive force-majeure, refund, confidentiality/IP, and lease export parity tests.
+
+#### PG-DIAG-008: cross-run stale state prevention
+
+- Symptom: running a force-majeure, SaaS/SLA, refund, or confidentiality/IP fixture before the lease fixture could leak prior issue templates.
+- Root cause: shared browser module state and mutable output arrays needed stronger isolation from per-run diagnosis data.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: each diagnosis builds fresh arrays and clones legacy aliases; Evaluation Lab previews derive from the passed diagnosis.
+- Tests: `test_playground_diagnosis_runs_do_not_cross_contaminate_issue_templates`.
+
+#### PG-DIAG-009: exact lease fixture literals in generated evidence gaps
+
+- Symptom: lease evidence gaps still included `September 4` and `$8,500` as literal fallback text.
+- Root cause: the lease evidence-gap branch had fixture-specific strings instead of using extracted notice date and deposit amount values.
+- Files affected: `docs/assets/app.js`; regression coverage in `tests/test_docs_site.py`.
+- Fix summary: notice date, email label, repair cure period, deposit deduction amount, and deposit statement period now come from `extractLeaseTimeline`; the `September 4` trigger literal was replaced with generic repair/maintenance/tenant notice triggers.
+- Tests: added `test_playground_lease_evidence_gaps_use_extracted_values_not_fixture_literals`.
+
+### Files changed in this pass
+
+- `docs/assets/app.js`
+  - Generalized lease evidence-gap labels to use extracted values rather than fixed fixture literals.
+  - Removed the hard-coded `september 4 notice` trigger in favor of generic repair, maintenance, and tenant notice signals.
+  - Made Evaluation Lab export readiness derive from the current diagnosis object rather than stale module-level export strings.
+- `tests/test_docs_site.py`
+  - Added a lease regression variant that changes dates and the security-deposit deduction amount and asserts generated outputs follow the new values.
+- `bug_audit.md`
+  - Added this structured catalog and current verification record.
+
+### Commands run and results
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `Test-Path package.json` | Passed, returned `False` | No npm project is present, so `npm install`, `npm test`, `npm run build`, `npm run lint`, and `npm run typecheck` are not applicable. |
+| `Test-Path mkdocs.yml` | Passed, returned `True` | Strict MkDocs build command exists in repo context. |
+| `Test-Path scripts\check_docs_links.py` | Passed, returned `True` | Static docs link checker exists. |
+| `Test-Path tests` | Passed, returned `True` | Pytest suite exists. |
+| `git diff --check` | Passed | No whitespace errors after the production and test patches. |
+| `node --check docs\assets\app.js` | Blocked by approval timeout | Attempted twice; automatic permission approval review did not finish before its deadline. |
+| `python -m pytest tests\test_docs_site.py` | Blocked by approval timeout | Attempted before and after patching; automatic permission approval review did not finish before its deadline. |
+| `python -m pytest` | Blocked by approval timeout | Attempted twice; automatic permission approval review did not finish before its deadline. |
+| `python -m compileall -q contract2agent tests scripts` | Blocked by approval timeout | Attempted twice; automatic permission approval review did not finish before its deadline. |
+| `python scripts\check_docs_links.py` | Blocked by approval timeout | Attempted twice; automatic permission approval review did not finish before its deadline. |
+| `python -m mkdocs build --strict` | Blocked by approval timeout | Attempted twice; automatic permission approval review did not finish before its deadline. |
+
+### Verification results
+
+- Verified by diff inspection that only `docs/assets/app.js`, `tests/test_docs_site.py`, and `bug_audit.md` are modified.
+- Verified by `git diff --check` that the patch has no whitespace errors.
+- Verified by source inspection that lease evidence-gap dates and dollar amounts are derived from extracted values rather than unconditional fixture literals.
+- Full executable verification is still pending because Python and Node execution approval timed out in this session.
+
+### Remaining limitations and follow-ups
+
+- The playground remains a deterministic static analyzer and depends on explicit textual triggers.
+- Business-day arithmetic is still described as an evidence-dependent calculation rather than computed.
+- Re-run `node --check docs\assets\app.js`, `python -m pytest tests\test_docs_site.py`, `python -m pytest`, `python -m compileall -q contract2agent tests scripts`, `python scripts\check_docs_links.py`, and `python -m mkdocs build --strict` in an environment where command execution is approved.
+
 ## 2026-05-04 Lease Repair / Rent Abatement / Security Deposit Trigger-Gate Follow-Up
 
 ### 1. What was wrong

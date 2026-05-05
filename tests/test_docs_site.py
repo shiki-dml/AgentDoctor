@@ -1621,6 +1621,47 @@ def test_playground_lease_repair_next_steps_preview_and_exports_are_scoped() -> 
         assert forbidden not in preview_issues
 
 
+def test_playground_lease_evidence_gaps_use_extracted_values_not_fixture_literals() -> None:
+    fixture = dict(LEASE_REPAIR_ABATEMENT_DEPOSIT_FIXTURE)
+    replacements = {
+        "September 3": "January 8",
+        "September 4": "January 9",
+        "September 7": "January 10",
+        "September 15": "January 18",
+        "October 12": "February 2",
+        "November 1": "March 1",
+        "October rent": "February rent",
+        "$8,500": "$4,200",
+    }
+    for field in (
+        "disputeDescription",
+        "claimantPosition",
+        "respondentPosition",
+        "evidence",
+    ):
+        updated = fixture[field]
+        for old, new in replacements.items():
+            updated = updated.replace(old, new)
+        fixture[field] = updated
+
+    diagnosis = _run_playground_diagnosis(fixture)["diagnosis"]
+    scoped_text = json.dumps(
+        {
+            "key_issues": diagnosis["key_issues"],
+            "evidence_gaps": diagnosis["evidence_gaps"],
+            "timeline_facts": diagnosis["timeline_facts"],
+            "suggested_next_steps": diagnosis["suggested_next_steps"],
+        }
+    )
+
+    assert "January 9 notice" in scoped_text
+    assert "January 9 email" in scoped_text
+    assert "$4,200 deduction" in scoped_text
+    assert "February rent withholding" in scoped_text
+    assert "September 4" not in scoped_text
+    assert "$8,500" not in scoped_text
+
+
 def test_playground_diagnosis_runs_do_not_cross_contaminate_issue_templates() -> None:
     refund_then_confidentiality = _run_playground_diagnoses_sequentially(
         [REFUND_TERMINATION_ACCEPTANCE_FIXTURE, CONFIDENTIALITY_IP_INDEMNITY_FIXTURE]
