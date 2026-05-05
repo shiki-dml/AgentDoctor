@@ -100,6 +100,37 @@ def test_file_reading_task_jsonl_load_and_validate(tmp_path: Path) -> None:
     assert errors == []
 
 
+def test_task_validation_catches_bad_evidence_spans(tmp_path: Path) -> None:
+    manifest, task = _manifest_and_task(tmp_path)
+    task.expected_citations = [
+        EvidenceSpan(file_id="missing.md", line_start=1, line_end=1, quote="Missing"),
+        EvidenceSpan(file_id="doc.md", line_start=3, line_end=2, quote="Answer: Alpha"),
+        EvidenceSpan(file_id="doc.md", line_start=2, line_end=2, quote="Answer: Beta"),
+    ]
+
+    errors = validate_tasks(manifest, [task])
+    combined = "\n".join(errors)
+
+    assert "expected_citations[0].file_id not in manifest" in combined
+    assert "expected_citations[1] has invalid line range" in combined
+    assert "expected_citations[2] quote does not match manifest text" in combined
+
+
+def test_task_validation_reports_non_integer_evidence_lines(tmp_path: Path) -> None:
+    manifest, task = _manifest_and_task(tmp_path)
+    tasks_path = tmp_path / "tasks.jsonl"
+    data = to_dict(task)
+    data["expected_citations"] = [
+        {"file_id": "doc.md", "line_start": "first", "line_end": 2, "quote": "Answer: Alpha"}
+    ]
+    tasks_path.write_text(json.dumps(data) + "\n", encoding="utf-8")
+
+    loaded = load_tasks_jsonl(tasks_path)
+    errors = validate_tasks(manifest, loaded)
+
+    assert any("expected_citations[0].line_start must be an integer" in error for error in errors)
+
+
 def test_citation_span_checker_passes_on_exact_quote(tmp_path: Path) -> None:
     manifest, _task = _manifest_and_task(tmp_path)
     citation = Citation(file_id="doc.md", line_start=2, line_end=2, quote="Answer: Alpha")
@@ -171,6 +202,22 @@ def test_output_schema_validation() -> None:
     assert valid.schema_valid is True
     assert invalid.schema_valid is False
     assert invalid.errors
+
+
+def test_output_schema_validation_handles_malformed_citation_objects() -> None:
+    invalid = validate_target_output(
+        {
+            "answer": "Alpha",
+            "citations": [{"line_start": "first", "line_end": 1, "quote": 42}],
+        }
+    )
+
+    assert invalid.schema_valid is False
+    assert invalid.citations[0].file_id == ""
+    assert invalid.citations[0].line_start is None
+    assert any("file_id" in error for error in invalid.errors)
+    assert any("line_start" in error for error in invalid.errors)
+    assert any("quote" in error for error in invalid.errors)
 
 
 def test_dummy_target_agent_run_and_artifacts_via_cli(tmp_path: Path) -> None:

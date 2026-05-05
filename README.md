@@ -118,7 +118,7 @@ Static source metadata is local and contextual. References include:
 
 Benchmark references do not create direct scores. A user-entered agent receives benchmark-backed performance credit only if an actual comparable `ExperimentSummary` or imported trace is linked to that agent.
 
-## File Reading Agent Evaluation
+## File-Reading Agent Evaluation
 
 The first specialized adapter is `file_reading_agent`. Unlike profile-only classification, this subsystem can run local, long-running CLI evaluations against approved corpora and produce observed scores from artifacts.
 
@@ -144,6 +144,12 @@ c2a file-eval report --run .runs/file-reading-run --format md,json --out .runs/f
 `import-local` supports user-provided files and papers with `--source-type paper --title ...`; imported reference material records provenance, license, and limitations metadata. `list-references` exposes contextual metadata for OpenAI eval methodology, QASPER, SQuAD, HotpotQA, DocVQA, and LongBench. Network import is disabled by default and `import-reference` requires `--allow-network`; the dependency-free core records metadata rather than downloading datasets.
 
 Reference comparisons check task pack, scoring method, environment, and comparable conditions before computing deltas. Incompatible benchmark or paper references are marked contextual only and are never turned into leaderboard-style direct scores.
+
+Optional semantic judging is available only when explicitly requested with commands such as `c2a file-eval judge`, `c2a file-eval run --judge llm`, or a command-based judge adapter. Deterministic grading remains the default and no API call is made for baseline evaluation. The OpenAI-compatible path reads `OPENAI_API_KEY` by default or can prompt with hidden session-only input; API keys are never written to reports, caches, browser code, or committed config files.
+
+LLM judge runs are budgeted and compact by design: `--judge-only`, `--max-judge-tasks`, `--llm-max-input-chars`, `--llm-max-output-tokens`, `--evidence-snippet-limit`, `--cost-budget-usd`, `--dry-run-cost-estimate`, and judge caching control how many tasks are sent and how much context is included. Judge inputs include task/output/evidence summaries, not full corpora or forbidden files. Reports keep deterministic scores separate from optional non-deterministic judge scores and group recommendations by priority.
+
+Dedicated guide: [docs/file-reading-eval/README.md](docs/file-reading-eval/README.md). Runnable examples: [examples/file_reading_eval/README.md](examples/file_reading_eval/README.md).
 
 ## CLI Usage
 
@@ -205,9 +211,11 @@ markdown = ReportRenderer().render_markdown(profile, evidence, scorecard, predic
 |   `-- triage/
 |-- docs/
 |   |-- agent-eval/              # Static generalized agent evaluation demo
+|   |-- file-reading-eval/       # File-reading eval CLI guide
 |   |-- data/agent_eval/         # Static source/category/profile metadata
 |   `-- playground/              # Legacy contract-review playground
 |-- examples/agent_eval/         # Small sample profiles, summaries, sources
+|-- examples/file_reading_eval/  # File-reading eval corpus, tasks, dummy agents
 |-- scripts/
 |-- tests/
 |-- pyproject.toml

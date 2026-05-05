@@ -59,6 +59,7 @@ def validate_tasks(
     )
     loaded_tasks = load_tasks_jsonl(tasks) if isinstance(tasks, (str, Path)) else tasks
     known = {document.file_id for document in loaded_manifest.documents}
+    document_by_id = {document.file_id: document for document in loaded_manifest.documents}
     errors: list[str] = []
     for task in loaded_tasks:
         if task.task_type not in TASK_TYPES:
@@ -79,6 +80,19 @@ def validate_tasks(
         ):
             errors.append(
                 f"{task.task_id}: answerable tasks need gold_answer, aliases, or evidence spans"
+            )
+        for label, spans in (
+            ("gold_evidence_spans", task.gold_evidence_spans),
+            ("expected_citations", task.expected_citations),
+        ):
+            errors.extend(
+                _validate_evidence_spans(
+                    task.task_id,
+                    label,
+                    spans,
+                    loaded_manifest,
+                    document_by_id,
+                )
             )
     return errors
 
@@ -194,3 +208,81 @@ def _first_content_line(lines: list[str]) -> tuple[int, str] | None:
         if line.strip():
             return index, line
     return None
+
+
+def _validate_evidence_spans(
+    task_id: str,
+    label: str,
+    spans: list[EvidenceSpan],
+    manifest: CorpusManifest,
+    document_by_id: dict[str, object],
+) -> list[str]:
+    errors: list[str] = []
+    for index, span in enumerate(spans):
+        document = document_by_id.get(span.file_id)
+        prefix = f"{task_id}: {label}[{index}]"
+        if document is None:
+            errors.append(f"{prefix}.file_id not in manifest: {span.file_id}")
+            continue
+        line_start, line_start_valid = _evidence_line_number(
+            span.line_start,
+            f"{prefix}.line_start",
+            errors,
+        )
+        line_end, line_end_valid = _evidence_line_number(
+            span.line_end,
+            f"{prefix}.line_end",
+            errors,
+        )
+        if not line_start_valid or not line_end_valid:
+            continue
+        if (line_start is None) ^ (line_end is None):
+            errors.append(f"{prefix} has incomplete line range: {line_start}-{line_end}")
+            continue
+        if line_start is not None and line_end is not None:
+            if line_start < 1 or line_end < line_start:
+                errors.append(f"{prefix} has invalid line range: {line_start}-{line_end}")
+                continue
+            line_count = int(getattr(document, "line_count", 0) or 0)
+            if line_count and line_end > line_count:
+                errors.append(
+                    f"{prefix} line range outside manifest document: {line_start}-{line_end} > {line_count}"
+                )
+                continue
+        if span.quote and not _span_quote_matches_manifest(span, manifest, document):
+            errors.append(f"{prefix} quote does not match manifest text")
+    return errors
+
+
+def _span_quote_matches_manifest(
+    span: EvidenceSpan,
+    manifest: CorpusManifest,
+    document: object,
+) -> bool:
+    path = Path(manifest.root_path) / str(getattr(document, "relative_path"))
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return False
+    if span.line_start is not None and span.line_end is not None:
+        text = "\n".join(lines[span.line_start - 1 : span.line_end])
+    else:
+        text = "\n".join(lines)
+    return _normalize_space(span.quote) in _normalize_space(text)
+
+
+def _normalize_space(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _evidence_line_number(
+    value: object,
+    field_name: str,
+    errors: list[str],
+) -> tuple[int | None, bool]:
+    if value is None:
+        return None, True
+    if isinstance(value, bool) or not isinstance(value, int):
+        errors.append(f"{field_name} must be an integer when provided")
+        return None, False
+    return value, True

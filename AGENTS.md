@@ -63,6 +63,38 @@ Network import of public datasets or papers must be explicit and controlled. Pre
 
 GitHub Pages must remain a static viewer/demo. Long-running file-reading evaluations should run in the CLI, local scripts, or CI-generated artifacts, not in the browser.
 
+Optional LLM judge support may supplement file-reading evaluation only when the user explicitly requests it. Deterministic grading remains the default, and baseline file-reading evaluation must make no API calls.
+
+LLM judge policy:
+
+- Keep deterministic scores and LLM judge scores separate.
+- Mark LLM judge outputs as judge-based and non-deterministic.
+- Run deterministic graders before any optional judge selection.
+- Use LLM judges only for semantic equivalence, open-ended answer quality, summary faithfulness, contradiction risk, evidence support, and recommendation synthesis.
+- Do not use LLM judges for citation quote match, citation span existence, forbidden-file access, schema compliance, timeouts, hashes, or path containment.
+- If judge output is invalid or a judge call fails, record the failure and fall back to deterministic grades.
+
+API key handling rules:
+
+- Prefer environment variables such as `OPENAI_API_KEY`.
+- If no key is configured and the user explicitly chooses LLM judging in an interactive terminal, use hidden session-only input.
+- Never write API keys to disk, reports, logs, caches, browser code, docs examples, or committed files.
+- Do not expose API keys through GitHub Pages or static assets.
+
+Token and cost budget rules:
+
+- Provide controls for judge-only task selection, max judge tasks, max input chars, max output tokens, evidence snippet limits, cost budget, dry-run estimates, and judge cache on/off.
+- Send compact judge inputs only: task, question, agent answer, citations, cited snippets, gold answer/evidence, deterministic grade summary, failure modes, and judge instructions.
+- Do not send full corpora, forbidden files, secrets, or unsanitized absolute paths to a judge.
+- Cache judge results by task/output/evidence/provider/model/prompt hash when enabled.
+
+CLI experience requirements for `file-eval`:
+
+- Maintain rich help for workflow, deterministic grading, LLM judging, scoring, examples, references, and doctor checks.
+- Keep colorful output optional and support `--no-color`, `--plain`, `--json`, `--quiet`, and `--verbose` where useful.
+- Make terminal output scriptable and do not make tests depend on ANSI color.
+- Keep README, docs, examples, and CLI help aligned with implemented behavior.
+
 File-reading agent evaluation must include tests for:
 
 - corpus manifest creation
@@ -76,6 +108,8 @@ File-reading agent evaluation must include tests for:
 - dummy-agent CLI runs
 - report generation
 - no observed score without observed run
+- optional LLM judge safety, budgets, caching, and deterministic fallback
+- CLI help, doctor output, no-color/plain/json modes, and documentation examples
 
 ## Supported Agent Families
 

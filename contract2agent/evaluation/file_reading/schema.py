@@ -214,6 +214,78 @@ class FileReadingScorecard:
 
 
 @dataclass
+class FileReadingJudgeInput:
+    task_id: str
+    task_type: str
+    question: str
+    agent_answer: str
+    agent_citations: list[JsonObject] = field(default_factory=list)
+    cited_snippets: list[JsonObject] = field(default_factory=list)
+    gold_answer: str = ""
+    gold_evidence: list[JsonObject] = field(default_factory=list)
+    deterministic_grade_summary: JsonObject = field(default_factory=dict)
+    failure_modes: list[str] = field(default_factory=list)
+    judge_instructions: str = ""
+    metadata: JsonObject = field(default_factory=dict)
+
+
+@dataclass
+class FileReadingJudgeOutput:
+    semantic_correctness_score: float
+    evidence_support_score: float
+    contradiction_risk: float
+    unsupported_claims: list[str] = field(default_factory=list)
+    missing_evidence_notes: list[str] = field(default_factory=list)
+    recommendation_items: list[str] = field(default_factory=list)
+    confidence: float = 0.0
+    rationale: str = ""
+    limitations: list[str] = field(default_factory=list)
+    judge_model: str = ""
+    judge_provider: str = ""
+    judge_based: bool = True
+    deterministic: bool = False
+
+
+@dataclass
+class FileReadingJudgeTaskResult:
+    task_id: str
+    selected: bool = False
+    status: str = "not_selected"
+    cache_key: str = ""
+    provider: str = ""
+    model: str = ""
+    prompt_version: str = ""
+    input_chars: int = 0
+    estimated_input_tokens: int = 0
+    max_output_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    token_usage: JsonObject = field(default_factory=dict)
+    deterministic_total_score: float | None = None
+    judge_output: FileReadingJudgeOutput | None = None
+    error: str = ""
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class FileReadingJudgeReport:
+    run_id: str
+    judge_provider: str
+    judge_model: str
+    prompt_version: str
+    judge_based: bool = True
+    deterministic: bool = False
+    deterministic_scorecard: JsonObject = field(default_factory=dict)
+    judge_only: str = "failed"
+    max_judge_tasks: int = 0
+    cost_budget_usd: float | None = None
+    dry_run_cost_estimate: bool = False
+    summary: JsonObject = field(default_factory=dict)
+    results: list[FileReadingJudgeTaskResult] = field(default_factory=list)
+    failures: list[str] = field(default_factory=list)
+    limitations: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ReferenceSource:
     source_id: str
     title: str
@@ -315,6 +387,18 @@ def _coerce_fields(cls: type, data: JsonObject) -> JsonObject:
             str(task_id): from_dict(FileAccessTrace, item)
             for task_id, item in filtered.get("traces", {}).items()
         }
+    elif cls is FileReadingJudgeTaskResult:
+        output_data = filtered.get("judge_output")
+        filtered["judge_output"] = (
+            from_dict(FileReadingJudgeOutput, output_data)
+            if isinstance(output_data, dict)
+            else None
+        )
+    elif cls is FileReadingJudgeReport:
+        filtered["results"] = [
+            from_dict(FileReadingJudgeTaskResult, item)
+            for item in filtered.get("results", [])
+        ]
     elif cls is ComparisonReport:
         filtered["reference_results"] = [
             from_dict(ReferenceResult, item)

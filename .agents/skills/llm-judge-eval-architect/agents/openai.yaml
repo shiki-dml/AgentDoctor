@@ -1,0 +1,4 @@
+interface:
+  display_name: "LLM Judge Eval Architect"
+  short_description: "Add optional LLM judge support safely."
+  default_prompt: "Use $llm-judge-eval-architect to add optional LLM judge support to an evaluation framework."

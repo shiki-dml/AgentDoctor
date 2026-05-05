@@ -27,6 +27,9 @@ htmlcov/
 .agentdoctor/patches/
 .agentdoctor/cost/
 .agentdoctor/tmp/
+/.runs/
+/file_reading_eval/
+.judge_cache/
 pip_tmp/
 pytest-cache-files-*/
 build/

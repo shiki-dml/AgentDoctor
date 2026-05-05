@@ -1,0 +1,18 @@
+[
+  {
+    "reference_result_id": "example_good_reader_reference",
+    "source_id": "local_file_reading_examples",
+    "agent_or_model": "dummy_good_reader",
+    "agent_config_summary": "Repository dummy reader over the example task pack.",
+    "task_pack_id": "smoke_tasks",
+    "metrics": {
+      "overall_score": 0.95,
+      "citation_quality": 1.0,
+      "answer_correctness": 0.95
+    },
+    "environment": "local example fixture",
+    "scoring_method": "contract2agent_file_reading_v1",
+    "comparable_conditions": true,
+    "limitations": ["Tiny example fixture; not a benchmark."]
+  }
+]

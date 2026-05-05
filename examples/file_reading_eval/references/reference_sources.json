@@ -1,0 +1,17 @@
+{
+  "sources": [
+    {
+      "source_id": "local_file_reading_examples",
+      "title": "Local File Reading Eval Examples",
+      "source_type": "local_reference",
+      "domain": "file_reading_agent",
+      "license": "example fixture",
+      "provenance": "Repository-local example corpus",
+      "reliability": 0.4,
+      "applicable_task_types": ["single_file_qa", "version_comparison", "unanswerable_question"],
+      "metrics_available": [],
+      "notes": ["Contextual fixture source only."],
+      "limitations": ["Not a benchmark and not a direct score."]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "agent_id": "weak_file_reader",
+  "name": "Weak File Reader",
+  "description": "Claims to summarize documents but has unclear citation and trace behavior.",
+  "declared_capabilities": ["summarize files"],
+  "tools": ["file_read"],
+  "tool_permissions": ["read_local"],
+  "can_list_files": false,
+  "can_search_files": false,
+  "can_read_files": true,
+  "can_access_external_paths": true,
+  "can_use_network": false,
+  "citation_support": "unknown",
+  "output_schema_support": "unknown",
+  "trace_support": "unknown",
+  "policy_constraints": []
+}

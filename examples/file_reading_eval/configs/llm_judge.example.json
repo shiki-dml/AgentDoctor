@@ -1,0 +1,13 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "api_key_env": "OPENAI_API_KEY",
+  "stores_api_key": false,
+  "judge_only": "failed",
+  "max_judge_tasks": 10,
+  "llm_max_input_chars": 12000,
+  "llm_max_output_tokens": 500,
+  "evidence_snippet_limit": 5,
+  "cost_budget_usd": 1.0,
+  "cache_judge_results": true
+}

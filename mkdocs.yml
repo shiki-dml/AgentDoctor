@@ -27,6 +27,9 @@ nav:
       - Deep Diagnosis: deep.md
       - Auto Mode: auto.md
   - Core Features:
+      - File Reading Eval:
+          - Overview: file-reading-eval/README.md
+          - zh-CN: file-reading-eval/README.zh-CN.md
       - Failure Taxonomy: failure-taxonomy.md
       - Baselines: baselines.md
       - Patch Preview: patch-preview.md

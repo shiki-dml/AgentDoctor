@@ -178,3 +178,45 @@ Do not read secrets, `.env`, SSH keys, browser data, or files outside user-appro
 Do not implement real external actions.
 
 Do not weaken existing path containment or secret filtering.
+
+## Optional LLM judge layer
+
+The file-reading eval subsystem may support optional LLM-based judging, but deterministic grading must remain the default.
+
+LLM judges are allowed only when the user explicitly enables them.
+
+Rules:
+
+1. Never require LLM API calls for baseline grading.
+2. Never call an API from GitHub Pages.
+3. Never expose API keys in browser code, reports, logs, or committed files.
+4. Prefer environment variables for API keys.
+5. If an API key is entered interactively, use hidden input and keep it in memory for the current process only.
+6. Mark all LLM-based scores as judge_based and non_deterministic.
+7. Record provider, model, prompt version, token usage, and limitations when available.
+8. Do not send entire corpora to the judge.
+9. Send only task question, agent answer, cited snippets, gold answer/evidence when available, and minimal metadata.
+10. Use deterministic graders first and send only uncertain/open-ended/failed tasks to the LLM judge unless the user explicitly requests all tasks.
+11. Support budget controls such as max judge tasks, max input chars, max output tokens, cost budget, and cache.
+12. Use structured JSON output for judge responses when possible.
+13. LLM-generated recommendations must be grounded in measured failure modes.
+
+## CLI UX requirements
+
+The file-reading CLI should be usable as a real evaluation tool.
+
+It should support:
+
+- rich help
+- workflow help
+- LLM judge help
+- scoring help
+- examples help
+- colorful but optional terminal output
+- no-color/plain/json modes
+- progress display
+- score tables
+- warning panels
+- improvement checklists
+- doctor command
+- clear distinction between profile-only, deterministic run, and LLM-judged run

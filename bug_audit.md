@@ -1,5 +1,191 @@
 # Contract2Agent Bug Audit
 
+## Full Project Audit - Brooks Lint Pass
+
+### Audit Scope
+
+- Mode: Full Sweep correctness and consistency audit, scoped to actual bugs and contradictions only.
+- Date: 2026-05-05.
+- Repository areas inspected:
+  - Generalized agent evaluation framework: `contract2agent/evaluation/schema.py`, `capability_classifier.py`, `registry.py`, `evidence.py`, `scoring.py`, `prediction.py`, `reports.py`, `tests/test_agent_evaluation_framework.py`.
+  - File-reading evaluation adapter: `contract2agent/evaluation/file_reading/*.py`, `tests/test_file_reading_eval.py`, `tests/test_file_reading_llm_judge.py`.
+  - Optional LLM judge: `contract2agent/evaluation/file_reading/llm_judge.py`, `help.py`, reports, README/docs/examples.
+  - CLI: `contract2agent/cli.py`, `contract2agent/evaluation/file_reading/cli.py`, CLI subprocess tests, direct module help smoke tests.
+  - GitHub Pages/static demo: `docs/assets/agent-eval.js`, `docs/assets/app.js`, `docs/data/agent_eval/*.json`, `tests/test_docs_site.py`.
+  - Docs and examples: `README.md`, `README.zh-CN.md`, `docs/file-reading-eval/`, `examples/file_reading_eval/`, `mkdocs.yml`.
+  - Safety/cleanup: `.gitignore`, corpus import filtering, report sanitization, judge input/report sanitization.
+
+### Baseline Results Before Fixes
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `python -m pytest` | Passed | 333 passed in 38.55s before this pass's edits. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Baseline syntax compilation passed. |
+| Direct CLI smoke commands | Partially blocked, later rerun | Early approval checks timed out for CLI helps; direct module CLI checks passed later after retry. |
+
+### Issue AUDIT-001
+
+- Bug ID: AUDIT-001
+- Area: File-reading evaluation cleanup / generated artifacts
+- Severity: medium
+- Symptom: File-reading examples and help use `.runs/`, `file-eval init` creates a default `file_reading_eval/` workspace, and optional judge caching writes `.judge_cache/`, but `.gitignore` did not ignore those generated artifacts.
+- Root cause: New file-reading runtime paths were documented/implemented without corresponding generated-artifact ignore rules.
+- Files inspected: `.gitignore`, `contract2agent/evaluation/file_reading/cli.py`, `contract2agent/evaluation/file_reading/llm_judge.py`, `README.md`, `docs/file-reading-eval/README.md`.
+- Files changed: `.gitignore`, `tests/test_file_reading_llm_judge.py`.
+- Tests added or updated: `test_generated_file_eval_artifacts_are_gitignored`.
+- Fix summary: Added `/.runs/`, `/file_reading_eval/`, and `.judge_cache/` ignore rules while preserving intentional `examples/file_reading_eval/` fixtures.
+- Verification commands: `python -m pytest tests\test_file_reading_llm_judge.py -k gitignored`; final full suite.
+- Results: Focused test failed before the ignore update and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: No remaining issue found.
+
+### Issue AUDIT-002
+
+- Bug ID: AUDIT-002
+- Area: File-reading task validation
+- Severity: high
+- Symptom: `validate_tasks` checked task file lists and answerability metadata but did not validate `gold_evidence_spans` or `expected_citations` for manifest file IDs, valid line ranges, quote matches, or malformed line-number types.
+- Root cause: Evidence-span validation existed only indirectly in graders; task validation did not inspect span integrity and could raise `TypeError` for string line numbers.
+- Files inspected: `contract2agent/evaluation/file_reading/tasks.py`, `graders.py`, `schema.py`, `tests/test_file_reading_eval.py`.
+- Files changed: `contract2agent/evaluation/file_reading/tasks.py`, `tests/test_file_reading_eval.py`.
+- Tests added or updated: `test_task_validation_catches_bad_evidence_spans`, `test_task_validation_reports_non_integer_evidence_lines`.
+- Fix summary: Added deterministic span validation for file IDs, integer line numbers, line range ordering/bounds, and quote match against manifest text.
+- Verification commands: `python -m pytest tests\test_file_reading_eval.py -k "bad_evidence_spans or non_integer_evidence_lines"`; final full suite.
+- Results: New tests failed before the fix and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: Character-offset validation remains a future enhancement; current implemented task format is line-oriented.
+
+### Issue AUDIT-003
+
+- Bug ID: AUDIT-003
+- Area: File-reading target output validation
+- Severity: high
+- Symptom: `validate_target_output` recorded citation schema errors but still attempted to construct `Citation` with missing `file_id` or unsafe line types, causing a crash instead of a deterministic schema failure.
+- Root cause: Citation coercion used `from_dict(Citation, item)` before normalizing required and optional citation fields.
+- Files inspected: `contract2agent/evaluation/file_reading/graders.py`, `schema.py`, `tests/test_file_reading_eval.py`.
+- Files changed: `contract2agent/evaluation/file_reading/graders.py`, `tests/test_file_reading_eval.py`.
+- Tests added or updated: `test_output_schema_validation_handles_malformed_citation_objects`.
+- Fix summary: Citation validation now preserves an invalid output as `schema_valid=False`, reports concrete field errors, and coerces unsafe citation fields to non-crashing defaults.
+- Verification commands: `python -m pytest tests\test_file_reading_eval.py -k malformed_citation`; final full suite.
+- Results: New test failed before the fix and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: Confidence bounds remain permissive because current schema treats confidence as optional metadata rather than a scored requirement.
+
+### Issue AUDIT-004
+
+- Bug ID: AUDIT-004
+- Area: File-reading report safety
+- Severity: high
+- Symptom: Report JSON sanitized values that were exactly absolute paths, but leaked local absolute paths embedded inside target-agent answer text, notes, raw output, grade warnings, optional comparison, or optional judge report structures.
+- Root cause: `_sanitize_report_value` only tested `Path(value).is_absolute()` and did not scan string content.
+- Files inspected: `contract2agent/evaluation/file_reading/reports.py`, `runner.py`, `schema.py`, `tests/test_file_reading_llm_judge.py`.
+- Files changed: `contract2agent/evaluation/file_reading/reports.py`, `tests/test_file_reading_llm_judge.py`.
+- Tests added or updated: `test_embedded_absolute_paths_are_sanitized_in_report_json`.
+- Fix summary: Added embedded Windows/POSIX local path redaction and applied report sanitization to grades, scorecards, comparison payloads, and optional LLM judge payloads.
+- Verification commands: `python -m pytest tests\test_file_reading_llm_judge.py -k embedded_absolute_paths`; final full suite.
+- Results: New test failed before the fix and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: Sanitizer targets common local absolute path forms; it intentionally does not rewrite ordinary relative artifact names.
+
+### Issue AUDIT-005
+
+- Bug ID: AUDIT-005
+- Area: Optional LLM judge failure reports
+- Severity: high
+- Symptom: A failing command-based judge could write stderr containing local absolute paths into `llm_judge.json`.
+- Root cause: Judge failure text was stored verbatim in `FileReadingJudgeTaskResult.error` and `FileReadingJudgeReport.failures`.
+- Files inspected: `contract2agent/evaluation/file_reading/llm_judge.py`, `tests/test_file_reading_llm_judge.py`.
+- Files changed: `contract2agent/evaluation/file_reading/llm_judge.py`, `tests/test_file_reading_llm_judge.py`.
+- Tests added or updated: `test_judge_failure_report_sanitizes_local_absolute_paths`.
+- Fix summary: Judge failure strings now redact common local absolute path forms before being written to report artifacts.
+- Verification commands: `python -m pytest tests\test_file_reading_llm_judge.py -k judge_failure_report_sanitizes`; final full suite.
+- Results: New test failed before the fix and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: Command adapters can still emit arbitrary non-path diagnostic text; secrets are handled separately by AUDIT-006/AUDIT-007.
+
+### Issue AUDIT-006
+
+- Bug ID: AUDIT-006
+- Area: Optional LLM judge input safety
+- Severity: critical
+- Symptom: If a target-agent answer contained an API-key-like or secret-assignment token, `build_judge_input` could include it in compact optional judge input.
+- Root cause: Judge input sanitization handled local paths and forbidden citations, but not secret-like text embedded in answers or quoted fields.
+- Files inspected: `contract2agent/evaluation/file_reading/llm_judge.py`, `tests/test_file_reading_llm_judge.py`.
+- Files changed: `contract2agent/evaluation/file_reading/llm_judge.py`, `tests/test_file_reading_llm_judge.py`.
+- Tests added or updated: `test_judge_input_redacts_secret_like_answer_text`.
+- Fix summary: Added conservative redaction for API-key/token/password/secret assignments and OpenAI-key-shaped values before judge inputs are serialized.
+- Verification commands: `python -m pytest tests\test_file_reading_llm_judge.py -k redacts_secret_like`; final full suite.
+- Results: New test failed before the fix and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: This is a deterministic safety filter, not a full DLP engine; the importer still skips common secret files by default.
+
+### Issue AUDIT-007
+
+- Bug ID: AUDIT-007
+- Area: File-reading report secret filtering
+- Severity: critical
+- Symptom: Generated report JSON could include API-key-shaped or secret-assignment values embedded in target-agent output text.
+- Root cause: Report sanitization did not redact secret-like content before serializing run outputs and raw output.
+- Files inspected: `contract2agent/evaluation/file_reading/reports.py`, `tests/test_file_reading_llm_judge.py`.
+- Files changed: `contract2agent/evaluation/file_reading/reports.py`, `tests/test_file_reading_llm_judge.py`.
+- Tests added or updated: `test_secret_like_values_are_sanitized_in_report_json`.
+- Fix summary: Reused conservative secret-like redaction in report string sanitization before path redaction.
+- Verification commands: `python -m pytest tests\test_file_reading_llm_judge.py -k "secret_like_values_are_sanitized or embedded_absolute_paths"`; final full suite.
+- Results: New test failed before the fix and passed after it; final `python -m pytest` passed.
+- Remaining limitations or follow-ups: Redaction intentionally prioritizes common credential shapes and explicit secret/key assignments.
+
+### Issue AUDIT-008
+
+- Bug ID: AUDIT-008
+- Area: README/docs consistency
+- Severity: medium
+- Symptom: `README.zh-CN.md` had a new file-reading LLM judge update appended in English, and `docs/file-reading-eval/README.zh-CN.md` was an English placeholder despite being linked as zh-CN documentation.
+- Root cause: English docs were updated first and the bilingual docs were not localized.
+- Files inspected: `README.md`, `README.zh-CN.md`, `docs/file-reading-eval/README.md`, `docs/file-reading-eval/README.zh-CN.md`, `mkdocs.yml`, `tests/test_file_reading_llm_judge.py`.
+- Files changed: `README.zh-CN.md`, `docs/file-reading-eval/README.zh-CN.md`, `tests/test_file_reading_llm_judge.py`.
+- Tests added or updated: `test_readme_zh_cn_file_reading_llm_judge_section_is_localized`, `test_file_reading_eval_zh_cn_guide_is_localized`.
+- Fix summary: Localized the README LLM judge section and replaced the zh-CN file-reading guide placeholder with a concise Chinese guide covering deterministic defaults, explicit LLM enablement, API-key handling, budgets, static Pages constraints, and limitations.
+- Verification commands: `python -m pytest tests\test_file_reading_llm_judge.py -k readme_zh_cn`; `python -m pytest tests\test_file_reading_llm_judge.py -k file_reading_eval_zh_cn`; docs link/build checks.
+- Results: New tests failed before localization and passed after it; docs link checker and strict MkDocs build passed.
+- Remaining limitations or follow-ups: The zh-CN file-reading guide is intentionally concise rather than a line-for-line full translation of the English guide.
+
+### Areas Inspected With No Code Change Required
+
+- Generalized agent evaluation framework: no change required. Existing tests cover JSON-serializable schemas, non-name classification, unknown-agent fallback, benchmark contextuality, declared-only confidence limits, simulation-only financial classification, and evidence/limitations in reports.
+- GitHub Pages/static demo: no change required. Static asset scan found no external API calls, WebSockets, `eval()`, API key exposure, backend behavior, or real financial execution. The only `fetch` in `docs/assets/agent-eval.js` loads local static JSON metadata.
+- Research/benchmark metadata: no change required. Static and file-reading references remain contextual and low-reliability; comparison logic requires compatible task pack, scoring method, environment, and comparable conditions before computing deltas.
+- Old contract playground preservation: no change required. Existing docs/static tests still cover the legacy route and deterministic browser-side diagnosis behavior.
+- Production dependencies and backend architecture: no change required. No dependencies, backend, live eval runner in browser, or real financial action path was added.
+
+### Final Verification Results
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `python -m pytest tests\test_file_reading_eval.py tests\test_file_reading_llm_judge.py` | Passed | 47 passed in 5.90s. |
+| `python -m contract2agent.cli --help` | Passed | Module CLI help rendered and listed `file-eval`. |
+| `python -m contract2agent.cli file-eval --help` | Passed | Listed file-eval options and subcommands. |
+| `python -m contract2agent.cli file-eval help llm` | Passed | States deterministic default, explicit LLM enablement, key handling, and budget controls. |
+| `python -m contract2agent.cli file-eval doctor --plain` | Passed | Doctor checks rendered without ANSI color; `OPENAI_API_KEY` warned when absent. |
+| `c2a --help` | Failed due environment | `c2a` is not installed on PATH in this environment; module entry point and pyproject script metadata were verified instead. |
+| `node --check docs\assets\agent-eval.js` | Passed | Static agent-eval JavaScript syntax is valid. |
+| `node --check docs\assets\app.js` | Passed | Legacy playground JavaScript syntax is valid. |
+| `python scripts\check_docs_links.py` | Passed | Checked 35 Markdown files; all relative links resolve. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | Final syntax compilation passed. |
+| `python -m mkdocs build --strict` | Passed | Documentation built successfully. |
+| `python -m pytest` | Passed | 343 passed in 34.95s after the final audit log update. |
+| `git diff --check` | Passed | No whitespace errors. |
+
+### Commands Skipped Or Substituted
+
+- `c2a --help` could not be used because the console script is not installed on PATH in the current environment. Equivalent `python -m contract2agent.cli --help` passed, and `pyproject.toml` still declares `c2a = "contract2agent.cli:main"`.
+- No network import or live LLM judge API call was run. That is intentional: baseline file-reading evaluation is deterministic/offline, and optional LLM judging must be explicitly enabled with credentials.
+- No destructive git operations, commits, pushes, dependency installs, backend services, or browser live experiments were run.
+
+### Risks Left As Follow-Up
+
+- File-reading evidence validation is line-oriented. Character-offset validation remains a possible future enhancement if tasks begin relying on character spans.
+- Secret redaction is conservative and deterministic, not a complete DLP system. It covers common key/token/password/secret assignments and OpenAI-key-shaped values.
+- The zh-CN file-reading guide is concise; a future documentation pass could fully translate the English guide if desired.
+
+### Preservation Confirmation
+
+- Existing correct behavior was preserved: generalized classification, benchmark contextuality, profile-only no observed score, deterministic default grading, optional LLM separation, CLI command surface, GitHub Pages static constraints, and legacy contract playground tests all still pass.
+- No production dependency, backend, live browser eval, real financial transaction path, or exact fixture-name hard-coding was added.
+
 ## File Reading Agent Evaluation Adapter
 
 ### 1. Why profile-only classification is insufficient

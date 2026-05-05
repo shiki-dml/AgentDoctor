@@ -1,0 +1,4 @@
+interface:
+  display_name: "CLI Experience Designer"
+  short_description: "Improve CLI help, output, and scriptability."
+  default_prompt: "Use $cli-experience-designer to improve a command-line tool experience without sacrificing scriptability."

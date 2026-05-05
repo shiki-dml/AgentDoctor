@@ -1,0 +1,16 @@
+{
+  "agent_id": "llm_judge_example_reader",
+  "name": "LLM Judge Example Reader",
+  "description": "Profile used to demonstrate optional semantic judging after deterministic grading.",
+  "declared_capabilities": ["semantic answers", "summary with citations"],
+  "tools": ["file_search", "file_read"],
+  "tool_permissions": ["read_corpus_only"],
+  "can_list_files": true,
+  "can_search_files": true,
+  "can_read_files": true,
+  "can_use_network": false,
+  "citation_support": "line_citations",
+  "output_schema_support": "json",
+  "trace_support": "files_read",
+  "policy_constraints": ["Do not read forbidden files.", "Use insufficient-evidence answers when needed."]
+}

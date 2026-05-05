@@ -60,9 +60,30 @@ def validate_target_output(data: Any, *, raw_output: str = "") -> TargetAgentOut
         if not isinstance(item, dict):
             errors.append(f"citations[{index}] must be an object")
             continue
-        if "file_id" not in item or not isinstance(item.get("file_id"), str):
+        file_id = item.get("file_id", "")
+        if not isinstance(file_id, str):
             errors.append(f"citations[{index}].file_id must be a string")
-        citations.append(from_dict(Citation, item))
+            file_id = str(file_id)
+        elif not file_id:
+            errors.append(f"citations[{index}].file_id must be a string")
+        line_start = _optional_int(item.get("line_start"), f"citations[{index}].line_start", errors)
+        line_end = _optional_int(item.get("line_end"), f"citations[{index}].line_end", errors)
+        quote = item.get("quote", "")
+        if not isinstance(quote, str):
+            errors.append(f"citations[{index}].quote must be a string")
+            quote = str(quote)
+        explanation = item.get("explanation", "")
+        if not isinstance(explanation, str):
+            explanation = str(explanation)
+        citations.append(
+            Citation(
+                file_id=file_id,
+                line_start=line_start,
+                line_end=line_end,
+                quote=quote,
+                explanation=explanation,
+            )
+        )
     confidence = data.get("confidence")
     if confidence is not None:
         try:
@@ -504,3 +525,15 @@ def _robustness_tags(task: FileReadingTask) -> list[str]:
     if task.task_type in {"multi_file_qa", "conflicting_evidence", "version_comparison"}:
         tags.append("multi_file")
     return tags
+
+
+def _optional_int(value: Any, field_name: str, errors: list[str]) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        errors.append(f"{field_name} must be an integer when provided")
+        return None
+    if isinstance(value, int):
+        return value
+    errors.append(f"{field_name} must be an integer when provided")
+    return None

@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from contract2agent.evaluation.file_reading.compare import compare_with_references
 from contract2agent.evaluation.file_reading.graders import grade_run, load_grades, load_run
+from contract2agent.evaluation.file_reading.llm_judge import load_judge_report
+from contract2agent.evaluation.file_reading.recommendations import prioritized_recommendations_for_grades
 from contract2agent.evaluation.file_reading.runner import load_file_reading_agent_profile
 from contract2agent.evaluation.file_reading.schema import (
     ComparisonReport,
     FileReadingAgentProfile,
     FileReadingGrade,
+    FileReadingJudgeReport,
     FileReadingRun,
     FileReadingScorecard,
     to_dict,
@@ -95,6 +99,7 @@ def render_run_report(
     grades: list[FileReadingGrade],
     scorecard: FileReadingScorecard,
     comparison: ComparisonReport | None = None,
+    judge_report: FileReadingJudgeReport | None = None,
 ) -> str:
     lines = [
         "# File Reading Agent Evaluation Report",
@@ -180,16 +185,43 @@ def render_run_report(
     lines.extend(["", "## Failure Modes"])
     lines.extend(f"- {item}" for item in scorecard.failure_modes) if scorecard.failure_modes else lines.append("- None observed in this run.")
     lines.extend(["", "## Recommended Changes"])
-    lines.extend(f"- {item}" for item in scorecard.recommended_changes)
+    grouped_recommendations = prioritized_recommendations_for_grades(
+        grades,
+        llm_recommendations=_judge_recommendations(judge_report),
+    )
+    for priority, items in grouped_recommendations.items():
+        lines.append(f"- {priority}:")
+        lines.extend(f"  - {item}" for item in items)
     lines.extend(["", "## Recommended Next Eval Plan"])
     lines.extend(f"- {item}" for item in scorecard.next_eval_plan)
+    lines.extend(["", "## Optional LLM Judge"])
+    if judge_report is None:
+        lines.append("- Not included. Deterministic grading remains the only score source in this report.")
+    else:
+        lines.extend(
+            [
+                f"- Provider: {judge_report.judge_provider}",
+                f"- Model: {judge_report.judge_model}",
+                f"- Judge based: {judge_report.judge_based}",
+                f"- Deterministic: {judge_report.deterministic}",
+                f"- Prompt version: {judge_report.prompt_version}",
+                f"- Tasks selected: {judge_report.summary.get('tasks_selected', 0)}",
+                f"- Calls made: {judge_report.summary.get('calls_made', 0)}",
+                f"- Cache hits: {judge_report.summary.get('cache_hits', 0)}",
+                f"- Skipped by budget: {judge_report.summary.get('skipped_due_to_budget', 0)}",
+                f"- Estimated cost USD: {judge_report.summary.get('estimated_cost_usd', 0)}",
+            ]
+        )
+        failed = [result for result in judge_report.results if result.status == "judge_failed"]
+        if failed:
+            lines.append(f"- Judge failures: {len(failed)}; deterministic grades were retained for failed judge tasks.")
     lines.extend(
         [
             "",
             "## Limitations",
             "- Scores are deterministic and based only on observed run artifacts.",
             "- Public benchmark references are contextual unless comparable reference results are imported.",
-            "- Optional semantic or LLM judging is not enabled in this core adapter.",
+            "- Optional LLM judge scores are non-deterministic supplements and do not replace deterministic scores.",
             "",
             "## Trace Artifact Locations",
         ]
@@ -207,6 +239,8 @@ def write_run_report(
     report_format: str = "md,json",
     out_dir: str | Path,
     reference_results: str | Path | None = None,
+    include_llm_judge: bool = False,
+    judge_report_path: str | Path | None = None,
 ) -> dict[str, Path]:
     run = load_run(run_dir)
     grades_path = Path(run_dir) / "grades.json"
@@ -221,6 +255,11 @@ def write_run_report(
         if reference_results is not None
         else None
     )
+    judge_report = _load_optional_judge_report(
+        run_dir,
+        include_llm_judge=include_llm_judge,
+        judge_report_path=judge_report_path,
+    )
     target = Path(out_dir)
     target.mkdir(parents=True, exist_ok=True)
     outputs: dict[str, Path] = {}
@@ -228,7 +267,7 @@ def write_run_report(
     if "md" in formats or "markdown" in formats:
         md_path = target / "report.md"
         md_path.write_text(
-            render_run_report(run, grades, scorecard, comparison).rstrip() + "\n",
+            render_run_report(run, grades, scorecard, comparison, judge_report).rstrip() + "\n",
             encoding="utf-8",
         )
         outputs["markdown"] = md_path
@@ -237,10 +276,11 @@ def write_run_report(
         json_path.write_text(
             json.dumps(
                 {
-                    "run": to_dict(run),
-                    "grades": [to_dict(grade) for grade in grades],
-                    "scorecard": to_dict(scorecard),
-                    "comparison": to_dict(comparison) if comparison else None,
+                    "run": _sanitized_run_dict(run),
+                    "grades": _sanitize_report_value([to_dict(grade) for grade in grades]),
+                    "scorecard": _sanitize_report_value(to_dict(scorecard)),
+                    "comparison": _sanitize_report_value(to_dict(comparison)) if comparison else None,
+                    "llm_judge": _sanitize_report_value(to_dict(judge_report)) if judge_report else None,
                 },
                 indent=2,
                 sort_keys=True,
@@ -266,3 +306,72 @@ def _sanitize_path(path: str) -> str:
     if candidate.is_absolute():
         return f"<local>/{candidate.name}"
     return path
+
+
+def _sanitized_run_dict(run: FileReadingRun) -> dict:
+    data = _sanitize_report_value(to_dict(run))
+    data["task_file"] = _sanitize_path(str(data.get("task_file", "")))
+    manifest = data.get("corpus_manifest")
+    if isinstance(manifest, dict):
+        manifest["root_path"] = _sanitize_path(str(manifest.get("root_path", "")))
+    return data
+
+
+def _sanitize_report_value(value):
+    if isinstance(value, dict):
+        return {key: _sanitize_report_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_report_value(item) for item in value]
+    if isinstance(value, str):
+        candidate = Path(value)
+        if candidate.is_absolute():
+            return _sanitize_path(value)
+        return _sanitize_embedded_paths(value)
+    return value
+
+
+_WINDOWS_PATH_RE = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\s`\"'<>|]+")
+_POSIX_LOCAL_PATH_RE = re.compile(r"(?<![A-Za-z0-9])/(?:Users|home|var|tmp)/[^\s`\"'<>|]+")
+_SECRET_ASSIGNMENT_RE = re.compile(
+    r"(?i)\b(api[_-]?key|token|password|secret)\b\s*[:=]\s*[^\s,;`'\"<>]+"
+)
+_OPENAI_KEY_RE = re.compile(r"\bsk-[A-Za-z0-9_-]{8,}\b")
+
+
+def _sanitize_embedded_paths(value: str) -> str:
+    sanitized = _SECRET_ASSIGNMENT_RE.sub(lambda match: f"{match.group(1)}=<redacted_secret>", value)
+    sanitized = _OPENAI_KEY_RE.sub("<redacted_secret>", sanitized)
+    sanitized = _WINDOWS_PATH_RE.sub("<local_path>", sanitized)
+    return _POSIX_LOCAL_PATH_RE.sub("<local_path>", sanitized)
+
+
+def _load_optional_judge_report(
+    run_dir: str | Path,
+    *,
+    include_llm_judge: bool,
+    judge_report_path: str | Path | None,
+) -> FileReadingJudgeReport | None:
+    if not include_llm_judge and judge_report_path is None:
+        return None
+    candidates = []
+    if judge_report_path is not None:
+        candidates.append(Path(judge_report_path))
+    candidates.append(Path(run_dir) / "llm_judge.json")
+    for candidate in candidates:
+        if candidate.exists():
+            return load_judge_report(candidate)
+    return None
+
+
+def _judge_recommendations(judge_report: FileReadingJudgeReport | None) -> list[str]:
+    if judge_report is None:
+        return []
+    recommendations: list[str] = []
+    for result in judge_report.results:
+        if result.judge_output is not None:
+            recommendations.extend(result.judge_output.recommendation_items)
+            if result.judge_output.contradiction_risk >= 0.7:
+                recommendations.append(
+                    "Review cited evidence and force answer synthesis from quotes only for high contradiction-risk tasks."
+                )
+    return recommendations
