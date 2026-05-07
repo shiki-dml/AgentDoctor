@@ -1,6 +1,9 @@
 site_name: Contract2Agent
 site_description: Pre-runtime evaluation, capability classification, and cautious outcome prediction for AI agents.
 
+exclude_docs: |
+  /README.md
+
 theme:
   name: material
   features:
@@ -44,6 +47,20 @@ nav:
       - Examples: examples.md
   - Development:
       - Development Guide: development.md
+      - Repository Docs:
+          - Project Context: PROJECT_CONTEXT.md
+          - Architecture: ARCHITECTURE.md
+          - Codemap: CODEMAP.md
+          - Golden Principles: GOLDEN_PRINCIPLES.md
+          - Decisions: DECISIONS.md
+          - Agent Handoff: AGENT_HANDOFF.md
+      - Agent Harness:
+          - Harness Overview: harness/README.md
+          - Progress: harness/PROGRESS.md
+          - Quality Gates: harness/QUALITY_GATES.md
+          - Eval Matrix: harness/EVAL_MATRIX.md
+          - Sprint Contract Template: harness/SPRINT_CONTRACT_TEMPLATE.md
+          - Runbook: harness/RUNBOOK.md
       - Audits:
           - 2026-05-04 Bug Audit: audits/2026-05-04-bug-audit.md
           - 2026-05-04 Test System Audit: audits/2026-05-04-test-system-audit.md
