@@ -1,0 +1,29 @@
+# Project-scoped Codex harness configuration.
+# This file documents conservative defaults for future Codex sessions. The
+# repository docs remain the source of truth when tool support differs.
+
+[project]
+name = "Contract2Agent"
+source_of_truth = "docs/README.md"
+handoff = "docs/AGENT_HANDOFF.md"
+progress_log = "docs/harness/PROGRESS.md"
+feature_registry = "docs/harness/feature_registry.json"
+
+[workflow]
+require_sprint_contract = true
+prefer_file_handoff = true
+incremental_work = true
+planner_generator_evaluator_separation = true
+
+[subagents]
+default_sandbox_mode = "read-only"
+write_sandbox_mode = "workspace-write"
+communication_paths = [
+  "docs/harness/",
+  "docs/AGENT_HANDOFF.md"
+]
+
+[quality]
+default_test_command = "python -m pytest"
+docs_validation_command = "python scripts/harness/validate_docs.py"
+doctor_command = "bash scripts/harness/doctor.sh"
