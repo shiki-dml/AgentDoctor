@@ -51,14 +51,10 @@ Markdown or JSON report.
 
 ## Example Flow
 
-```mermaid
-flowchart LR
-    A[Agent profile] --> B[Capability signals]
-    B --> C[Agent type classification]
-    C --> D[Evidence resolution]
-    D --> E[Eval categories]
-    E --> F[Preliminary prediction]
-```
+| Stage | Step 1 | Step 2 | Step 3 |
+| --- | --- | --- | --- |
+| Profile signals | **Agent profile**<br>Description, tools, permissions | **Capability signals**<br>Tool and task evidence | **Agent type classification**<br>Broad family match |
+| Evidence and report | **Evidence resolution**<br>Declared, observed, missing | **Eval categories**<br>Recommended next checks | **Preliminary prediction**<br>Confidence and risks |
 
 ## Start Here
 

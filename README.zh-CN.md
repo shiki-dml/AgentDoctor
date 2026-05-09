@@ -37,17 +37,11 @@ Contract2Agent 回答一个明确的预运行问题：
 
 ## 架构
 
-```mermaid
-flowchart LR
-    A[AgentInput] --> B[AgentProfile normalization]
-    B --> C[Capability signal extraction]
-    C --> D[Agent type classification]
-    D --> E[Evidence source resolution]
-    E --> F[Eval category selection]
-    F --> G[Preliminary scoring]
-    G --> H[Outcome prediction]
-    H --> I[Explainable Markdown / JSON report]
-```
+| Stage | Step 1 | Step 2 | Step 3 |
+| --- | --- | --- | --- |
+| Input and signals | **Agent profile**<br>Tools, permissions, sample tasks | **Normalize profile**<br>`schema.py` | **Extract capability signals**<br>Tools and task cues |
+| Classification and evidence | **Classify broad agent type**<br>Non-name signals | **Resolve evidence**<br>Observed, reference, missing | **Select eval categories**<br>Broad next-test areas |
+| Score and explain | **Build preliminary scorecard**<br>Fit, risk, confidence | **Predict likely outcome**<br>Cautious estimate | **Explainable report**<br>Markdown / JSON |
 
 核心 Python 模块位于 `contract2agent/evaluation/`：
 

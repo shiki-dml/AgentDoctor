@@ -10,17 +10,11 @@ runtime evaluation.
 
 ## Core Flow
 
-```mermaid
-flowchart LR
-    A["Profile, tools, permissions, tasks"] --> B["Schema normalization"]
-    B --> C["Capability signal extraction"]
-    C --> D["Broad capability classification"]
-    D --> E["Evidence resolution"]
-    E --> F["Eval category selection"]
-    F --> G["Preliminary scoring"]
-    G --> H["Cautious prediction"]
-    H --> I["Markdown / JSON report"]
-```
+| Stage | Step 1 | Step 2 | Step 3 |
+| --- | --- | --- | --- |
+| Input and normalization | **Profile, tools, permissions, tasks** | **Schema normalization** | **Capability signal extraction** |
+| Classification and evidence | **Broad capability classification** | **Evidence resolution**<br>Observed, reference, missing | **Eval category selection** |
+| Scoring and output | **Preliminary scoring** | **Cautious prediction** | **Markdown / JSON report** |
 
 ## Package Boundaries
 
@@ -71,14 +65,10 @@ File-reading evaluation:
 
 ## Harness Flow
 
-```mermaid
-flowchart LR
-    A["Baseline inspection"] --> B["Sprint contract"]
-    B --> C["Scoped implementation"]
-    C --> D["Quality gates"]
-    D --> E["Evaluator review"]
-    E --> F["Registry, progress, handoff"]
-```
+| Stage | Step 1 | Step 2 | Step 3 |
+| --- | --- | --- | --- |
+| Plan and implement | **Baseline inspection** | **Sprint contract** | **Scoped implementation** |
+| Verify and record | **Quality gates** | **Evaluator review** | **Registry, progress, handoff** |
 
 The harness is documentation and workflow infrastructure. It does not change
 product behavior by itself. It records evidence and helps future agents avoid
