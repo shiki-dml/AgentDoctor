@@ -12,7 +12,7 @@ developer workflow helpers.
 - Quick/deep/auto diagnostic modes and baseline comparison.
 - Capability reporting and failure taxonomy.
 - Generalized agent profile evaluation under `evaluation/`.
-- Triage, cost estimate, and patch preview helper subsystems.
+- Triage, cost estimate, patch preview, and program correction helper subsystems.
 
 ## Important Files And Entry Points
 

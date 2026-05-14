@@ -32,7 +32,10 @@ identity except when documenting backward compatibility.
 
 The core framework supports broad agent profile evaluation, evidence resolution,
 contextual benchmark references, deterministic scoring, cautious prediction, and
-report rendering. The first specialized adapter is `file_reading_agent`, which
+report rendering. General agent reports also include a global Reflexion-style
+update plan: evaluator feedback is converted into verbal memory for the next
+agent episode without calling an API or updating model weights. The first
+specialized adapter is `file_reading_agent`, which
 supports local CLI-based corpus import, task loading/building, black-box agent
 runs, trace capture, deterministic grading, reference comparison, optional LLM
 judge supplements, and reports.
@@ -67,6 +70,8 @@ Contract2Agent keeps these concepts separate:
 - Reference evidence: benchmark, paper, or methodology metadata used for context.
 - Prediction: a cautious pre-runtime estimate based on evidence and risk.
 - Missing evidence: explicitly recorded gaps that prevent stronger claims.
+- Reflexion update: global verbal memory for the next agent episode, derived
+  from evaluator feedback and kept separate from scores or observed evidence.
 
 For file-reading agents, profile-only assessment can produce readiness, risk,
 and recommended eval plans, but it must not claim actual reading performance.
@@ -79,6 +84,7 @@ Observed performance requires a documented run artifact.
 - Baseline file-reading evaluation makes no API calls.
 - Optional LLM judge outputs are supplemental, non-deterministic, budgeted, cached only when enabled, and kept separate from deterministic scores.
 - API keys must come from environment variables or hidden session-only input and must never be written to disk, reports, logs, caches, browser assets, docs examples, or committed files.
+- Reflexion update plans are deterministic by default and require no API key; any future LLM reflector must use user-supplied credentials only.
 - Path containment, secret filtering, generated-artifact exclusions, command safety checks, and preview-only patch boundaries must not be weakened.
 - Production dependencies should not be added for harness-only work.
 

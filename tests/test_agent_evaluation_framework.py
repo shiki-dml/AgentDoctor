@@ -16,6 +16,7 @@ from contract2agent.evaluation import (
     ReportRenderer,
     ScoringEngine,
     ToolSurface,
+    build_reflexion_update_plan,
     default_source_references,
     evaluate_agent_profile,
     load_agent_profile,
@@ -263,6 +264,22 @@ def test_outcome_prediction_includes_missing_evidence_and_next_tests() -> None:
     assert any("no linked observed" in basis.lower() for basis in prediction.evidence_basis)
 
 
+def test_reflexion_update_plan_is_global_api_free_and_serializable() -> None:
+    profile = _coding_profile()
+    evidence, scorecard, prediction = evaluate_agent_profile(profile)
+
+    plan = build_reflexion_update_plan(profile, evidence, scorecard, prediction)
+    data = json.loads(json.dumps(to_dict(plan)))
+
+    assert data["strategy"] == "verbal_reinforcement"
+    assert data["api_required"] is False
+    assert data["source_references"] == ["reflexion_language_agents_reference"]
+    assert data["memory"]
+    assert all(item["scope"] == "global_agent_behavior" for item in data["memory"])
+    assert any("trace" in item["next_instruction"].lower() for item in data["memory"])
+    assert "environment variable" in data["api_key_policy"]
+
+
 def test_report_json_is_serializable() -> None:
     profile = _coding_profile()
     evidence, scorecard, prediction = evaluate_agent_profile(
@@ -273,6 +290,7 @@ def test_report_json_is_serializable() -> None:
     data = ReportRenderer().to_dict(profile, evidence, scorecard, prediction)
 
     assert json.loads(json.dumps(data))["agent_profile"]["agent_id"] == profile.agent_id
+    assert data["reflexion_update_plan"]["api_required"] is False
 
 
 def test_markdown_report_includes_evidence_basis_and_limitations() -> None:
@@ -282,6 +300,7 @@ def test_markdown_report_includes_evidence_basis_and_limitations() -> None:
     markdown = ReportRenderer().render_markdown(profile, evidence, scorecard, prediction)
 
     assert "## Evidence Basis" in markdown
+    assert "## Global Reflexion Update Plan" in markdown
     assert "## Limitations" in markdown
     assert "Benchmark references are contextual" in markdown
 
@@ -305,6 +324,7 @@ def test_sample_source_references_do_not_imply_direct_performance_scores() -> No
     sources = default_source_references()
 
     assert sources
+    assert any(source.source_id == "reflexion_language_agents_reference" for source in sources)
     assert all(source.reliability <= 0.2 for source in sources)
     assert all(
         any("no " in limitation.lower() and "score" in limitation.lower() for limitation in source.limitations)
@@ -349,6 +369,7 @@ def test_eval_agent_cli_writes_markdown_report(tmp_path: Path) -> None:
     markdown = report_path.read_text(encoding="utf-8")
     assert "# Agent Evaluation Report" in markdown
     assert "Applicable Eval Categories" in markdown
+    assert "Global Reflexion Update Plan" in markdown
 
 
 def test_sample_profiles_and_results_load_from_examples() -> None:

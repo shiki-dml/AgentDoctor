@@ -15,6 +15,7 @@ If Typer is installed, the CLI has rich help output. A minimal argparse fallback
 | `deep` | Multi-round detailed diagnosis | `reports/` |
 | `auto` | Bounded diagnosis and safe prompt/config repair loop | `reports/` |
 | `patch-preview` | Preview-only patch proposal report | `.agentdoctor/patches/` |
+| `program-correct` | Preview-only correction plan using the active agent loop | `.agentdoctor/program-correction/` |
 | `cost-estimate` | Static pre-run time/cost estimate | `.agentdoctor/cost/` |
 | `new` | Create a generated scaffold from a requirement | selected output directory |
 | `compile` | Compile an `agent_contract.yaml` scaffold | selected output directory |
@@ -238,6 +239,27 @@ Output files:
 ```
 
 `--allow-apply` and `--apply` are accepted for forward compatibility, but Patch Preview v0.1 still refuses to apply changes.
+
+## Program Correct
+
+Purpose: build a preview-only program correction plan from diagnostic findings
+using existing agent roles. It reuses Patch Preview for safe target selection
+and diff generation, then routes the work through
+`codebase_mapper -> contract_generator -> feature_generator -> bug_reviewer/evaluator -> handoff_writer`.
+
+Syntax:
+
+```bash
+c2a program-correct [--from-run PATH] [--from-findings PATH] [--failure-type TYPE] [--output PATH] [--format markdown|json] [--project-root PATH]
+```
+
+Example:
+
+```bash
+c2a program-correct --from-run reports/latest.json
+```
+
+This command does not modify source files.
 
 ## Cost Estimate
 

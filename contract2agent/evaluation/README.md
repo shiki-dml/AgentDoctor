@@ -14,6 +14,8 @@ selection, preliminary scoring, cautious prediction, and report rendering.
   policy signals rather than exact names.
 - Evidence-aware scoring that keeps observed, imported, reference,
   declared-only, and missing evidence separate.
+- Global Reflexion-style update plans that turn evaluator feedback into
+  next-episode verbal memory without API calls or model-weight updates.
 - Markdown and JSON report generation.
 
 ## Important Files And Entry Points
@@ -24,6 +26,7 @@ selection, preliminary scoring, cautious prediction, and report rendering.
 - `evidence.py`: evidence source resolution.
 - `scoring.py`: preliminary score dimensions.
 - `prediction.py`: cautious outcome prediction.
+- `reflexion.py`: global verbal reinforcement update planning.
 - `reports.py`, `report.py`: rendering.
 - `file_reading/`: specialized file-reading adapter.
 

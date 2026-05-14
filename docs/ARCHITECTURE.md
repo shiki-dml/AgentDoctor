@@ -15,6 +15,7 @@ runtime evaluation.
 | Input and normalization | **Profile, tools, permissions, tasks** | **Schema normalization** | **Capability signal extraction** |
 | Classification and evidence | **Broad capability classification** | **Evidence resolution**<br>Observed, reference, missing | **Eval category selection** |
 | Scoring and output | **Preliminary scoring** | **Cautious prediction** | **Markdown / JSON report** |
+| Global update | **Evaluator feedback** | **Verbal reflection memory** | **Next-episode instructions** |
 
 ## Package Boundaries
 
@@ -27,7 +28,7 @@ runtime evaluation.
 | `contract2agent/privacy_eval/` | Static privacy-risk evaluation for agent profiles and workflows. | No live privacy library execution, no benchmark score import, and no DP claim without runtime/accountant evidence. |
 | `contract2agent/triage/` | Static intake, risk, coverage, readiness, and next-mode recommendations. | No live agent execution or external calls. |
 | `contract2agent/cost_estimate/` | Static time/cost estimate from configuration, triage, baselines, and rules. | Estimate-only behavior; no test execution or API calls. |
-| `contract2agent/patch_preview/` | Preview-only patch proposal reports and diffs. | No direct application of patches unless a future contract and tests explicitly add that behavior. |
+| `contract2agent/patch_preview/` | Preview-only patch proposal reports, diffs, and the `program-correct` correction-plan command. | No direct application of patches unless a future contract and tests explicitly add that behavior. |
 | `docs/` | MkDocs content, static demos, static data, repository docs, and harness state. | Static GitHub Pages behavior and evidence discipline. |
 | `scripts/harness/` | Validation and codemap helper scripts. | Call existing commands; do not become a second product runtime. |
 
@@ -52,7 +53,10 @@ General agent evaluation:
 3. Classify broad agent families from non-name signals.
 4. Resolve observed, imported, declared-only, contextual reference, and missing evidence.
 5. Compute preliminary score dimensions and confidence.
-6. Render JSON or Markdown with limitations and next-eval recommendations.
+6. Build a global Reflexion-style update plan from evaluator feedback,
+   missing evidence, low score dimensions, and risk flags.
+7. Render JSON or Markdown with limitations, next-eval recommendations, and
+   next-episode verbal memory.
 
 File-reading evaluation:
 

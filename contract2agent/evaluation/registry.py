@@ -101,6 +101,22 @@ def default_source_references() -> list[EvidenceSource]:
             ],
         ),
         EvidenceSource(
+            source_id="reflexion_language_agents_reference",
+            source_type="curated_research_reference",
+            title="Reflexion: Language Agents with Verbal Reinforcement Learning",
+            url="https://arxiv.org/abs/2303.11366",
+            reliability=0.2,
+            applies_to=["evaluation_methodology"],
+            notes=[
+                "Context for actor/evaluator/self-reflection loops and episodic verbal memory.",
+                "Used to shape global update guidance, not to import a benchmark result.",
+            ],
+            limitations=[
+                "No Reflexion benchmark score is assigned to a local agent profile.",
+                "The local update plan is deterministic and does not call an external API.",
+            ],
+        ),
+        EvidenceSource(
             source_id="swe_bench_reference",
             source_type="benchmark_reference",
             title="SWE-bench",

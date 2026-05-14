@@ -17,6 +17,22 @@
       ]
     },
     {
+      "source_id": "reflexion_language_agents_reference",
+      "source_type": "curated_research_reference",
+      "title": "Reflexion: Language Agents with Verbal Reinforcement Learning",
+      "url": "https://arxiv.org/abs/2303.11366",
+      "local_path": "",
+      "reliability": 0.2,
+      "applies_to": ["evaluation_methodology"],
+      "limitations": [
+        "No Reflexion benchmark score is assigned without a comparable local run.",
+        "The local update plan is deterministic and does not call an external API."
+      ],
+      "notes": [
+        "Contextual reference for actor/evaluator/self-reflection loops and episodic verbal memory."
+      ]
+    },
+    {
       "source_id": "webarena_reference",
       "source_type": "benchmark_reference",
       "title": "WebArena",

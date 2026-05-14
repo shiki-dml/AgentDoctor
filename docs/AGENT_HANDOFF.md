@@ -1,186 +1,130 @@
 # Agent Handoff
 
-Last updated: 2026-05-10
+Last updated: 2026-05-14
 
 ## Current Status
 
 - Project root: `D:\Projects\Contract2Agent`
 - Repository root from git: `D:/Projects/Contract2Agent`
-- Branch observed during this task: `codex/codex-tooling-organization`
+- Branch observed during this task: `codex/refine-cost-privacy-cleanup`
 - Shell/environment: Windows PowerShell 5.1.26100.8115
-- Current task: enrich the reading-files workflow with open-source agent and
-  paper examples, add the BLT private-learning paper example, add a new static
-  `privacy-eval` feature, validate it, call review agents, and push after
-  confirmed local validation.
-- Selected paper examples:
-  - QASPER (`https://arxiv.org/abs/2105.03011`), CC BY 4.0.
-  - LongBench (`https://aclanthology.org/2024.acl-long.172/`), CC BY 4.0
-    under ACL Anthology policy for 2016+ materials.
-- Added paper example: BLTs private-learning paper
-  (`https://arxiv.org/abs/2408.08868`), contextual paper-card metadata only.
-- Added feature: dependency-free `privacy-eval` static privacy-risk analysis
-  for agent profiles, examples, reports, CLI, docs, and tests.
-- Tests in this task: focused eval pytest passed, 69 tests; full pytest passed,
-  365 tests.
-- Build/docs gates in this task: compileall, diff whitespace check, docs link
-  check, MkDocs strict build, and harness docs validator passed.
-- Review-agent status: four read-only review agents were called. Einstein,
-  Euclid, Newton, and Aristotle review attempts timed out, were interrupted, or
-  were closed without a PASS/FAIL result; do not treat those attempts as
-  evaluator evidence.
-- Feature registry: not changed; no evaluator evidence was produced.
+- Current task: apply the Reflexion idea globally to agent evaluation and
+  repo-local agent organization, then add a minimal preview-only
+  `program-correct` command using existing agents and Patch Preview.
+- Added feature: `eval-agent` reports now include a deterministic global
+  Reflexion update plan that converts evaluator feedback, weak score
+  dimensions, missing evidence, and risk flags into next-episode verbal memory.
+- API behavior: no API call is made and no API key is required. The report
+  states that any future LLM reflector must collect credentials from an
+  environment variable or hidden session-only prompt and never persist them.
+- Agent tooling change: `.codex/config.toml` active roles were reduced to
+  `codebase_mapper`, `contract_generator`, `feature_generator`, `evaluator`,
+  `bug_reviewer`, and `handoff_writer`. Former inventory/planner/docs-specialist
+  role files remain as historical references but are not active by default.
+- Added feature: `program-correct` is a thin CLI wrapper around Patch Preview.
+  It reports the existing correction agent loop
+  `codebase_mapper -> contract_generator -> feature_generator ->
+  bug_reviewer/evaluator -> handoff_writer` and writes preview-only artifacts
+  under `.agentdoctor/program-correction/`.
+- Feature registry: not changed; no new feature was marked verified from this
+  task.
 
 ## Baseline Results
 
 | Command | Result |
 | --- | --- |
 | `git status --short` | Initial sandboxed attempt failed with `windows sandbox: setup refresh failed`; escalated retry returned clean output. |
-| `docs/AGENT_HANDOFF.md`, `docs/harness/PROGRESS.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md` | Read before edits. |
-| `.agents/skills/file-reading-eval-architect/SKILL.md` | Read and followed for file-reading eval boundaries. |
-| `.agents/skills/research-grounded-eval/SKILL.md` | Read and followed for external reference discipline. |
+| `docs/AGENT_HANDOFF.md`, `docs/harness/PROGRESS.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/PROJECT_CONTEXT.md`, `docs/GOLDEN_PRINCIPLES.md` | Read before edits. |
+| `.agents/skills/agent-eval-architect/SKILL.md` | Read and followed for global eval-framework boundaries. |
+| `.agents/skills/research-grounded-eval/SKILL.md` | Read and followed for external research/reference discipline. |
+| `.agents/skills/codex-tooling-orchestrator/SKILL.md` | Read and followed for repo-local Codex role/config changes. |
 
 ## Sources Consulted
 
-- `https://github.com/Future-House/paper-qa`
-- `https://github.com/Future-House/paper-qa/blob/main/README.md`
-- `https://github.com/Future-House/paper-qa/blob/main/pyproject.toml`
-- `https://github.com/Future-House/paper-qa/tree/main/docs`
-- `https://github.com/Future-House/paper-qa/tree/main/packages`
-- `https://github.com/Future-House/paper-qa/tree/main/src/paperqa/agents`
-- `https://github.com/Future-House/paper-qa/tree/main/src/paperqa/sources`
-- `https://github.com/Future-House/paper-qa/tree/main/tests`
-- `https://arxiv.org/abs/2105.03011`
-- `https://creativecommons.org/licenses/by/4.0/`
-- `https://aclanthology.org/2024.acl-long.172/`
-- `https://aclanthology.org/faq/copyright/`
-- `https://arxiv.org/abs/2408.08868`
-- `https://research.google/pubs/a-hassle-free-algorithm-for-private-learning-in-practice-dont-use-tree-aggregation-use-blts/`
-- `https://github.com/Privatris/AgentLeak`
-- `https://github.com/ethz-spylab/agentdojo`
-- `https://github.com/pytorch/opacus`
-- `https://github.com/opendp/opendp`
+- `https://arxiv.org/abs/2303.11366`
+- `https://github.com/noahshinn/reflexion`
 
 ## Files Updated In This Task
 
-- `contract2agent/evaluation/file_reading/references.py`
-- `contract2agent/privacy_eval/__init__.py`
-- `contract2agent/privacy_eval/analyzer.py`
-- `contract2agent/privacy_eval/cli.py`
-- `contract2agent/privacy_eval/report.py`
-- `contract2agent/privacy_eval/schema.py`
+- `.agents/skills/codex-tooling-orchestrator/SKILL.md`
+- `.codex/config.toml`
+- `AGENTS.md`
+- `README.md`
+- `contract2agent/evaluation/README.md`
+- `contract2agent/evaluation/__init__.py`
+- `contract2agent/evaluation/reflexion.py`
 - `contract2agent/cli.py`
-- `docs/file-reading-eval/README.md`
-- `docs/file-reading-eval/open-source-agent-references.md`
-- `docs/file-reading-eval/sample-run.md`
-- `docs/privacy-eval/README.md`
+- `contract2agent/README.md`
+- `contract2agent/evaluation/registry.py`
+- `contract2agent/evaluation/reports.py`
+- `contract2agent/evaluation/schema.py`
 - `docs/ARCHITECTURE.md`
 - `docs/CODEMAP.md`
-- `docs/README.md`
+- `docs/GOLDEN_PRINCIPLES.md`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/cli.md`
+- `docs/data/agent_eval/source_references.json`
 - `docs/harness/EVAL_MATRIX.md`
-- `examples/file_reading_eval/corpus/papers/qasper_paper_card.md`
-- `examples/file_reading_eval/corpus/papers/longbench_paper_card.md`
-- `examples/file_reading_eval/corpus/papers/blt_private_learning_card.md`
-- `examples/file_reading_eval/tasks/paper_tasks.jsonl`
-- `examples/file_reading_eval/README.md`
-- `examples/file_reading_eval/profiles/paperqa2_open_source_profile.json`
-- `examples/file_reading_eval/references/reference_sources.json`
-- `examples/privacy_eval/README.md`
-- `examples/privacy_eval/federated_keyboard_blt_profile.json`
-- `examples/privacy_eval/healthcare_multi_agent_privacy.json`
-- `examples/privacy_eval/rag_customer_support_privacy.json`
-- `mkdocs.yml`
-- `README.md`
-- `tests/test_file_reading_eval.py`
-- `tests/test_file_reading_docs_examples.py`
-- `tests/test_privacy_eval.py`
+- `docs/harness/README.md`
+- `examples/agent_eval/benchmark_references.json`
+- `tests/test_agent_evaluation_framework.py`
+- `tests/test_patch_preview.py`
 - `docs/AGENT_HANDOFF.md`
 - `docs/harness/PROGRESS.md`
 
 ## What Changed
 
-- Added PaperQA2 as a curated file-reading reference source with Apache-2.0
-  license metadata, provenance, applicable task families, and explicit
-  contextual-only limitations.
-- Added a PaperQA2 open-source profile fixture for profile-only analysis and
-  adapter planning.
-- Added docs that inventory the upstream repository contents and record how the
-  content should inform future file-reading task families, safety checks, and a
-  black-box adapter boundary.
-- Added MkDocs navigation for the new reference page.
-- Added tests that keep PaperQA2 metadata contextual and prevent it from
-  becoming an observed score or benchmark result.
-- Added compact, attributed paper-card corpus files for QASPER, LongBench, and
-  the BLTs private-learning paper.
-- Added `paper_tasks.jsonl` with key-value lookup, citation-required QA,
-  multi-file comparison, BLT mechanism lookup, and unanswerable abstention
-  cases.
-- Documented the paper-task import and validation workflow in the examples
-  README and file-reading sample-run guide.
-- Added the `privacy-eval` package with typed schemas, static analyzer,
-  Markdown/JSON report rendering, Typer/argparse CLI registration, curated
-  privacy reference metadata, and no production dependencies.
-- Added privacy examples for healthcare multi-agent workflow privacy,
-  federated-keyboard BLT deployment analysis, and RAG customer-support privacy.
-- Documented GitHub privacy/security-adjacent projects as contextual references
-  for feature design, not as comparable observed Contract2Agent results.
-
-## What Did Not Change
-
-- No PaperQA2 source code, dataset, benchmark output, or experiment result was
-  vendored.
-- No full paper PDF or full paper text was vendored.
-- No production dependency was added.
-- No network import path was implemented.
-- No feature was marked verified from external claims.
-- No external privacy benchmark score, attack success rate, DP claim, or
-  reference-project result was imported as a Contract2Agent score.
-- No files were reset, checked out, deleted, or renamed.
+- Added `ReflexionUpdate` and `ReflexionUpdatePlan` schemas.
+- Added `contract2agent/evaluation/reflexion.py`, a deterministic global update
+  builder. It does not call an LLM, mutate weights, execute agents, or import
+  benchmark scores.
+- Integrated the update plan into Markdown and JSON reports through
+  `ReportRenderer`.
+- Added Reflexion as contextual methodology metadata only.
+- Updated docs to describe Reflexion updates as global verbal memory, separate
+  from observed evidence, prediction, and scores.
+- Trimmed the active repo-local Codex role registry to a smaller Reflexion-like
+  loop: context mapper, contract scoper, actor, evaluator/reviewer feedback,
+  and handoff memory.
+- Added the smallest possible `program-correct` implementation: no new package,
+  no new models, and no auto-apply path. The command delegates to
+  `patch-preview` and changes only CLI routing/output defaults.
 
 ## Validation Results
 
 | Command | Result | Notes |
 | --- | --- | --- |
-| `python -m pytest tests\test_privacy_eval.py tests\test_file_reading_eval.py tests\test_file_reading_docs_examples.py tests\test_agent_evaluation_framework.py` | Passed | 69 tests passed. |
-| `python -m pytest` | Passed | 365 tests passed. |
-| `python scripts\check_docs_links.py` | Passed | Checked 65 Markdown files; all relative links resolve. |
+| `python -m py_compile contract2agent\evaluation\schema.py contract2agent\evaluation\reflexion.py contract2agent\evaluation\reports.py` | Passed | No output. |
+| `python -m pytest tests\test_agent_evaluation_framework.py` | Passed | 22 tests passed. |
+| `python -m pytest tests\test_patch_preview.py` | Passed | 27 tests passed. |
 | `python -m compileall -q contract2agent tests scripts` | Passed | No output. |
-| `python -m mkdocs build --strict` | Passed | Built docs into `site/`. |
+| `python -m py_compile contract2agent\cli.py` | Passed | No output. |
+| `python -c "import pathlib, tomllib; tomllib.loads(pathlib.Path('.codex/config.toml').read_text(encoding='utf-8')); print('toml ok')"` | Passed | Printed `toml ok`. |
+| `python scripts\check_docs_links.py` | Passed | Checked 65 Markdown files; all relative links resolve. |
 | `python scripts\harness\validate_docs.py` | Passed | Validated required docs, module READMEs, AGENTS length, and feature registry shape. |
-| `python -m contract2agent.cli file-eval list-references` | Passed | Output includes `paperqa2` as `open_source_agent_reference`. |
-| `python -m contract2agent.cli privacy-eval --profile examples/privacy_eval/healthcare_multi_agent_privacy.json --out .runs/privacy-healthcare.md` | Passed | Wrote Markdown privacy report. |
-| `python -m contract2agent.cli privacy-eval --profile examples/privacy_eval/federated_keyboard_blt_profile.json --format json --out .runs/privacy-keyboard.json` | Passed | Wrote JSON privacy report. |
-| `python -m contract2agent.cli privacy-eval --list-references` | Passed | Output includes `agentleak`, `agentdojo`, `opacus`, `opendp`, and `blt_dp_ftrl`. |
-| `python -m contract2agent.cli file-eval import-local --input examples/file_reading_eval/corpus --out .runs/paper-corpus --manifest .runs/paper-corpus/manifest.json` | Passed | Imported 12 documents, including the three paper cards. |
-| `python -m contract2agent.cli file-eval validate --corpus .runs/paper-corpus/manifest.json --tasks examples/file_reading_eval/tasks/paper_tasks.jsonl` | Passed | Validated paper task file IDs, line ranges, and quote matches. |
+| `python -m contract2agent.cli eval-agent --profile examples\agent_eval\coding_agent_profile.json --results examples\agent_eval\sample_experiment_results.json --benchmarks examples\agent_eval\benchmark_references.json --out .runs\reflexion-agent-eval.md` | Passed | Wrote an agent evaluation report with the new Reflexion section. |
+| `python -m contract2agent.cli program-correct --from-run .tmp_pytest_base\contract2agent-test-runs\patch_preview\program_correct_*\.agentdoctor\runs\latest.json --project-root .` | Passed with skipped findings | PowerShell did not expand the wildcard; command exited 0, wrote preview artifacts, and reported the missing input honestly. Artifacts were deleted after inspection. |
+| `python -m pytest` | Passed | 367 tests passed. |
+| `python -m mkdocs build --strict` | Passed | Built docs into `site/`. |
 | `git diff --check` | Passed | No whitespace errors. |
-| `git status --short` | Ran | Shows the expected modified and new files for this task. |
 
 ## Known Risks
 
-- PaperQA2 was not installed or executed locally in this task, so there is no
-  observed Contract2Agent run for it.
-- QASPER, LongBench, and BLTs are represented as compact paper cards, not full
-  papers;
-  they are enough for deterministic reading examples but not full-paper
-  ingestion coverage.
-- `privacy-eval` is static profile analysis. It does not execute AgentLeak,
-  AgentDojo, Opacus, OpenDP, DP accounting, prompt-injection attacks, or runtime
-  privacy tracing.
-- Read-only review-agent calls did not return a PASS/FAIL result; local
-  deterministic validation is the available success evidence.
-- PaperQA2 citation granularity may be document/page oriented; a future adapter
-  must map citations to Contract2Agent line spans or report the mismatch.
-- PaperQA2 can use external metadata, LLM, and embedding providers; future
-  evaluation must keep those calls explicit, configured, budgeted, and separate
-  from the dependency-free deterministic path.
-- `.runs/paper-corpus` and `site/` were generated during validation and should
-  remain ignored build/runtime artifacts.
+- The Reflexion plan is deterministic guidance only. It is not an observed
+  improvement, agent execution trace, benchmark result, or model update.
+- The upstream Reflexion project was consulted as a methodology reference only;
+  no upstream code, dataset, or result was vendored.
+- Former `.codex/agents/*.toml` role files were not physically deleted, only
+  removed from the active `.codex/config.toml` registry to preserve history.
+- `program-correct` does not repair code by itself. It creates a correction
+  plan/preview for existing agent roles and reuses Patch Preview safety rules.
+- Generated `.runs/reflexion-agent-eval.md` and `site/` are validation artifacts
+  and should remain ignored.
 
 ## Recommended Next Codex Prompt
 
 ```text
-Use the agent-eval-architect and research-grounded-eval skills. Add an
-observed-run importer for `privacy-eval` that accepts local trace artifacts and
-keeps static profile findings separate from runtime evidence. Do not import
-external benchmark scores without comparable local runs.
+Use the evaluator role. Review the Reflexion update-plan diff for evidence
+separation, API-key safety, and whether the reduced active Codex role set is
+consistent with AGENTS.md and .codex/config.toml. Do not modify files.
 ```

@@ -38,7 +38,7 @@
 
 - The repository is the source of truth for future agent sessions.
 - Work is incremental: one bounded feature, bug, or documentation unit at a time.
-- Planner, generator, evaluator, reviewer, docs, and handoff roles stay separate.
+- Mapper, contract, actor, evaluator, reviewer, and handoff-memory roles stay separate.
 - Scoped writes matter: touch only files allowed by the contract or user task.
 - Evaluators and reviewers are skeptical, evidence-based, and must cite commands or files.
 - Feature status lives in `docs/harness/feature_registry.json`.

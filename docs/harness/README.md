@@ -25,8 +25,8 @@ application behavior.
 | Doc gardener | Updates README, architecture, codemap, runbook, and docs alignment without changing product behavior. | Docs allowed by the sprint contract. |
 | Handoff writer | Summarizes current state for the next session. | `docs/AGENT_HANDOFF.md` and `docs/harness/PROGRESS.md`. |
 
-Keep planner, generator, evaluator, reviewer, docs, and handoff responsibilities
-separate. A feature generator should not quietly expand scope; an evaluator
+Keep mapper, contract, actor, evaluator, reviewer, and handoff-memory
+responsibilities separate. A feature generator should not quietly expand scope; an evaluator
 should not convert missing evidence into a pass.
 
 ## Harness Files

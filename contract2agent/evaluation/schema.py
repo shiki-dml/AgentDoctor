@@ -182,6 +182,33 @@ class OutcomePrediction:
 
 
 @dataclass
+class ReflexionUpdate:
+    update_id: str
+    trigger: str
+    reflection: str
+    next_instruction: str
+    priority: str = "medium"
+    scope: str = "global_agent_behavior"
+    evidence_sources: list[str] = field(default_factory=list)
+    applies_to: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ReflexionUpdatePlan:
+    strategy: str = "verbal_reinforcement"
+    api_required: bool = False
+    actor: str = "agent_under_evaluation"
+    evaluator: str = "contract2agent_evidence_pipeline"
+    reflector: str = "deterministic_reflexion_update_builder"
+    summary: str = ""
+    memory: list[ReflexionUpdate] = field(default_factory=list)
+    next_agent_context: list[str] = field(default_factory=list)
+    api_key_policy: str = ""
+    source_references: list[str] = field(default_factory=list)
+    limitations: list[str] = field(default_factory=list)
+
+
+@dataclass
 class EvidenceBundle:
     agent_id: str
     classification: AgentClassification
@@ -235,6 +262,7 @@ class AgentEvaluationReport:
     evidence_summary: list[EvidenceSource]
     preliminary_scores: list[PreliminaryScore]
     outcome_prediction: OutcomePrediction
+    reflexion_update_plan: ReflexionUpdatePlan
     data_sources: list[EvidenceSource]
     missing_evidence: list[str]
     limitations: list[str]

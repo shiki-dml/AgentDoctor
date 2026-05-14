@@ -29,7 +29,7 @@ evidence, not this map alone.
 
 | Module | Public behavior |
 | --- | --- |
-| `contract2agent/cli.py` | `c2a` and `agentdoctor` console entry point. Registers legacy contract commands, diagnostic modes, triage, cost estimate, patch preview, generalized agent eval, and file-eval commands. |
+| `contract2agent/cli.py` | `c2a` and `agentdoctor` console entry point. Registers legacy contract commands, diagnostic modes, triage, cost estimate, patch preview, program correction, generalized agent eval, and file-eval commands. |
 | `schema.py`, `parser.py`, `checker.py` | Contract schema loading, requirement parsing, and trace validation. |
 | `compiler.py`, `generator.py` | Demo/project generation and contract compilation from requirements. |
 | `counterexamples.py` | Deterministic counterexample trace generation. |
@@ -49,6 +49,7 @@ evidence, not this map alone.
 | `evaluation/evidence.py` | Observed, imported, reference, declared-only, and missing-evidence resolution. |
 | `evaluation/scoring.py` | Evidence-aware preliminary score dimensions. |
 | `evaluation/prediction.py` | Cautious pre-runtime outcome prediction. |
+| `evaluation/reflexion.py` | Global verbal reinforcement update plan from evaluator feedback, missing evidence, and risk flags. |
 | `evaluation/report.py`, `evaluation/reports.py` | Markdown/JSON report rendering and orchestration. |
 
 ## File-Reading Adapter Modules
@@ -76,7 +77,7 @@ Primary entry points from `pyproject.toml`:
 | Project and contract workflow | `new`, `compile`, `demo`, `check`, `check-all`, `counterexamples`, `restrictions`, `capabilities`, `diagnose`, `why` | Generate contracts/projects, validate traces, explain failures, and report capability evidence. |
 | Diagnostic modes | `quick`, `deep`, `auto` | Run bounded diagnostic workflows with review policy, confidence, reports, and optional baseline comparison. |
 | Planning and estimates | `triage`, `cost-estimate` | Static intake and estimate reports. These do not execute agents or tests. |
-| Patch analysis | `patch-preview` | Preview-only patch proposals and report/diff artifacts. |
+| Patch analysis | `patch-preview`, `program-correct` | Preview-only patch proposals, correction plans, and report/diff artifacts. |
 | General agent evaluation | `eval-agent` | Profile-based agent classification, evidence resolution, scoring, prediction, Markdown/JSON report output. |
 | File-reading evaluation | `file-eval help`, `doctor`, `init`, `import-local`, `list-references`, `import-reference`, `validate`, `build-tasks`, `run`, `profile-only`, `grade`, `compare`, `report`, `configure-llm`, `llm-check`, `judge` | Local corpus/task/run/grade/report flow with optional judge support. |
 | Privacy evaluation | `privacy-eval --profile`, `privacy-eval --list-references` | Static privacy-risk report for sensitive data flows, tool exposure, internal channels, artifacts, vector stores, and DP-training metadata. |

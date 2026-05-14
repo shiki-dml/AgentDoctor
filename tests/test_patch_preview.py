@@ -80,6 +80,37 @@ def test_patch_preview_cli_command_exists() -> None:
     assert (root / ".agentdoctor" / "patches" / "latest.md").exists()
 
 
+def test_program_correct_cli_reuses_patch_preview_and_agent_flow() -> None:
+    root = _project("program_correct")
+    _write(root / "prompts" / "system.md", "You are helpful.")
+    run_path = _write_run(
+        root,
+        [{"id": "f1", "failure_type": "OUTPUT_SCHEMA_ERROR", "description": "Invalid JSON."}],
+    )
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "contract2agent.cli",
+            "program-correct",
+            "--from-run",
+            str(run_path),
+            "--project-root",
+            str(root),
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        text=True,
+        capture_output=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "Contract2Agent Program Correction" in completed.stdout
+    assert "feature_generator" in completed.stdout
+    assert "bug_reviewer/evaluator" in completed.stdout
+    assert (root / ".agentdoctor" / "program-correction" / "latest.md").exists()
+
+
 def test_empty_findings_do_not_crash() -> None:
     root = _project("empty")
     run_path = _write_run(root, [])

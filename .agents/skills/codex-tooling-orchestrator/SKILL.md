@@ -23,7 +23,8 @@ Always preserve these boundaries:
    - Run or inspect `git status --short`.
    - Read handoff/progress and relevant codemap/architecture docs before edits.
 2. Choose the smallest role set.
-   - Use read-only roles for inventory, mapping, evaluation, and review.
+   - Use `codebase_mapper` for context gathering when local files are not enough.
+   - Use `evaluator` or `bug_reviewer` for feedback, then record durable memory through `handoff_writer`.
    - Use writer roles only under an approved bounded task or sprint contract.
 3. Choose the smallest skill set.
    - Use domain skills for evaluation architecture, file-reading evals, LLM judges, CLI UX, research evidence, or patching only when the task matches them.
@@ -37,21 +38,21 @@ Always preserve these boundaries:
 
 ## Local Role Map
 
-Use these roles as a project-scoped division of labor:
+Use the smallest active role set. The Reflexion-style loop is global: the actor
+does bounded work, evaluator/reviewer feedback becomes verbal memory, and
+handoff/progress records carry that memory into the next episode.
 
 - `codebase_mapper`: read-only repository map and ownership discovery.
-- `docs_inventory_agent`: read-only documentation inventory and stale-signal detection.
-- `feature_inventory_agent`: read-only feature candidate inventory with uncertainty preserved.
-- `test_inventory_agent`: read-only test layout, fixture, and coverage inventory.
-- `harness_planner`: read-only or planning-only harness/sprint planning.
 - `contract_generator`: writes only approved/proposed sprint contracts.
-- `feature_generator`: writes implementation/docs/tests only inside approved scope.
-- `doc_gardener`: writes approved docs only, not registry or progress by default.
-- `handoff_writer`: writes handoff/progress artifacts.
-- `bug_reviewer`: read-only correctness/regression review.
-- `evaluator`: read-only PASS / FAIL / INCONCLUSIVE / BLOCKED review.
+- `feature_generator`: actor role; writes implementation/docs/tests only inside approved scope.
+- `evaluator`: read-only PASS / FAIL / INCONCLUSIVE / BLOCKED feedback.
+- `bug_reviewer`: read-only correctness/regression feedback.
+- `handoff_writer`: repository-backed verbal memory for handoff/progress artifacts.
 
-Do not blur evaluator/reviewer/planner/writer responsibilities. A tool can help gather evidence, but it does not change the role boundary.
+Former inventory, harness-planner, and docs-specialist role files may remain as
+historical references, but they are not active by default. Do not blur
+evaluator/reviewer/actor/memory responsibilities. A tool can help gather
+evidence, but it does not change the role boundary.
 
 ## Skill Map
 

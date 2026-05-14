@@ -9,6 +9,7 @@ from contract2agent.evaluation.evidence import (
     load_source_references,
 )
 from contract2agent.evaluation.prediction import PredictionEngine
+from contract2agent.evaluation.reflexion import build_reflexion_update_plan
 from contract2agent.evaluation.registry import (
     AgentTypeRegistry,
     EvalCategoryRegistry,
@@ -40,6 +41,8 @@ from contract2agent.evaluation.schema import (
     ExperimentSummary,
     OutcomePrediction,
     PreliminaryScore,
+    ReflexionUpdate,
+    ReflexionUpdatePlan,
     ToolSurface,
     agent_profile_from_dict,
     benchmark_reference_from_dict,
@@ -76,6 +79,8 @@ __all__ = [
     "OutcomePrediction",
     "PredictionEngine",
     "PreliminaryScore",
+    "ReflexionUpdate",
+    "ReflexionUpdatePlan",
     "ReportRenderer",
     "SCORING_DIMENSIONS",
     "ScoringEngine",
@@ -85,6 +90,7 @@ __all__ = [
     "default_benchmark_references",
     "default_source_references",
     "evaluate_agent_profile",
+    "build_reflexion_update_plan",
     "evidence_source_from_dict",
     "experiment_result_from_dict",
     "experiment_summary_from_dict",

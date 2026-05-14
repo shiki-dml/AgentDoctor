@@ -330,6 +330,31 @@ def _cmd_patch_preview(
     return 0
 
 
+def _cmd_program_correct(
+    from_run: Path | None = None,
+    from_findings: Path | None = None,
+    failure_type: str | None = None,
+    output: Path | None = None,
+    output_format: str = "markdown",
+    project_root: Path = Path("."),
+) -> int:
+    if output_format.casefold() == "markdown":
+        console.print("Contract2Agent Program Correction")
+        console.print("Agent flow: codebase_mapper -> contract_generator -> feature_generator -> bug_reviewer/evaluator -> handoff_writer")
+        console.print("Mode: preview-only; no files were modified.\n")
+    return _cmd_patch_preview(
+        from_run,
+        from_findings,
+        failure_type,
+        output or Path(".agentdoctor") / "program-correction",
+        output_format,
+        True,
+        False,
+        None,
+        project_root,
+    )
+
+
 def _cmd_cost_estimate(
     from_triage: Path | None = None,
     mode: str | None = None,
@@ -1445,6 +1470,26 @@ if _HAS_TYPER:
             )
         )
 
+    @app.command(name="program-correct")
+    def program_correct_command(
+        from_run: Path | None = typer.Option(None, "--from-run", help="Path to a diagnostic run/report JSON file."),
+        from_findings: Path | None = typer.Option(None, "--from-findings", help="Path to a findings/report JSON file."),
+        failure_type: str | None = typer.Option(None, "--failure-type", help="Optional failure type filter."),
+        output: Path | None = typer.Option(None, "--output", "-o", help="Output directory."),
+        correction_format: str = typer.Option("markdown", "--format", help="Terminal output format: markdown or json."),
+        project_root: Path = typer.Option(Path("."), "--project-root", help="Project root used for safe target selection."),
+    ) -> None:
+        raise typer.Exit(
+            _cmd_program_correct(
+                from_run,
+                from_findings,
+                failure_type,
+                output,
+                correction_format,
+                project_root,
+            )
+        )
+
     @app.command()
     def counterexamples(
         contract: Path = typer.Argument(..., help="Path to agent_contract.yaml."),
@@ -1760,6 +1805,18 @@ def _main_argparse() -> int:
     patch_preview_parser.add_argument("--apply", dest="apply_patch_id")
     patch_preview_parser.add_argument("--project-root", default=Path("."), type=Path)
 
+    program_correct_parser = subparsers.add_parser("program-correct")
+    program_correct_parser.add_argument("--from-run", type=Path)
+    program_correct_parser.add_argument("--from-findings", type=Path)
+    program_correct_parser.add_argument("--failure-type")
+    program_correct_parser.add_argument("--output", "-o", type=Path)
+    program_correct_parser.add_argument(
+        "--format",
+        choices=("markdown", "json"),
+        default="markdown",
+    )
+    program_correct_parser.add_argument("--project-root", default=Path("."), type=Path)
+
     counterexamples_parser = subparsers.add_parser("counterexamples")
     counterexamples_parser.add_argument("contract", type=Path)
     counterexamples_parser.add_argument("--out", "-o", required=True, type=Path)
@@ -1916,6 +1973,15 @@ def _main_argparse() -> int:
             args.dry_run,
             args.allow_apply,
             args.apply_patch_id,
+            args.project_root,
+        )
+    if args.command == "program-correct":
+        return _cmd_program_correct(
+            args.from_run,
+            args.from_findings,
+            args.failure_type,
+            args.output,
+            args.format,
             args.project_root,
         )
     if args.command == "counterexamples":

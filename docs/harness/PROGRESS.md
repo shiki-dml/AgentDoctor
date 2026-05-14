@@ -484,3 +484,162 @@ validated corpus/task fixtures.
 Add an observed trace importer for `privacy-eval` so future work can compare
 declared privacy controls, static findings, and runtime evidence without
 collapsing those evidence types into a single unsupported score.
+
+## 2026-05-14 - Global Reflexion Update Plan And Lean Active Agents
+
+### Scope
+
+- User request: apply the idea from `Reflexion: Language Agents with Verbal
+  Reinforcement Learning` globally to agents, reduce unnecessary agents, and
+  keep code small.
+- Allowed write set used: generalized agent evaluation schemas/reports,
+  contextual reference metadata, docs, tests, repo-local Codex config/skill
+  docs, handoff/progress.
+- Out of scope: adding production dependencies, calling LLM APIs, storing API
+  keys, importing Reflexion benchmark scores, vendoring upstream code, physical
+  deletion of historical agent role files, staging, committing, resetting, or
+  marking any feature verified.
+
+### Baseline Inspection
+
+| Command | Result |
+| --- | --- |
+| `git status --short` | Initial sandboxed attempt failed with `windows sandbox: setup refresh failed`; escalated retry returned clean output. |
+| `docs/AGENT_HANDOFF.md`, `docs/harness/PROGRESS.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/PROJECT_CONTEXT.md`, `docs/GOLDEN_PRINCIPLES.md` | Read before edits. |
+| `.agents/skills/agent-eval-architect/SKILL.md` | Read and followed. |
+| `.agents/skills/research-grounded-eval/SKILL.md` | Read and followed. |
+| `.agents/skills/codex-tooling-orchestrator/SKILL.md` | Read and followed. |
+
+### External Sources Consulted
+
+- `https://arxiv.org/abs/2303.11366`
+- `https://github.com/noahshinn/reflexion`
+
+### Files Updated
+
+- `.agents/skills/codex-tooling-orchestrator/SKILL.md`
+- `.codex/config.toml`
+- `AGENTS.md`
+- `README.md`
+- `contract2agent/evaluation/README.md`
+- `contract2agent/evaluation/__init__.py`
+- `contract2agent/evaluation/reflexion.py`
+- `contract2agent/evaluation/registry.py`
+- `contract2agent/evaluation/reports.py`
+- `contract2agent/evaluation/schema.py`
+- `docs/ARCHITECTURE.md`
+- `docs/CODEMAP.md`
+- `docs/GOLDEN_PRINCIPLES.md`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/data/agent_eval/source_references.json`
+- `docs/harness/EVAL_MATRIX.md`
+- `docs/harness/README.md`
+- `examples/agent_eval/benchmark_references.json`
+- `tests/test_agent_evaluation_framework.py`
+- `docs/AGENT_HANDOFF.md`
+- `docs/harness/PROGRESS.md`
+
+### What Changed
+
+- Added `ReflexionUpdate` and `ReflexionUpdatePlan` schemas.
+- Added `contract2agent/evaluation/reflexion.py`, which deterministically turns
+  evaluator feedback into global next-episode verbal memory.
+- Integrated the plan into `eval-agent` Markdown and JSON reports.
+- Added Reflexion as contextual methodology metadata only; no score or observed
+  run claim is imported.
+- Trimmed the active `.codex/config.toml` agent registry to
+  `codebase_mapper`, `contract_generator`, `feature_generator`, `evaluator`,
+  `bug_reviewer`, and `handoff_writer`.
+- Left former inventory/planner/docs-specialist role files in place as
+  historical references but not active by default.
+
+### Validation Log
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `python -m py_compile contract2agent\evaluation\schema.py contract2agent\evaluation\reflexion.py contract2agent\evaluation\reports.py` | Passed | No output. |
+| `python -m pytest tests\test_agent_evaluation_framework.py` | Passed | 22 tests passed. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | No output. |
+| `python -c "import pathlib, tomllib; tomllib.loads(pathlib.Path('.codex/config.toml').read_text(encoding='utf-8')); print('toml ok')"` | Passed | Printed `toml ok`. |
+| `python scripts\check_docs_links.py` | Passed | Checked 65 Markdown files; all relative links resolve. |
+| `python scripts\harness\validate_docs.py` | Passed | Validated required docs, module READMEs, AGENTS length, and feature registry shape. |
+| `python -m contract2agent.cli eval-agent --profile examples\agent_eval\coding_agent_profile.json --results examples\agent_eval\sample_experiment_results.json --benchmarks examples\agent_eval\benchmark_references.json --out .runs\reflexion-agent-eval.md` | Passed | Wrote a report containing `## Global Reflexion Update Plan`. |
+| `python -m pytest` | Passed | 366 tests passed. |
+| `python -m mkdocs build --strict` | Passed | Built docs into `site/`. |
+| `git diff --check` | Passed | No whitespace errors. |
+
+### Risks And Blockers
+
+- The Reflexion plan is global verbal guidance only; it does not prove runtime
+  improvement or update model weights.
+- No API path was added. A future LLM reflector must use user-supplied
+  credentials from an environment variable or hidden session-only input.
+- The upstream Reflexion project was used as methodology context only; no
+  upstream code, benchmark result, or dataset was vendored.
+- `.runs/reflexion-agent-eval.md` and `site/` were produced during validation
+  and should remain ignored build/runtime artifacts.
+
+### Next Step
+
+Run a read-only evaluator pass on the Reflexion update-plan diff and the reduced
+active `.codex/config.toml` role registry before any feature-registry status
+change.
+
+## 2026-05-14 - Minimal Program Correction Command
+
+### Scope
+
+- User request: add a program correction feature using existing agents/skills,
+  while controlling code size.
+- Implementation choice: add `c2a program-correct` as a thin wrapper around
+  existing Patch Preview. It uses the active agent loop in the output but does
+  not add new models, a new package, dependencies, or an auto-apply path.
+- Out of scope: executing repairs, applying diffs, calling LLM APIs, creating a
+  temporary custom agent/skill, staging, committing, or marking a feature
+  verified.
+
+### Files Updated
+
+- `contract2agent/cli.py`
+- `tests/test_patch_preview.py`
+- `README.md`
+- `contract2agent/README.md`
+- `docs/cli.md`
+- `docs/ARCHITECTURE.md`
+- `docs/CODEMAP.md`
+- `docs/harness/EVAL_MATRIX.md`
+- `docs/AGENT_HANDOFF.md`
+- `docs/harness/PROGRESS.md`
+
+### What Changed
+
+- Added `program-correct` to Typer and argparse CLI paths.
+- The command delegates to `run_patch_preview` with output default
+  `.agentdoctor/program-correction/`, `dry_run=True`, and no apply path.
+- Markdown terminal output names the existing correction loop:
+  `codebase_mapper -> contract_generator -> feature_generator ->
+  bug_reviewer/evaluator -> handoff_writer`.
+- Added a focused CLI regression test proving the command writes preview
+  artifacts and exposes the agent flow.
+
+### Validation Log
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `python -m pytest tests\test_patch_preview.py` | Passed | 27 tests passed. |
+| `python -m py_compile contract2agent\cli.py` | Passed | No output. |
+| `python -m pytest` | Passed | 367 tests passed. |
+| `python -m compileall -q contract2agent tests scripts` | Passed | No output. |
+| `python -m mkdocs build --strict` | Passed | Built docs into `site/`. |
+| `git diff --check` | Passed | No whitespace errors. |
+| `python scripts\check_docs_links.py` | Passed | Checked 65 Markdown files; all relative links resolve. |
+| `python scripts\harness\validate_docs.py` | Passed | Validated required docs, module READMEs, AGENTS length, and feature registry shape. |
+| `python -m contract2agent.cli program-correct --from-run .tmp_pytest_base\contract2agent-test-runs\patch_preview\program_correct_*\.agentdoctor\runs\latest.json --project-root .` | Passed with skipped findings | PowerShell did not expand the wildcard; the command exited 0 and reported the missing input honestly. Generated `.agentdoctor/` artifacts were removed after inspection. |
+
+### Risks And Blockers
+
+- This is preview-only program correction. It plans and routes correction work;
+  it does not edit source files.
+- The command inherits Patch Preview safety and target-selection behavior.
+- A real correction run still needs actual findings from `quick`, `deep`,
+  `auto`, or a supplied findings JSON.

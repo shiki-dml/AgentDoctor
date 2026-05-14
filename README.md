@@ -32,6 +32,7 @@ Evaluation-first design keeps those evidence levels separate instead of collapsi
 - `Reference evidence`: benchmark or methodology references used to design eval categories.
 - `Prediction`: a cautious estimate based on evidence strength, type fit, risk, and missing evidence.
 - `Missing evidence`: what must be collected before a stronger claim is justified.
+- `Reflexion update`: global verbal memory for the next agent episode, derived from evaluator feedback rather than model weight updates.
 
 The framework reports preliminary score dimensions such as capability fit, evidence strength, tool risk, autonomy risk, task clarity, approval safety, data-access risk, expected reliability, and missing-evidence penalty. It avoids one opaque score.
 
@@ -42,6 +43,7 @@ The framework reports preliminary score dimensions such as capability fit, evide
 | Input and signals | **Agent profile**<br>Tools, permissions, sample tasks | **Normalize profile**<br>`schema.py` | **Extract capability signals**<br>Tools and task cues |
 | Classification and evidence | **Classify broad agent type**<br>Non-name signals | **Resolve evidence**<br>Observed, reference, missing | **Select eval categories**<br>Broad next-test areas |
 | Score and explain | **Build preliminary scorecard**<br>Fit, risk, confidence | **Predict likely outcome**<br>Cautious estimate | **Explainable report**<br>Markdown / JSON |
+| Global update | **Use evaluator feedback**<br>Missing evidence and risk | **Build verbal memory**<br>Reflexion-style updates | **Guide next episode**<br>No API required |
 
 Core Python modules live under `contract2agent/evaluation/`:
 
@@ -51,6 +53,7 @@ Core Python modules live under `contract2agent/evaluation/`:
 - `evidence.py`: local evidence and source-reference resolution.
 - `scoring.py`: preliminary evidence-aware score dimensions.
 - `prediction.py`: cautious outcome estimates.
+- `reflexion.py`: global verbal reinforcement update plan for the next agent episode.
 - `reports.py` / `report.py`: Markdown and JSON report rendering.
 - `file_reading/`: specialized `file_reading_agent` adapter with local corpus import, task JSONL loading/generation, black-box CLI runs, deterministic graders, reference comparison, and Markdown/JSON reports.
 - `privacy_eval/`: static privacy-risk evaluator for agent data flows, internal channels, tools, logs, artifacts, vector stores, and private-training metadata.
@@ -196,6 +199,7 @@ Existing local diagnosis commands remain available:
 c2a --help
 c2a file-eval --help
 c2a privacy-eval --help
+c2a program-correct --help
 c2a demo
 c2a check
 c2a check-all --diagnose
@@ -213,6 +217,22 @@ c2a eval-agent \
   --benchmarks examples/agent_eval/benchmark_references.json \
   --out reports/agent_eval.md
 ```
+
+`eval-agent` reports include a global Reflexion-style update plan. It converts
+missing evidence, low score dimensions, and risk flags into next-episode verbal
+instructions. The default implementation is deterministic and requires no API
+key; any future LLM reflector must use user-supplied credentials only.
+
+Program correction command:
+
+```bash
+c2a program-correct --from-run reports/latest.json
+```
+
+`program-correct` reuses Patch Preview and the active agent loop
+(`codebase_mapper`, `contract_generator`, `feature_generator`,
+`bug_reviewer`/`evaluator`, `handoff_writer`) to produce a preview-only
+correction plan. It does not edit source files.
 
 Package identity:
 

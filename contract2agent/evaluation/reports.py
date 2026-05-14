@@ -3,6 +3,7 @@ from __future__ import annotations
 from contract2agent.evaluation.capability_classifier import CapabilityClassifier
 from contract2agent.evaluation.evidence import EvidenceResolver
 from contract2agent.evaluation.prediction import PredictionEngine
+from contract2agent.evaluation.reflexion import build_reflexion_update_plan
 from contract2agent.evaluation.registry import EvalCategoryRegistry
 from contract2agent.evaluation.schema import (
     AgentEvaluationReport,
@@ -25,6 +26,7 @@ class ReportRenderer:
         scorecard: AgentScorecard,
         prediction: OutcomePrediction,
     ) -> dict:
+        reflexion_plan = build_reflexion_update_plan(profile, evidence, scorecard, prediction)
         return {
             "agent_profile": to_dict(profile),
             "classification": to_dict(evidence.classification),
@@ -33,6 +35,7 @@ class ReportRenderer:
             "evidence_summary": to_dict(evidence.data_sources),
             "preliminary_scores": to_dict(scorecard.preliminary_scores),
             "outcome_prediction": to_dict(prediction),
+            "reflexion_update_plan": to_dict(reflexion_plan),
             "data_sources": to_dict(evidence.data_sources),
             "missing_evidence": sorted(set([*evidence.missing_evidence, *scorecard.missing_evidence])),
             "limitations": self._limitations(evidence, scorecard, prediction),
@@ -45,6 +48,7 @@ class ReportRenderer:
         scorecard: AgentScorecard,
         prediction: OutcomePrediction,
     ) -> str:
+        reflexion_plan = build_reflexion_update_plan(profile, evidence, scorecard, prediction)
         lines: list[str] = [
             "# Agent Evaluation Report",
             "",
@@ -109,6 +113,18 @@ class ReportRenderer:
         lines.extend(f"- Evidence basis: {basis}" for basis in prediction.evidence_basis)
         lines.append("")
 
+        lines.append("## Global Reflexion Update Plan")
+        lines.append(f"- Strategy: {reflexion_plan.strategy}")
+        lines.append(f"- API required: {str(reflexion_plan.api_required).lower()}")
+        lines.append(f"- Summary: {reflexion_plan.summary}")
+        lines.append(f"- API key policy: {reflexion_plan.api_key_policy}")
+        for update in reflexion_plan.memory:
+            lines.append(f"- `{update.update_id}` ({update.priority}, {update.scope})")
+            lines.append(f"  - Trigger: {update.trigger}")
+            lines.append(f"  - Reflection: {update.reflection}")
+            lines.append(f"  - Next instruction: {update.next_instruction}")
+        lines.append("")
+
         lines.append("## Evidence Basis")
         for source in evidence.data_sources:
             location = f" ({source.url})" if source.url else ""
@@ -141,6 +157,7 @@ class ReportRenderer:
     ) -> AgentEvaluationReport:
         report_json = self.to_dict(profile, evidence, scorecard, prediction)
         report_markdown = self.render_markdown(profile, evidence, scorecard, prediction)
+        reflexion_plan = build_reflexion_update_plan(profile, evidence, scorecard, prediction)
         return AgentEvaluationReport(
             agent_profile=profile,
             classification=evidence.classification,
@@ -149,6 +166,7 @@ class ReportRenderer:
             evidence_summary=evidence.data_sources,
             preliminary_scores=scorecard.preliminary_scores,
             outcome_prediction=prediction,
+            reflexion_update_plan=reflexion_plan,
             data_sources=evidence.data_sources,
             missing_evidence=report_json["missing_evidence"],
             limitations=report_json["limitations"],

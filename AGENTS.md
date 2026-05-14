@@ -76,13 +76,17 @@ pytest remained missing, so runtime validation is not proven in that environment
 
 ## Agent Roles
 
-- `codebase_mapper`, `test_inventory_agent`, `docs_inventory_agent`, `feature_inventory_agent`, and `harness_planner` are read-only.
+Use the smallest active role set and treat evaluator feedback plus
+handoff/progress records as the repository-backed verbal memory for the next
+agent episode.
+
+- `codebase_mapper` is read-only and maps source, docs, tests, and ownership when fresh context is needed.
 - `contract_generator` writes only approved/proposed sprint contracts, normally under `docs/harness/sprints/<id>/contract.md`.
+- `feature_generator` is the actor role and modifies implementation/docs/tests only under an approved sprint contract and only inside allowed files.
 - `evaluator` is read-only, gives PASS / FAIL / INCONCLUSIVE / BLOCKED, and must not fix issues; only evaluator evidence can justify verified claims.
 - `bug_reviewer` is read-only, reports correctness/regression risks, and must not fix issues.
-- `doc_gardener` writes approved docs/README/CODEMAP/ARCHITECTURE docs only; it must not edit feature registry, sprint contracts, handoff, or progress unless a specific approved task says so.
 - `handoff_writer` writes only handoff/progress artifacts such as `docs/AGENT_HANDOFF.md` and `docs/harness/PROGRESS.md`.
-- `feature_generator` modifies implementation/docs/tests only under an approved sprint contract and only inside allowed files.
+- Former inventory, planner, and docs-specialist roles are not active by default; use the role above that matches the current bounded task.
 - No agent may mark features verified or sprints complete without explicit evaluator evidence.
 
 ## Handoff And Progress
